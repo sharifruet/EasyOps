@@ -902,10 +902,37 @@ This document defines the core financial accounting capabilities of EasyOps acro
   - Result: P&L reflects expense in Jan; liability reversed in Feb automatically
 
 ### B. Glossary (selected)
+- GL: General Ledger (account-level transaction history and balances)
 - CoA: Chart of Accounts (hierarchical structure of GL accounts)
 - Control Account: GL account representing subledger totals (e.g., AR/AP)
-- Revaluation: Period-end FX adjustment of monetary balances
-- GR/IR: Goods Received/Invoice Received clearing account
+- Suspense Account: Temporary holding account for unmatched or unclear transactions
+- GR/IR: Goods Received/Invoice Received clearing account for PO goods vs bills
+- Normal Balance: Expected balance side for an account (Debit or Credit)
+- Functional Currency: Company’s base currency used for posting and reporting
+- Reporting Currency: Optional group currency used for consolidated reporting
+- Transaction Currency: Currency in which a transaction is denominated
+- Monetary vs Non-Monetary: Monetary items are cash/receivables/payables; non-monetary are inventory, fixed assets
+- Revaluation: Period-end FX adjustment of monetary balances using closing rate
+- Realized FX: Gain/loss recognized when a foreign-currency item is settled
+- Unrealized FX: Gain/loss from revaluing open foreign-currency balances at period end
+- Accrual: Expense or revenue recognized before cash is paid/received
+- Provision: Estimated liability of uncertain timing or amount (e.g., warranty)
+- Voucher: A journal document identified by a sequence/number
+- Period Lock: State in which postings to a period are restricted or blocked
+- Soft/Hard Lock: Soft warns but allows by exception; hard fully blocks postings
+- Maker-Checker: Approval control where creator and approver are different users
+- SoD (Segregation of Duties): Control preventing conflicting responsibilities
+- CTA: Cumulative Translation Adjustment in consolidation
+- TB: Trial Balance (summary of account balances)
+- YTD/TTM: Year-to-Date / Trailing Twelve Months
+- COGS: Cost of Goods Sold
+- Intercompany: Transactions between related legal entities in a group
+- Elimination: Removal of intercompany effects in consolidated reporting
+- Reversal: Automatic or manual journal that negates a prior entry
+- Reclass: Journal that moves amounts between accounts without changing totals
+- Write-off: Recognition of an amount as uncollectible or no longer an asset
+- Idempotency: Property ensuring repeated API calls don’t create duplicates
+- Correlation ID: Identifier linking related events/entries across systems
 
 ### C. References
 - See `Module-Accounting/taxation_compliance.md`

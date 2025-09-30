@@ -1,5 +1,9 @@
 # 📦 Full Feature List of Inventory Management System  
 
+Purpose: This document summarizes the end-to-end capabilities of EasyOps Inventory across product/catalog, stock, warehouses, purchasing, sales/fulfillment, reporting, automation, finance hooks, security, mobility/IoT, and enterprise features. Use it as a high-level index; detailed specs live in the linked module files.
+
+Module map: Core Features; Purchasing & Supplier; Sales & Customer; Warehouse & Logistics; Reporting & Analytics; Advanced & Automation; Finance & Payment; Security & Compliance; Mobility & IoT; Enterprise Features.
+
 ## 🔹 1. Core Inventory Features
 
 - Product Catalog (SKU, barcode, category, description, price)  

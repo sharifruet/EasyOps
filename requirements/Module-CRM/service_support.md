@@ -1,13 +1,24 @@
 # CRM: Service & Support
 
-## Problem Statement
+## Table of Contents
+- Purpose
+- Roles & Permissions
+- Data Model
+- Core Flows
+- Validations & Rules
+- Integrations & Events
+- Reports & KPIs
+- Edge Cases
+- Appendix
+
+## Purpose
 Provide post-sales support through case management and knowledge base to improve CSAT.
 
-## User Roles & Permissions
+## Roles & Permissions
 - Agent: create/update cases; use knowledge base
 - Supervisor: assign cases; manage SLAs; approvals
 
-## Entities & Fields
+## Data Model
 - Case/Ticket
   - Subject, Description, Priority, Severity, Status, SLA Plan
   - Account/Contact, Product, Serial/Asset, Channel, Attachments
@@ -20,8 +31,9 @@ Provide post-sales support through case management and knowledge base to improve
 3. Escalations, approvals, and problem/bug linkage
 4. Resolution and CSAT survey; closure with root-cause
 
-## Validations & Business Rules
+## Validations & Rules
 - SLA timers; required fields by severity; entitlement checks
+- Escalation matrix by priority/breach; holiday calendars
 
 ## Integrations & Events
 - Email-to-case; chat; bug tracker; RMA with Inventory
@@ -32,3 +44,7 @@ Provide post-sales support through case management and knowledge base to improve
 
 ## Edge Cases
 - Major incident handling; multi-party communications
+
+## Appendix
+- Priority-to-SLA example: P1 → first response 15m, resolution 4h; P2 → 1h/8h; P3 → 4h/2d
+- Entitlement example: Bronze plan excludes on-site support; Gold includes 24/7 phone

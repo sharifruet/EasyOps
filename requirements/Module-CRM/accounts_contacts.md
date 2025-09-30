@@ -1,13 +1,24 @@
 # CRM: Accounts & Contacts
 
-## Problem Statement
+## Table of Contents
+- Purpose
+- Roles & Permissions
+- Data Model
+- Core Flows
+- Validations & Rules
+- Integrations & Events
+- Reports & KPIs
+- Edge Cases
+- Appendix
+
+## Purpose
 Maintain a clean master of organizations (accounts) and people (contacts) for 360° customer view.
 
-## User Roles & Permissions
+## Roles & Permissions
 - Sales/Support: create/update contacts; link to accounts
 - Manager: merge duplicates; manage ownership and territories
 
-## Entities & Fields
+## Data Model
 - Account
   - Name, Type (Customer/Prospect/Partner/Vendor), Industry, Size, Tax IDs
   - Billing/Shipping addresses, Payment Terms, Currency, Branch/Region
@@ -21,9 +32,10 @@ Maintain a clean master of organizations (accounts) and people (contacts) for 36
 3. Merge duplicates with audit trail
 4. Lifecycle status (prospect → active → inactive) with reasons
 
-## Validations & Business Rules
+## Validations & Rules
 - Unique constraints (tax ID per region; email per contact)
 - Territory reassignment when region changes
+- Merge governance: only managers can merge; retain oldest IDs; keep activity history
 
 ## Integrations & Events
 - Sync with ERP customers/vendors; email/calendar sync
@@ -35,3 +47,7 @@ Maintain a clean master of organizations (accounts) and people (contacts) for 36
 ## Edge Cases
 - Multi-branch accounts with multiple shipping addresses
 - Contact working across multiple accounts (consultants)
+
+## Appendix
+- Merge policy example: match threshold > 90% on name + tax id → auto-suggest; manual review required
+- Territory rule example: region=North & industry=Retail → owner group "North Retail"

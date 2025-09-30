@@ -1,94 +1,99 @@
-## 🔹 9. Reporting & Dashboards – Full Breakdown
+## 🔹 Reporting & Dashboards – Detailed Requirements
 
-### 1. Real-Time Financial Dashboard
-**Fields:**
-- Current Cash & Bank Balance
-- Receivables & Payables
-- Revenue & Expenses
-- Profit & Loss Summary
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Report Catalog (Accounting)
+- 3. Filters, Layouts, and Drill-Down
+- 4. Dashboards & KPIs
+- 5. Budget vs Actuals
+- 6. Scheduling & Distribution
+- 7. Security & Governance
+- 8. Performance & Data Quality
+- 9. Exports & Integrations
 
-**Features:**
-- Real-Time Data Updates
-- Visual Charts & Graphs
-- Customizable Widgets
-- Drill-Down to Transaction Level
+---
 
-### 2. Custom Financial Reports
-**Fields:**
-- Report Type (P&L, Balance Sheet, Cash Flow, etc.)
-- Filters (Branch, Category, Time Period)
-- Data Columns
-- Export Format
+### 1. Purpose & Scope
+- Provide fast, flexible reporting and dashboards for GL and subledgers with drill-down and scheduling
+- In-scope: standard financials, operational reports, KPIs, custom layouts, security, and exports
 
-**Features:**
-- User-Defined Reports
-- Filter & Sort Options
-- Export to PDF / Excel
-- Save Custom Report Templates
+---
 
-### 3. Profit Center & Cost Center Tracking
-**Fields:**
-- Center ID / Name
-- Transaction Amounts
-- Period
-- GL Accounts
+### 2. Report Catalog (Accounting)
+- Financials
+  - General Ledger, Trial Balance, Profit & Loss, Balance Sheet, Cash Flow
+- Subledger/Operational
+  - AR/AP Aging (summary/detail), Bank Reconciliation Summary/Detail, GR/IR Analysis
+  - Payment Batches, Unapplied Advances, Credit/Debit Note Registers
+- Management
+  - Trend/TTM, Dimension Cubes (Branch/Department/Cost Center/Project), Variance (Actual vs Budget)
 
-**Features:**
-- Profit & Loss per Center
-- Comparison Across Centers
-- Integration with Accounting & GL Modules
-- Dashboard Widgets for Monitoring
+---
 
-### 4. Budget vs Actual Reports
-**Fields:**
-- Budgeted Amount
-- Actual Spend / Revenue
-- Variance
-- Period / Department / Branch
+### 3. Filters, Layouts, and Drill-Down
+- Filters
+  - Company/Branch, Period/Date Range, Account(s)/Ranges, Dimensions, Currency
+- Layouts
+  - Save custom column sets, groupings, sorting; share with roles/teams
+- Drill-Down
+  - Report → Account/Line → Ledger → Voucher → Source Document
+  - Back navigation, breadcrumbs, and export at each level
 
-**Features:**
-- Automatic Variance Calculation
-- Graphical Comparison Charts
-- Alerts for Budget Overrun
-- Drill-Down to Transaction Level
+---
 
-### 5. KPI Monitoring
-**Fields:**
-- KPI Name (Gross Margin, Net Profit, etc.)
-- Target Value
-- Actual Value
-- Period
+### 4. Dashboards & KPIs
+- Dashboards
+  - Customizable widgets (financial summaries, trends, exceptions); role-based presets
+- KPIs
+  - Built-in: Gross Margin, Net Profit, DSO/DPO, Cash Coverage Days, Auto-Match %
+  - Custom KPI builder: formula fields across report outputs
+- Alerts
+  - Threshold breaches; trend anomalies; scheduled digests
 
-**Features:**
-- Visual KPI Dashboard
-- Trend Analysis
-- Custom KPI Definitions
-- Alerts on KPI Breaches
+---
 
-### 6. Export Reports to PDF/Excel
-**Fields:**
-- Report Name
-- Format (PDF / Excel)
-- Date Range
-- Filters Applied
+### 5. Budget vs Actuals
+- Setup
+  - Import budgets by account/dimension/period; versioning
+- Reports
+  - Variance (absolute, %), drill to underlying entries; comments/justifications
+- Controls
+  - Optional posting blocks or warnings when breaching budget (by module)
 
-**Features:**
-- One-Click Export
-- Multiple Format Support
-- Include Charts & Tables
-- Scheduled Exports
+---
 
-### 7. Drill-Down Reports from GL
-**Fields:**
-- GL Account Number
-- Transaction ID
-- Date
-- Amount
-- Narration
+### 6. Scheduling & Distribution
+- Scheduling
+  - One-off or recurring deliveries; time zone aware; retry on failure
+- Distribution
+  - Email with attachments/links; SFTP/file drop; in-app notifications
+- Audit
+  - Delivery logs; recipient read flags (where supported)
 
-**Features:**
-- Detailed Transaction View
-- Filter by Account / Period / Branch
-- Link to Source Documents
-- Integration with Financial Dashboard
+---
+
+### 7. Security & Governance
+- Security
+  - Row-level security by branch/company; column masking for sensitive accounts
+- Governance
+  - Report definition versioning; approval for shared/official reports
+  - Data dictionary and lineage; change log for calculated fields
+
+---
+
+### 8. Performance & Data Quality
+- Performance
+  - Server-side aggregation; pagination/streaming for large results; caching frequent views
+- Data Quality
+  - As-of reporting; snapshot at close; change impact indicators for backdated entries
+
+---
+
+### 9. Exports & Integrations
+- Exports
+  - CSV/Excel/PDF with consistent formatting; print-friendly layouts
+- Integrations
+  - API access to reports with filters; webhooks for scheduled completion; BI connectors
+
+---
 

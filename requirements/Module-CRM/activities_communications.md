@@ -1,13 +1,24 @@
 # CRM: Activities & Communications
 
-## Problem Statement
+## Table of Contents
+- Purpose
+- Roles & Permissions
+- Data Model
+- Core Flows
+- Validations & Rules
+- Integrations & Events
+- Reports & KPIs
+- Edge Cases
+- Appendix
+
+## Purpose
 Plan, execute, and track all interactions with customers across channels.
 
-## User Roles & Permissions
+## Roles & Permissions
 - All CRM users: create/view activities on owned accounts
 - Managers: view team calendars; reassign tasks
 
-## Entities & Fields
+## Data Model
 - Activity/Task
   - Type (call/email/meeting/task), Subject, Description, Start/End, Due Date
   - Owner, Priority, Status, Outcome, Next Action, Attachments
@@ -20,7 +31,7 @@ Plan, execute, and track all interactions with customers across channels.
 3. Update outcomes; create follow-up tasks
 4. Calendar view; team capacity planning
 
-## Validations & Business Rules
+## Validations & Rules
 - Overdue escalation; required outcome on completion
 - Visibility by account/team; private notes
 
@@ -33,3 +44,7 @@ Plan, execute, and track all interactions with customers across channels.
 
 ## Edge Cases
 - Timezone handling for meetings; recurring tasks exceptions
+
+## Appendix
+- SLA example: first response within 2 business hours for high-priority leads
+- Reminder policy: meeting reminders at T-24h and T-1h; calls at T-15m

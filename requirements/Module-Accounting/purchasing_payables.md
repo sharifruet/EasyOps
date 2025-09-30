@@ -1,217 +1,155 @@
 
-# 🔹 3. Purchasing & Payables – Full Breakdown  
+# 🔹 Purchasing & Payables – Detailed Requirements
 
-## 1. **Supplier Bills / Invoices Recording**
-- **Fields**
-  - Bill/Invoice No. (Manual/Auto)
-  - Bill Date
-  - Supplier Name & Code
-  - Supplier Address & Contact
-  - Currency
-  - Purchase Order Reference (if linked)
-  - Item/Service Details (Description, Quantity, Rate, Tax, Discount)
-  - Subtotal, Tax, Grand Total
-  - Payment Terms (Credit Days, Due Date)
-  - Notes/Terms
-  - Department/Branch/Cost Center
-- **Features**
-  - Draft, Approved, Posted Status
-  - Attachment (Supplier Invoice Copy, PO, Contract)
-  - Recurring Bills
-  - Integration with Inventory (for goods receipt)
+## Table of Contents
+- 1. Purpose & Scope
+- 2. Data Model & Mappings
+- 3. Supplier Bills/Invoices
+- 4. Credit Notes/Debit Notes & Returns
+- 5. Approvals & Three-Way Match
+- 6. Payables Aging & Statements
+- 7. Payment Planning & Execution
+- 8. Advances & Prepayments
+- 9. Partial Payments & Adjustments
+- 10. Multi-Currency & Branch Handling
+- 11. Integrations & APIs
+- 12. Reports & KPIs
+- 13. Validations & Edge Cases
 
 ---
 
-## 2. **Payment Scheduling (Based on Due Dates)**
-- **Fields**
-  - Supplier Name
-  - Invoice Reference
-  - Due Date
-  - Amount Due
-  - Priority Level
-- **Features**
-  - Automated Payment Calendar
-  - Alerts for Upcoming Due Dates
-  - Cash Flow Forecast Integration
-  - Batch Payment Scheduling
+## 1. Purpose & Scope
+- Manage supplier obligations from invoice capture to settlement with controls, visibility, and accurate GL postings
+- In-scope: invoices/bills, returns/notes, matching, approvals, aging, payments, advances, and reconciliations
+- Out-of-scope: procurement negotiation and receiving logic (covered in Procurement/Inventory), but linked
 
 ---
 
-## 3. **Supplier Account Statements**
-- **Fields**
-  - Opening Balance
-  - Bills Received
-  - Payments Made
-  - Adjustments (Debit/Credit Notes)
-  - Closing Balance
-- **Features**
-  - Supplier-Wise Statement by Period
-  - Multi-Currency Statement
-  - Export & Email to Supplier
-  - Consolidated vs Branch-Wise Statement
+## 2. Data Model & Mappings
+- Entities
+  - Supplier: Code, Name, Addresses, Contacts, Payment Terms, Credit Limit, Default Currency, Tax IDs, Withholding profile
+  - Bill/Invoice: Number, Dates (bill, due), Supplier, PO/GRN links, Lines (item/service, qty, rate, tax, discount), Currency, Dimensions
+  - Credit/Debit Note: Reference to bill/PO/GRN, reason, amounts
+  - Payment: Mode, Bank/Cash, Amount, Date, References (bills/notes), Batch Id
+  - Advance/Prepayment: Supplier, amount, date, application status
+- GL Mappings
+  - AP Control Account (per supplier group or company)
+  - Expense/Inventory accounts by line type; Tax payable; Withholding payable
+  - Gain/Loss FX accounts; Payment/Clearing accounts (for batches)
+  - Dimensions: Branch, Department, Cost Center, Project
 
 ---
 
-## 4. **Payables Aging Reports**
-- **Time Buckets**
-  - 0–30 Days
-  - 31–60 Days
-  - 61–90 Days
-  - 91+ Days
-- **Fields**
-  - Supplier Name
-  - Invoice No.
-  - Invoice Date
-  - Due Date
-  - Outstanding Amount
-- **Features**
-  - Supplier-Wise & Department-Wise Aging
-  - Export to Excel/PDF
-  - Cash Flow Risk Analysis
+## 3. Supplier Bills/Invoices
+- Capture
+  - Modes: manual entry, OCR/import, PO flip (from approved PO + GRN), API
+  - Fields: Bill No (unique per supplier), Bill Date, Due Date/Terms, Currency, Exchange Rate, Attachments
+  - Lines: item/service, qty, rate, discount, tax codes, dimensions
+- Posting
+  - Dr Expense/Inventory/Asset; Dr Tax Input (if applicable); Cr AP Control (by supplier)
+  - Multi-currency: book transaction currency and functional amounts; lock document rate when required
+- Statuses
+  - Draft → Submitted → Approved → Posted → Partially Paid → Settled → Cancelled/Void (with audit)
 
 ---
 
-## 5. **Debit Notes & Purchase Returns Accounting**
-- **Fields**
-  - Debit Note No.
-  - Supplier Name
-  - Invoice Reference
-  - Returned Item Details (Product, Quantity, Rate, Tax)
-  - Return Amount
-  - Reason / Notes
-- **Features**
-  - Automatic GL Posting
-  - Adjustment Against Payables
-  - Tracking of Returned Items
-  - Integration with Inventory (Stock Return)
+## 4. Credit Notes/Debit Notes & Returns
+- Credit Notes (supplier issued)
+  - Reduce liability: Dr AP Control; Cr Expense/Inventory/Tax as applicable
+  - Reference to bill(s); reason codes; attachments
+- Debit Notes (buyer issued for returns/short receipt)
+  - Same effect on liability; integration with Inventory for stock returns
+- Application
+  - Apply to open bills; allow partial application; track unapplied credits
 
 ---
 
-## 6. **Partial Payments Handling**
-- **Fields**
-  - Supplier Name
-  - Invoice Reference
-  - Total Payable
-  - Partial Amount Paid
-  - Remaining Balance
-  - Payment Mode (Cash, Bank, Cheque, Digital)
-- **Features**
-  - Support Multiple Payments per Invoice
-  - Auto-Adjustment in Supplier Ledger
-  - Payment Status (Pending, Partial, Settled)
+## 5. Approvals & Three-Way Match
+- Matching
+  - 2-way: PO ↔ Invoice (price/qty within tolerance)
+  - 3-way: PO ↔ GRN ↔ Invoice (qty received vs billed; price variances)
+  - Exceptions routed to approvers with reason capture
+- Approvals
+  - Thresholds by amount/supplier/category; multi-level approvals; SoD enforcement
+- Holds
+  - Payment hold on unmatched/exception invoices until resolved
 
 ---
 
-## 7. **Advance Payment to Suppliers**
-- **Fields**
-  - Supplier Name
-  - Advance Amount
-  - Payment Method
-  - Reference No.
-  - Applied Bills
-  - Remaining Advance Balance
-- **Features**
-  - Advance Adjustment Against Future Bills
-  - Refund of Advance
-  - Reporting of Unapplied Advances
+## 6. Payables Aging & Statements
+- Aging Buckets
+  - 0–30, 31–60, 61–90, 91–120, 120+
+- Supplier Statements
+  - Opening balance, bills, payments, notes, closing balance; multi-currency view
+- Features
+  - Filters by supplier/branch; export/email statements; consolidate across branches
 
 ---
 
-## 8. **Multi-Vendor Payment Reconciliation**
-- **Fields**
-  - Payment Batch ID
-  - Supplier List
-  - Payment Mode
-  - Bank Account
-  - Transaction Reference
-- **Features**
-  - Single Payment Batch for Multiple Vendors
-  - Auto-Matching with Supplier Bills
-  - Reconciliation with Bank Statements
-  - Exportable Payment Summary
+## 7. Payment Planning & Execution
+- Planning
+  - Payment proposals by due date, cash position, priority, discounts; simulate impact
+- Execution
+  - Batch payments (multiple suppliers); payment file generation (bank formats) or internal run
+  - Posting on release: Dr AP Control; Cr Bank (or Cr Payment Clearing if using batches)
+- Reconciliation
+  - Match payments with bank statements; resolve rejects/chargebacks
 
 ---
 
-## 9. **Expense Categorization by Vendor**
-- **Fields**
-  - Supplier Name
-  - Expense Type (Utilities, Rent, Raw Materials, Services, etc.)
-  - Department/Cost Center
-  - Amount
-- **Features**
-  - Expense Grouping by Supplier
-  - Vendor-Wise Expense Analytics
-  - Budget vs Actual Comparison
-  - Integration with GL Expense Accounts
+## 8. Advances & Prepayments
+- Recording
+  - Dr Supplier Advance; Cr Bank
+- Application
+  - Apply to bills; auto-suggest on capture; support refunds (Dr Bank; Cr Supplier Advance)
+- Reporting
+  - Unapplied advances by supplier with aging
 
 ---
 
-## 10. **Other Possible Features**
-- Supplier Credit Terms & Limits
-  1. Supplier Credit Terms Setup
-    Fields
-      Supplier ID / Code
-      Supplier Name
-      Credit Days (e.g., 30, 45, 60 days)
-      Credit Limit Amount (e.g., 5,00,000 BDT)
-      Payment Terms (Net 30, Net 45, etc.)
-      Grace Period (if allowed)
-      Interest / Penalty for Overdue Payment (%)
-      Currency
-    Features
-      Define supplier-wise credit terms
-      Multi-currency credit handling
-      Editable & approval-based updates
-      Link with Purchase Orders & Payables
-  2. Credit Utilization Tracking
-    Fields
-      Supplier ID
-      Total Credit Limit
-      Amount Used
-      Available Credit
-      Overdue Balance
-    Features
-      Real-time monitoring of supplier credit usage
-      Auto-blocking of new PO if limit exceeded
-      Alerts when credit usage reaches threshold (e.g., 80%)
-      Dashboard view for credit exposure
-  3. Overdue Management
-    Fields
-      Supplier Name
-      Invoice Reference
-      Due Date
-      Outstanding Amount
-      Days Overdue
-    Features
-      Automatic calculation of overdue days
-      Penalty/Interest auto posting
-      Reminder notification to accounts payable team
-      Aging report integration
-  4. Approval Workflow
-    Fields
-      Request ID
-      Supplier ID
-      Requested Limit Increase
-      Approved By
-      Approval Date
-    Features
-      Credit limit extension request process
-      Multi-level approval (Manager → Finance Head → Director)
-      Audit trail of approvals/rejections
-  5. Reporting & Analytics
-    Reports
-      Supplier-wise Credit Utilization Report
-      Credit Limit vs Outstanding Balance Report
-      Overdue Suppliers Report
-      Payment Behavior Analysis (on-time vs late)
-      Exposure Analysis (top suppliers with max credit used)
-  6. Advanced Features
-    Dynamic Credit Limit Adjustment (based on supplier relationship & payment history)
-    Auto-block new PO if supplier exceeds overdue threshold
-    Integration with Procurement & Payables Module
-    Multi-branch & Multi-location credit management
-    Integration with Cash Flow Forecasting
-- Multi-Currency Payables
-- Automated Supplier Reminders
-- Integration with Procurement/PO System
-- Integration with Bank Reconciliation
+## 9. Partial Payments & Adjustments
+- Partial Payments
+  - Track remaining balance; support multiple payments per bill
+- Discounts & Write-offs
+  - Early payment discounts; small balance write-off with thresholds/approvals
+- FX Differences
+  - Recognize realized FX on settlement for foreign currency suppliers
+
+---
+
+## 10. Multi-Currency & Branch Handling
+- Multi-Currency
+  - Document currency with locked rate; functional/reporting conversion; realized FX on settlement
+- Branch/Company
+  - Postings scoped by branch/company; inter-branch allocations if central AP pays on behalf
+
+---
+
+## 11. Integrations & APIs
+- Integrations
+  - Procurement/PO, Inventory/GRN, Bank/Cash (payments), Tax engine, OCR
+- APIs
+  - Bills: create/validate/approve/post; list/filter; attach documents
+  - Payments: propose/create/approve/post; batch operations
+  - Notes/Returns: create/apply/list
+  - Webhooks: bill.approved, bill.posted, payment.posted, note.applied
+
+---
+
+## 12. Reports & KPIs
+- Reports
+  - AP Aging, Supplier Statements, Unapplied Advances, Credit Note Register, Payment Batches
+- KPIs
+  - DPO (Days Payable Outstanding), % Invoices Matched, Early Payment Discounts Captured, Payment Rejections
+
+---
+
+## 13. Validations & Edge Cases
+- Validations
+  - Unique invoice per supplier; tolerance checks for price/qty/tax; mandatory mappings
+  - Balanced postings; dimension completeness; period lock respect; duplicate detection
+- Edge Cases
+  - Prepayments before invoice; negative invoices/credit-only vendors; disputes and re-bills
+  - Backdated invoices after close (require approvals); multi-currency adjustments on partial payments
+
+---

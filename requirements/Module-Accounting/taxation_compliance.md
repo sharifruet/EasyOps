@@ -1,89 +1,104 @@
-## 🔹 5. Taxation & Compliance – Full Breakdown
+## 🔹 Taxation & Compliance – Detailed Requirements
 
-### 1. Multi-Tax Support
-**Fields:**
-- Tax Type (VAT, GST, Sales Tax, Withholding)
-- Tax Rate (%)
-- Applicable Region / Country
-- Effective Date
-- Expiry Date (if any)
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Tax Models & Configuration
+- 3. Tax Calculation in Sales & Purchases
+- 4. Withholding (TDS/TCS) & Certificates
+- 5. Returns, Filing & Digital Integration
+- 6. Input Tax Credit & Adjustments
+- 7. GL Postings & Reconciliation
+- 8. Reports & Audit Support
+- 9. Validations & Edge Cases
 
-**Features:**
-- Assign Multiple Taxes per Transaction
-- Automatic Tax Calculation
-- Tax Rate History Tracking
-- Tax Applicability by Product/Service
+---
 
-### 2. Country-Specific Tax Configuration
-**Fields:**
-- Country / Region
-- Tax Rules & Regulations
-- Tax Identification Numbers (TIN, GSTIN, etc.)
-- Filing Frequency
+### 1. Purpose & Scope
+- Provide accurate tax computation, postings, returns, and digital filing support across sales, purchases, and payroll where applicable
+- In-scope: VAT/GST/Sales Tax, withholding (TDS/TCS), e-filing, certificates, and audit
 
-**Features:**
-- Configurable Tax Rules by Country
-- Auto-Apply Relevant Tax Rules on Transactions
-- Regional Compliance Checks
+---
 
-### 3. Automated Tax Calculations on Sales & Purchases
-**Fields:**
-- Transaction Type (Sale / Purchase)
-- Taxable Amount
-- Tax Calculated
-- Tax Inclusive / Exclusive Option
+### 2. Tax Models & Configuration
+- Tax Types
+  - VAT/GST (input/output), Sales Tax, Withholding (TDS/TCS), Excise/Other (country-specific)
+- Master Data
+  - Tax codes, rates (%), effective dates, jurisdictions, exemptions
+  - Product/Service tax categories; customer/vendor tax registration and place of supply
+- Rules
+  - Inclusive vs exclusive; zero-rated/exempt; reverse charge; composition schemes
+  - Rate history and approval for changes; audit trail
 
-**Features:**
-- Real-Time Tax Computation
-- Automatic Tax Posting to GL
-- Integration with Invoicing & Payments Modules
+---
 
-### 4. Tax Return Reports
-**Fields:**
-- Report Period (Monthly, Quarterly)
-- Tax Collected
-- Tax Paid / Deducted
-- Tax Liability
+### 3. Tax Calculation in Sales & Purchases
+- Sales
+  - Determine taxability (destination/place of supply, registration status)
+  - Compute tax per line or invoice; apply tax code; rounding per jurisdiction
+  - GL: Cr Output Tax; Dr AR with tax-inclusive invoices (or separate lines if exclusive)
+- Purchases
+  - Compute input tax; handle non-creditable portions (blocked credits)
+  - GL: Dr Input Tax; Cr AP; capitalize/block as per rules where required
+- Multi-Currency
+  - Tax calculated in document currency; functional/reporting views maintained
 
-**Features:**
-- Pre-Filled Tax Return Reports
-- Export to PDF / Excel
-- Compliance Review Before Filing
+---
 
-### 5. Digital Tax Filing Integration
-**Fields:**
-- Government Portal Credentials / API
-- Submission Date
-- Filing Status
+### 4. Withholding (TDS/TCS) & Certificates
+- Applicability
+  - Based on vendor/customer type, thresholds, and categories (services/contract/etc.)
+- Calculation
+  - Compute withholding on taxable base; support surcharge/cess where applicable
+- Postings
+  - Dr Expense/Payable; Cr Withholding Payable (for TDS)
+  - On remittance: Dr Withholding Payable; Cr Bank
+- Certificates
+  - Generate certificates; share with counterparty; maintain registry
 
-**Features:**
-- Direct Online Filing of Tax Returns
-- Filing Status Tracking
-- Alerts & Reminders for Filing Deadlines
+---
 
-### 6. TDS Management (Tax Deducted at Source)
-**Fields:**
-- Deductor / Deductee Details
-- TDS Rate
-- TDS Amount Deducted
-- Payment / Deposit Details
+### 5. Returns, Filing & Digital Integration
+- Returns
+  - Periodic returns (monthly/quarterly) with prefilled figures from journals
+  - Reconciliation: Sales register vs return; Purchase register vs input credits
+- Filing
+  - Export files; API-based e-filing where supported; status tracking and error logs
+- Compliance Calendar
+  - Due dates; reminders; role-based tasks and approvals
 
-**Features:**
-- Automatic TDS Calculation
-- TDS Certificate Generation
-- TDS Payment Tracking
-- Integration with Accounting Module
+---
 
-### 7. Audit-Ready Reports
-**Fields:**
-- Transaction ID
-- Tax Details
-- Filing Status
-- Approvals
+### 6. Input Tax Credit & Adjustments
+- Credits
+  - Credit eligibility by item/category; credit blocks and partial credits
+- Adjustments
+  - Credit notes/debit notes, advances, bad-debt relief, reverse charge adjustments
+- Carry Forward/Refunds
+  - Track carry forward balances; refund application support
 
-**Features:**
-- Complete Audit Trail
-- Easy Access to Historical Tax Data
-- Regulatory Compliance Reports
-- Export to PDF / Excel
+---
+
+### 7. GL Postings & Reconciliation
+- Postings
+  - Output Tax (liability), Input Tax (asset), Withholding Payable
+- Reconciliations
+  - Tax ledgers vs sales/purchase registers; return vs ledger; withholding paid vs certificates
+
+---
+
+### 8. Reports & Audit Support
+- Reports
+  - Tax liability summary; input credit register; withholding register; exception reports
+- Audit
+  - Drill from returns to vouchers; export evidence packs (invoices, certificates)
+
+---
+
+### 9. Validations & Edge Cases
+- Validations
+  - Tax code presence; jurisdiction checks; threshold enforcement; duplicate invoice detection
+- Edge Cases
+  - Mixed tax rates on one invoice; rounding differences; backdated rate changes; credit reversals
+
+---
 

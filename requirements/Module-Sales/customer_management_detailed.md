@@ -1,5 +1,22 @@
 # Customer Management - Full Detailed Features & Fields
 
+## Table of Contents
+- Purpose
+- 1.1 Customer Profiles (Basic Info, Contact, Address)
+- 1.2 Customer Segmentation
+- 1.3 Customer Purchase History
+- 1.4 Loyalty Programs & Reward Points
+- 1.5 Customer Credit Limit & Outstanding Balance
+- 1.6 Communication History
+- Validations & Rules
+- Integrations & Events
+- Reports & KPIs
+- Edge Cases
+- Appendix
+
+## Purpose
+Manage a comprehensive customer master for B2B/B2C with clean data, clear governance, and actionable insights that feed sales, fulfillment, and finance.
+
 ## 🔹 1.1 Customer Profiles (Basic Info, Contact, Address)
 
 ### Basic Information
@@ -216,3 +233,27 @@
 - Escalation Records
 
 ---
+
+## Validations & Rules
+- Unique constraints: customer code, email, tax ID per region
+- Required fields by type (individual vs business); valid address format; phone/email formats
+- Credit and terms checks before order; blacklist/blocked status enforcement
+- Segmentation rule governance: editable by managers; audit changes
+- Data retention and consent flags for communications per region policy
+
+## Integrations & Events
+- Integrations: CRM (activities), Sales (SO/quotes), Inventory (availability for offers), Accounting (AR/credit), Marketing (campaigns)
+- Events: customer.created, customer.updated, segment.changed, credit.updated, communication.logged
+
+## Reports & KPIs
+- Data quality score (completeness/duplicates), customer growth by region, CLV, churn risk
+- Credit utilization %, overdue exposure, interaction SLA, loyalty redemption rate
+
+## Edge Cases
+- Customers with multiple shipping addresses and tax profiles across regions
+- Merges with conflicting data (choose master policies); split accounts (parent/child hierarchies)
+- GDPR/right-to-be-forgotten requests; suppressed contacts
+
+## Appendix
+- Merge policy example: keep oldest account code; merge contacts; retain all historical orders under surviving account
+- Credit rule example: auto-block new orders if overdue > 30 days and utilization > 90%

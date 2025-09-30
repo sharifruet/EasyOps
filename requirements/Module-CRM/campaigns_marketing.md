@@ -1,13 +1,24 @@
 # CRM: Campaigns & Marketing
 
-## Problem Statement
+## Table of Contents
+- Purpose
+- Roles & Permissions
+- Data Model
+- Core Flows
+- Validations & Rules
+- Integrations & Events
+- Reports & KPIs
+- Edge Cases
+- Appendix
+
+## Purpose
 Run targeted campaigns and attribute leads and revenue to marketing efforts.
 
-## User Roles & Permissions
+## Roles & Permissions
 - Marketing: create campaigns, segments, templates
 - Sales: view campaign leads, follow-up tasks
 
-## Entities & Fields
+## Data Model
 - Campaign
   - Name, Type, Budget, Start/End, Target Segment, Channels, Owner
   - Goals (leads, MQLs, revenue), UTM parameters, Assets
@@ -20,8 +31,9 @@ Run targeted campaigns and attribute leads and revenue to marketing efforts.
 3. Capture responses and attribute leads/opportunities
 4. Analyze ROI and optimize
 
-## Validations & Business Rules
+## Validations & Rules
 - Consent checks; frequency capping; unsubscribe links
+- Suppression lists and do-not-contact; quiet hours per region
 
 ## Integrations & Events
 - Email/SMS providers; landing pages/forms; ad platforms tagging
@@ -29,6 +41,11 @@ Run targeted campaigns and attribute leads and revenue to marketing efforts.
 
 ## Reports & KPIs
 - Cost per lead, MQL rate, pipeline and revenue attribution
+- Open/click rates, unsubscribe rate, deliverability
 
 ## Edge Cases
 - Multi-language assets; time-window throttling
+
+## Appendix
+- Attribution example: last-touch vs multi-touch (linear/time-decay) for pipeline attribution
+- Consent example: double opt-in flow with confirmation email

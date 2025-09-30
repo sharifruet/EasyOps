@@ -1,106 +1,81 @@
-## 🔹 2. Purchasing & Supplier Management
+## 🔹 Purchasing & Supplier Management – Detailed Requirements
 
-### 2.1 Supplier Master
-- Supplier ID (auto-generated unique ID)
-- Supplier Name / Company
-- Supplier Code
-- Contact Person
-- Email / Phone / Fax
-- Address (Street, City, State, Country, Zip Code)
-- GST / VAT Number
-- Payment Terms
-- Lead Time (days)
-- Supplier Type (Manufacturer / Distributor / Wholesaler)
-- Status (Active / Inactive)
-- Created By / Created Date
-- Last Updated By / Date
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Supplier Master & Products
+- 3. Purchase Orders (PO) & Items
+- 4. Receiving (GRN) & Quality
+- 5. Invoices & Payments
+- 6. Supplier Performance
+- 7. Reporting & KPIs
+- 8. Integrations
+- 9. Validations & Edge Cases
 
-### 2.2 Supplier Products
-- Supplier Product ID
-- Supplier ID (linked)
-- Product ID / SKU
-- Supplier SKU / Code
-- Unit Price / Currency
-- MOQ (Minimum Order Quantity)
-- Lead Time
-- Tax Rate / Type
-- Status (Active / Inactive)
-- Created By / Updated By / Date
+---
 
-### 2.3 Purchase Orders (PO)
-- PO ID (auto-generated)
-- PO Number
-- Supplier ID
-- Order Date / Expected Delivery Date
-- Status (Draft / Confirmed / Partially Received / Completed / Cancelled)
-- Ordered By / Approved By
-- Total Amount / Currency / Tax
-- Payment Terms
-- Notes / Remarks
+### 1. Purpose & Scope
+- Manage suppliers, purchase orders, receiving, invoicing, and payments with quality and performance tracking
 
-### 2.4 Purchase Order Items
-- PO Item ID
-- PO ID (linked)
-- Product ID / SKU
-- Quantity Ordered / Unit of Measure
-- Unit Price / Tax / Discount
-- Expected Delivery Date
-- Received Quantity
-- Status (Pending / Received / Partially Received / Cancelled)
-- Notes / Remarks
+---
 
-### 2.5 Goods Receipt / GRN (Goods Received Note)
-- GRN ID (auto-generated)
-- PO ID (linked)
-- GRN Number
-- Received Date / Time
-- Warehouse / Location ID
-- Received By
-- Product Details (Product ID / SKU, Quantity Received, Unit, Batch / Lot / Serial Numbers)
-- Condition Status (Good / Damaged / Expired)
-- Notes / Remarks
+### 2. Supplier Master & Products
+#### 2.1 Supplier Master
+- Supplier ID, Name/Company, Code, Contacts, Address, Tax IDs, Payment Terms, Lead Time, Type, Status, Created/Updated
+#### 2.2 Supplier Products
+- Supplier Product ID, Supplier link, Product/SKU, Supplier SKU, Unit Price/Currency, MOQ, Lead Time, Tax, Status, Created/Updated
 
-### 2.6 Supplier Invoices
-- Invoice ID (auto-generated)
-- Invoice Number
-- Supplier ID / PO ID
-- Invoice Date / Due Date
-- Amount / Currency / Tax
-- Payment Status (Pending / Paid / Partially Paid / Overdue)
-- Notes / Remarks
+---
 
-### 2.7 Supplier Payments
-- Payment ID (auto-generated)
-- Invoice ID / Supplier ID
-- Payment Date / Time
-- Amount Paid / Currency
-- Payment Method (Bank Transfer / Cash / Cheque / Online)
-- Payment Reference / Transaction ID
-- Approved By / Processed By
-- Notes / Remarks
+### 3. Purchase Orders (PO) & Items
+#### 3.1 PO Header
+- PO ID/Number, Supplier, Order/Expected dates, Status, Ordered/Approved by, Amount/Currency/Tax, Terms, Notes
+#### 3.2 PO Items
+- PO Item ID, Product/SKU, Qty/UoM, Price/Tax/Discount, Expected Date, Received Qty, Status, Notes
+#### 3.3 Flows
+1) Create PO (manual/auto from reorder) → Approve → Send to supplier
+2) Amendments tracked with versions; approval for price/qty changes
+3) Close when fully received/invoiced; handle partials
 
-### 2.8 Supplier Performance Tracking
-- Performance ID (auto-generated)
-- Supplier ID
-- Delivery Timeliness (On-time %, Delayed Orders)
-- Quality Score (Defective %)
-- Compliance Rating
-- Notes / Remarks
-- Last Updated Date
+---
 
-### 2.9 Reporting & Analytics
-- Purchase Summary Report (PO, Supplier, Total Amount, Status)
-- Supplier Performance Report
-- Pending / Overdue Orders
-- GRN & Invoice Reconciliation
-- Payment Status Report
-- Purchase Trend / Cost Analysis
+### 4. Receiving (GRN) & Quality
+#### 4.1 GRN
+- GRN ID/Number, PO link, Received date/time, Warehouse, Receiver, Items (qty, batch/serial), Condition, Notes
+#### 4.2 Quality
+- QA status (pass/fail/hold), reasons; quarantine and disposition (restock/return/scrap)
+#### 4.3 Flows
+- Dock → Inspect/QA → Putaway → Update stock; return-to-vendor if failed
 
-### 2.10 Integration with Other Modules
-- Integration ID (auto-generated)
-- PO / GRN / Invoice / Payment ID
-- Destination Module (Inventory, Accounting, ERP, POS)
-- Sync Status (Success / Failed / Pending)
-- Sync Timestamp
-- Error Log
+---
+
+### 5. Invoices & Payments
+#### 5.1 Supplier Invoices
+- Invoice ID/Number, Supplier/PO, Dates, Amount/Currency/Tax, Payment Status, Notes
+#### 5.2 Supplier Payments
+- Payment ID, Invoice/Supplier, Dates, Amount/Currency, Method, Reference, Approved/Processed by, Notes
+#### 5.3 Matching
+- 2-way/3-way match (PO↔Invoice or PO↔GRN↔Invoice); tolerances; exception workflow
+
+---
+
+### 6. Supplier Performance
+- On-time %, defect rate, lead time accuracy, responsiveness; last updated
+- Scorecards and corrective action tracking
+
+---
+
+### 7. Reporting & KPIs
+- Reports: PO status, GRN vs PO, invoice reconciliation, payment status, supplier performance
+- KPIs: on-time delivery %, defect rate %, average lead time, PO cycle time
+
+---
+
+### 8. Integrations
+- Inventory (GRN putaway), Accounting (AP posting, payments), ERP/BI; sync status, timestamps, error logs
+
+---
+
+### 9. Validations & Edge Cases
+- Validations: unique PO number, supplier currency terms, tax codes set, 3-way match tolerances
+- Edge Cases: partials and backorders, dropship POs, vendor-managed inventory, consignment stock
 

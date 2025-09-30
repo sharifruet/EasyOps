@@ -1,6 +1,20 @@
-## 🔹 4. Warehouse & Logistics
+## 🔹 Warehouse & Logistics – Detailed Requirements
 
-### 4.1 Warehouse / Location Master
+### Table of Contents
+- 1. Warehouse & Location Master
+- 2. Zones, Racks, and Bins
+- 3. Storage Mapping
+- 4. Inbound (Receiving & Putaway)
+- 5. Outbound (Pick, Pack, Ship)
+- 6. Stock Transfer Between Locations
+- 7. Logistics Partners / Carriers
+- 8. Returns & Reverse Logistics
+- 9. Reporting & KPIs
+- 10. Integrations
+
+---
+
+### 1. Warehouse & Location Master
 - Warehouse ID (auto-generated unique ID)
 - Warehouse Name / Code
 - Location Type (Warehouse / Store / Distribution Center / Cold Storage)
@@ -13,97 +27,38 @@
 - Created By / Date
 - Last Updated By / Date
 
-### 4.2 Warehouse Zones / Racks / Bins
+### 2. Zones, Racks, and Bins
 - Zone / Rack / Bin ID (auto-generated)
 - Warehouse ID (linked)
-- Zone / Rack / Bin Code / Name
-- Max Capacity
-- Status (Active / Inactive)
-- Notes / Remarks
-- Created By / Date
-- Last Updated By / Date
+- Code / Name, Max Capacity, Status, Notes, Created/Updated
 
-### 4.3 Inventory Storage Mapping
-- Mapping ID (auto-generated)
-- Product ID / SKU
-- Warehouse ID / Zone / Rack / Bin
-- Quantity Stored
-- Batch / Lot Number (if applicable)
-- Serial Numbers (if applicable)
-- Status (Available / Reserved / Damaged / Quarantined)
-- Last Updated By / Date
+### 3. Storage Mapping
+- Mapping ID, Product ID / SKU, Warehouse/Zone/Rack/Bin, Qty Stored, Batch/Lot/Serial, Status, Updated By/Date
 
-### 4.4 Inbound Logistics / Receiving
-- Inbound ID (auto-generated)
-- Supplier ID / Shipment ID / PO ID
-- Expected Arrival Date / Time
-- Received Date / Time
-- Warehouse / Location ID
-- Carrier / Courier Details
-- Goods Condition Status (Good / Damaged / Expired)
-- Received By
-- Notes / Remarks
+### 4. Inbound (Receiving & Putaway)
+- Fields: Inbound ID, Supplier/Shipment/PO, Expected vs Received Date/Time, Carrier, Condition, Receiver, Notes
+- Flows: Dock → Inspect/QA → Putaway (suggested bin) → Update stock; hold damaged/expired to quarantine
 
-### 4.5 Outbound Logistics / Dispatch
-- Outbound ID (auto-generated)
-- SO ID / Customer ID / Shipment ID
-- Dispatch Date / Time
-- Warehouse / Location ID
-- Carrier / Courier / Vehicle Details
-- Tracking Number
-- Shipped By / Received By
-- Status (Pending / In Transit / Delivered / Returned)
-- Notes / Remarks
+### 5. Outbound (Pick, Pack, Ship)
+- Fields: Outbound ID, SO/Customer/Shipment, Dispatch Date/Time, Carrier/Vehicle, Tracking, Status, Notes
+- Flows: Wave/batch pick → Pack (validate items) → Ship (label & handoff) → Update stock & tracking
 
-### 4.6 Stock Transfer Between Locations
-- Transfer ID (auto-generated)
-- Product ID / SKU
-- Source Warehouse / Location ID
-- Destination Warehouse / Location ID
-- Quantity Transferred / Unit
-- Batch / Lot / Serial Numbers
-- Transfer Date / Time
-- Transfer Status (Pending / In Transit / Completed)
-- Transport / Vehicle / Driver Details
-- Approved By / Requested By
-- Notes / Remarks
+### 6. Stock Transfer Between Locations
+- Fields: Transfer ID, Product, Source/Destination, Qty, Batch/Serial, Dates, Transport/Driver, Status, Approvals, Notes
+- Flows: Request → Approve → Dispatch → Receive → Reconcile qty/condition → Close
 
-### 4.7 Logistics Partners / Carriers Master
-- Carrier ID (auto-generated)
-- Carrier Name / Code
-- Contact Person / Phone / Email
-- Transport Type (Truck / Courier / Air / Sea)
-- Status (Active / Inactive)
-- Notes / Remarks
-- Created By / Date
-- Last Updated By / Date
+### 7. Logistics Partners / Carriers
+- Carrier master (ID, name, contacts, modes); performance stats (on-time, damage rate)
 
-### 4.8 Returns & Reverse Logistics
-- Return ID (auto-generated)
-- Original SO / Shipment ID
-- Customer ID / Supplier ID
-- Return Date / Time
-- Warehouse / Location ID
-- Product Details (Product ID / SKU, Quantity, Batch / Lot / Serial Numbers)
-- Condition Status (Good / Damaged / Expired)
-- Reason for Return
-- Processed By / Approved By
-- Notes / Remarks
+### 8. Returns & Reverse Logistics
+- Fields: Return ID, Original SO/Shipment, Customer/Supplier, Date, Warehouse, Items, Condition, Reason, Approvals, Notes
+- Flows: Receive → Inspect → Decide (restock/repair/scrap) → Finance adjustments
 
-### 4.9 Reporting & Analytics
-- Warehouse Stock Summary Report
-- Zone / Rack / Bin Utilization Report
-- Inbound / Outbound Shipment Report
-- Transfer / Movement History Report
-- Returns / Reverse Logistics Report
-- Warehouse Capacity Utilization
-- Logistics Partner Performance
+### 9. Reporting & KPIs
+- Reports: stock by bin, utilization, inbound/outbound cycle times, transfer history, returns analysis
+- KPIs: dock-to-stock time, pick accuracy, on-time shipment %, capacity utilization, return rate
 
-### 4.10 Integration with Other Modules
-- Integration ID (auto-generated)
-- Linked IDs (Stock, PO, SO, Shipment, Transfer, Return)
-- Destination Module (Inventory, Purchasing, Sales, Accounting, ERP)
-- Sync Status (Success / Failed / Pending)
-- Sync Timestamp
-- Error Log
+### 10. Integrations
+- Linked IDs (Stock, PO, SO, Shipment, Transfer, Return); destination modules (Inventory, Purchasing, Sales, Accounting)
+- Sync status/timestamps; error logs; carrier APIs for tracking
 

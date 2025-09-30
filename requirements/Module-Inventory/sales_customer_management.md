@@ -1,116 +1,72 @@
-## 🔹 3. Sales & Customer Management
+## 🔹 Sales & Customer Management – Detailed Requirements
 
-### 3.1 Customer Master
-- Customer ID (auto-generated unique ID)
-- Customer Name / Company
-- Customer Code
-- Contact Person
-- Email / Phone / Fax
-- Address (Street, City, State, Country, Zip Code)
-- Customer Type (Retail / Wholesale / VIP / Online)
-- Credit Limit
-- Payment Terms
-- Tax Identification (GST / VAT Number)
-- Status (Active / Inactive)
-- Created By / Created Date
-- Last Updated By / Date
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Customer Master & Accounts
+- 3. Sales Orders & Items
+- 4. Shipments & Delivery
+- 5. Invoices & Payments
+- 6. Customer Interactions & Feedback
+- 7. Reporting & KPIs
+- 8. Integrations
+- 9. Validations & Edge Cases
 
-### 3.2 Customer Accounts
-- Account ID (auto-generated)
-- Customer ID (linked)
-- Account Balance
-- Outstanding Amount
-- Credit Limit Used
-- Last Payment Date
-- Status (Active / Blocked / Overdue)
-- Notes / Remarks
+---
 
-### 3.3 Sales Orders (SO)
-- SO ID (auto-generated)
-- SO Number
-- Customer ID
-- Order Date / Expected Delivery Date
-- Status (Draft / Confirmed / Partially Shipped / Completed / Cancelled)
-- Ordered By / Approved By
-- Total Amount / Currency / Tax
-- Payment Terms
-- Notes / Remarks
+### 1. Purpose & Scope
+- Manage customers, orders, shipments, invoicing, and payments with clear integrations to Inventory and Accounting
 
-### 3.4 Sales Order Items
-- SO Item ID
-- SO ID (linked)
-- Product ID / SKU
-- Quantity Ordered / Unit of Measure
-- Unit Price / Tax / Discount
-- Expected Delivery Date
-- Shipped Quantity
-- Status (Pending / Shipped / Partially Shipped / Cancelled)
-- Notes / Remarks
+---
 
-### 3.5 Shipment / Delivery Management
-- Shipment ID (auto-generated)
-- SO ID (linked)
-- Shipment Number
-- Warehouse / Dispatch Location
-- Shipped Date / Expected Delivery Date
-- Carrier / Courier Details
-- Tracking Number
-- Delivered By / Received By
-- Status (Pending / In Transit / Delivered / Returned)
-- Notes / Remarks
+### 2. Customer Master & Accounts
+#### 2.1 Customer Master
+- Customer ID/Name/Code, Contacts, Address, Type, Credit Limit, Terms, Tax IDs, Status, Created/Updated
+#### 2.2 Customer Accounts
+- Account ID, Customer link, Balance, Outstanding, Credit usage, Last payment, Status, Notes
 
-### 3.6 Customer Invoices
-- Invoice ID (auto-generated)
-- Invoice Number
-- SO ID / Customer ID
-- Invoice Date / Due Date
-- Amount / Currency / Tax
-- Payment Status (Pending / Paid / Partially Paid / Overdue)
-- Notes / Remarks
+---
 
-### 3.7 Customer Payments
-- Payment ID (auto-generated)
-- Invoice ID / Customer ID
-- Payment Date / Time
-- Amount Paid / Currency
-- Payment Method (Bank Transfer / Cash / Cheque / Online)
-- Payment Reference / Transaction ID
-- Approved By / Processed By
-- Notes / Remarks
+### 3. Sales Orders & Items
+#### 3.1 SO Header
+- SO ID/Number, Customer, Order/Expected dates, Status, Ordered/Approved by, Amount/Currency/Tax, Terms, Notes
+#### 3.2 SO Items
+- Item ID, Product/SKU, Qty/UoM, Price/Tax/Discount, Expected date, Shipped Qty, Status, Notes
+#### 3.3 Flows
+1) Create SO (manual/API) → Approve → Allocate stock
+2) Pick/Pack/Ship; update shipments and tracking
+3) Handle partials/returns; close order
 
-### 3.8 Customer Interaction & CRM
-- Interaction ID (auto-generated)
-- Customer ID
-- Interaction Type (Call / Email / Meeting / Support Ticket)
-- Interaction Date & Time
-- Interaction Notes / Remarks
-- Follow-up Date
-- Responsible Staff
-- Status (Pending / Completed / Escalated)
+---
 
-### 3.9 Customer Feedback & Complaints
-- Feedback ID (auto-generated)
-- Customer ID
-- Feedback / Complaint Type
-- Description / Details
-- Submitted Date
-- Status (Open / In Progress / Resolved / Closed)
-- Assigned To / Handled By
-- Resolution Notes / Date
+### 4. Shipments & Delivery
+- Shipment ID/Number, SO link, Dispatch location, Shipped/Expected dates, Carrier/Tracking, Delivered/Received by, Status, Notes
 
-### 3.10 Reporting & Analytics
-- Sales Summary Report (SO, Customer, Total Amount, Status)
-- Customer Outstanding / Aging Report
-- Payment Collection Report
-- Delivery & Shipment Report
-- Customer Feedback & Complaint Report
-- Sales Trend / Revenue Analysis
+---
 
-### 3.11 Integration with Other Modules
-- Integration ID (auto-generated)
-- SO / Invoice / Payment / Shipment ID
-- Destination Module (Inventory, Accounting, ERP, POS, CRM)
-- Sync Status (Success / Failed / Pending)
-- Sync Timestamp
-- Error Log
+### 5. Invoices & Payments
+- Invoice: ID/Number, SO/Customer, Dates, Amount/Currency/Tax, Payment Status, Notes
+- Payment: ID, Invoice/Customer, Dates, Amount/Currency, Method, Reference, Approved/Processed by, Notes
+
+---
+
+### 6. Customer Interactions & Feedback
+- Interactions (call/email/meeting/ticket): timestamps, notes, follow-ups, owner, status
+- Feedback/Complaints: type, description, status, SLA, resolution notes
+
+---
+
+### 7. Reporting & KPIs
+- Reports: sales summary, aging, collections, delivery/shipments, feedback
+- KPIs: order cycle time, on-time delivery %, return rate, collection efficiency
+
+---
+
+### 8. Integrations
+- Inventory (allocations, shipments), Accounting (AR, invoices, payments), ERP/CRM; sync with timestamps and error logs
+
+---
+
+### 9. Validations & Edge Cases
+- Validations: customer credit/terms checks, tax code presence, duplicate SO detection
+- Edge Cases: backorders, split shipments, dropship, prepayments and credit memos
 

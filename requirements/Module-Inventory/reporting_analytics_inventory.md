@@ -1,109 +1,67 @@
-## 🔹 5. Reporting & Analytics
+## 🔹 Inventory Reporting & Analytics – Detailed Requirements
 
-### 5.1 Stock Reports
-- Report ID (auto-generated)
-- Product ID / SKU
-- Warehouse / Location ID
-- Current Stock Quantity
-- Reserved Quantity
-- Available Quantity
-- Minimum / Maximum Stock Levels
-- Batch / Lot / Serial Numbers
-- Valuation (Unit Cost, Total Value)
-- Status (Active / Inactive)
-- Last Updated Date
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Report Catalog
+- 3. Filters, Layouts, and Drill-Down
+- 4. Dashboards & KPIs
+- 5. Scheduling & Distribution
+- 6. Security & Governance
+- 7. Performance & Data Quality
 
-### 5.2 Purchase Reports
-- Report ID
-- PO ID / Supplier ID
-- Product ID / SKU
-- Ordered Quantity / Received Quantity
-- Purchase Price / Tax / Total Amount
-- Order Status (Pending / Completed / Cancelled)
-- Expected / Actual Delivery Dates
-- Notes / Remarks
+---
 
-### 5.3 Sales Reports
-- Report ID
-- SO ID / Customer ID
-- Product ID / SKU
-- Ordered Quantity / Shipped Quantity
-- Sales Price / Tax / Total Amount
-- Payment Status (Pending / Paid / Partially Paid / Overdue)
-- Delivery Status
-- Notes / Remarks
+### 1. Purpose & Scope
+- Provide operational and financial insights across products, warehouses, suppliers, and customers
 
-### 5.4 Inventory Valuation Reports
-- Report ID
-- Product ID / SKU
-- Warehouse / Location ID
-- Valuation Method (FIFO / LIFO / Weighted Average)
-- Quantity / Unit Cost / Total Value
-- Stock Layer Details
-- Reporting Period
+---
 
-### 5.5 Supplier Performance Reports
-- Report ID
-- Supplier ID
-- On-Time Delivery Percentage
-- Quality Score / Defect Rate
-- Compliance Rating
-- Pending / Overdue Orders
-- Notes / Remarks
+### 2. Report Catalog
+- Stock
+  - Stock by warehouse/bin; reserved vs available; low/critical stock; expiry/dead stock
+- Purchasing
+  - PO vs GRN; supplier performance (on-time %, defect rate); lead times
+- Sales/Fulfillment
+  - Pick/pack/ship cycle times; fill rate; backorders/returns analysis
+- Valuation/Finance
+  - Inventory valuation (FIFO/LIFO/WA); movement cost analysis; COGS tie-out
+- Audits
+  - Cycle count variances; shrinkage; adjustment history
 
-### 5.6 Customer Reports
-- Report ID
-- Customer ID
-- Total Orders / Quantity / Revenue
-- Outstanding Payments / Aging
-- Feedback / Complaint Summary
-- Sales Trends
-- Notes / Remarks
+---
 
-### 5.7 Warehouse & Logistics Reports
-- Report ID
-- Warehouse / Location ID
-- Stock Movement Summary
-- Inbound / Outbound Shipments
-- Transfer History
-- Returns / Reverse Logistics
-- Capacity Utilization
-- Logistics Partner Performance
+### 3. Filters, Layouts, and Drill-Down
+- Filters
+  - Product/SKU, category, supplier/customer, warehouse/bin, date range
+- Layouts
+  - Save column sets; grouping/sorting; share with teams
+- Drill-Down
+  - Summary → item/warehouse → movement → source document
 
-### 5.8 Stock Audit Reports
-- Report ID
-- Audit ID
-- Product ID / SKU
-- Warehouse / Location ID
-- Expected Quantity / Counted Quantity / Difference
-- Discrepancy Reason
-- Adjustment Made
-- Verification Status
-- Notes / Remarks
+---
 
-### 5.9 Financial & Accounting Reports
-- Report ID
-- Product / SKU / Category
-- Total Stock Value
-- Purchase Cost vs Sales Revenue
-- Profit / Loss Analysis
-- Valuation Summary
-- Integration Status with Accounting / ERP
+### 4. Dashboards & KPIs
+- Dashboards
+  - Widgets: stock health, expiries, supplier scorecards, warehouse utilization
+- KPIs
+  - Inventory turnover, days of inventory, fill rate, pick accuracy, dock-to-stock time, shrinkage rate
 
-### 5.10 Custom Reports & Dashboards
-- Report ID
-- Report Name / Type
-- Filters Applied (Product, Supplier, Customer, Warehouse, Date Range)
-- Data Visualizations (Charts, Graphs, Tables)
-- Created By / Date
-- Last Updated By / Date
-- Scheduled Reports (Frequency, Recipients)
+---
 
-### 5.11 Integration with Other Modules
-- Integration ID (auto-generated)
-- Linked Reports (Stock, Purchase, Sales, Accounting, CRM, Logistics)
-- Destination Module (ERP, Accounting, BI Tools)
-- Sync Status (Success / Failed / Pending)
-- Sync Timestamp
-- Error Log
+### 5. Scheduling & Distribution
+- Scheduled email/export deliveries; recipients/groups; delivery logs
+
+---
+
+### 6. Security & Governance
+- Row-level security by warehouse/branch; masked costs for restricted roles
+- Report definition versioning; data dictionary and lineage
+
+---
+
+### 7. Performance & Data Quality
+- Server-side aggregation; caching frequent views; pagination/streaming
+- As-of reporting; snapshot at close; variance impact indicators
+
+---
 

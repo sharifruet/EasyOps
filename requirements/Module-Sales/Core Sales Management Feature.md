@@ -1,5 +1,24 @@
 # Sales Management System - Feature List
 
+## Table of Contents
+- Purpose
+- Customer Management
+- Product & Catalog Management
+- Sales Order Management
+- Sales Channels Integration
+- Quotation & Invoicing
+- Payment & Collection
+- Sales Target & Performance
+- Delivery & Logistics
+- Reporting & Analytics
+- Advanced Features
+- Validations & Rules
+- Integrations
+- KPIs
+
+## Purpose
+End-to-end sales lifecycle: catalog/pricing → quotations → orders → fulfillment → invoicing/payments → delivery/logistics → reporting and targets.
+
 ## 🔹 1. Customer Management
 - Customer Profiles (basic info, contact, address)
 - Customer Segmentation (VIP, Regular, Wholesale, etc.)
@@ -143,3 +162,13 @@
 - Automated Notifications & Alerts
 - Integration with CRM, ERP, Inventory & HR systems
 - Mobile & Tablet Friendly Interface
+
+## Validations & Rules
+- Duplicate order/quotation detection; price list and discount policy enforcement; tax code presence
+- Customer credit/terms checks; approval thresholds by role; address and carrier validations
+
+## Integrations
+- Inventory/WMS (availability, pick/pack/ship), Accounting (AR, tax), CRM (activities), Payment gateways, E-commerce/POS/Marketplace connectors, Carrier APIs
+
+## KPIs
+- Conversion rate, average discount %, order cycle time, on-time shipment %, DSO, return rate, forecast accuracy

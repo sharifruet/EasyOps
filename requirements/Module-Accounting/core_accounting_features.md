@@ -249,6 +249,9 @@ This document defines the core financial accounting capabilities of EasyOps acro
 - Purpose
   - Provide detailed account-wise transaction history and running balances with drill-down to source documents for any date range.
 
+- Note on Bank/Cash GL Mappings
+  - Bank and cash operations use GL mappings defined in `Module-Accounting/bank_cash_management.md` (e.g., bank GL account, charges, interest, FX gain/loss, clearing/in‑transit). Ensure these mappings are set to see correct ledger postings and drill-downs.
+
 - Columns/Fields
   - Date, Voucher No., Account Code, Account Name
   - Description/Narration, Reference (Invoice/Bill/PO/etc.)

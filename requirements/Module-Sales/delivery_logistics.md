@@ -1,5 +1,21 @@
 # Delivery & Logistics Management System
 
+## Table of Contents
+- 1. Delivery Scheduling & Tracking
+- 2. Courier Integrations
+- 3. Proof of Delivery (POD)
+- 4. Returns & Replacements
+- 5. Route Optimization
+- 6. Shipping Cost Calculation
+- 7. Validations & Rules
+- 8. Integrations
+- 9. Reports & KPIs
+- 10. Edge Cases
+- Appendix
+
+## Purpose
+Plan, execute, and measure last-mile delivery reliably with real-time tracking, courier integrations, proof of delivery, optimized routes, and clear cost controls.
+
 ## 🔹 8.1 Delivery Scheduling & Tracking
 
 ### Scheduling Details
@@ -56,7 +72,7 @@
 
 ### Return / Replacement Details
 - Return / Replacement ID
-- Original Order / Delivery ID
+- Original SO / Delivery ID
 - Customer Request Reason (Damaged, Wrong Item, Expired, Others)
 - Return / Replacement Status (Requested, Approved, Picked-Up, In-Transit, Completed)
 - Return Pickup Scheduling
@@ -71,39 +87,46 @@
 ## 🔹 8.5 Route Optimization
 
 ### Route Planning
-- Delivery Locations / Stops
-- Priority / Urgency of Deliveries
-- Vehicle Capacity / Constraints
-- Traffic & Weather Conditions
-- Optimal Route Calculation (Shortest Distance, Time-Saving, Fuel-Efficient)
-- Dynamic Re-Routing in Real-Time
-- Integration with GPS & Map Services
-- Driver Assignment & Shift Management
+- Delivery Locations / Stops; priorities; vehicle constraints; traffic/weather; optimal routes; dynamic re-routing; GPS/maps; driver shifts
 
 ### Reporting & Analytics
-- Average Delivery Time per Route
-- Delivery Cost per Route
-- Failed / Late Delivery Analysis
-- Vehicle Utilization Metrics
-- Delivery Efficiency Reports
+- Average delivery time per route; delivery cost per route; failed/late analysis; vehicle utilization; efficiency reports
 
 ---
 
 ## 🔹 8.6 Shipping Cost Calculation
 
 ### Cost Factors
-- Base Shipping Rate (Weight / Volume / Distance)
-- Delivery Priority / Speed (Standard, Express, Same-Day)
-- Courier Service Charges
-- Fuel Surcharge / Additional Fees
-- Tax / VAT / GST
-- Discount / Promo Codes Applied
-- Multi-Currency Support
-- Customer Payment / Billing Details
+- Base rate (weight/volume/distance); priority/speed; courier charges; fuel surcharges; taxes; discounts; multi-currency; billing
 
 ### Reporting & Analytics
-- Shipping Cost per Order / Route / Courier
-- Average Shipping Cost Analysis
-- Cost vs Revenue Analysis
-- Cost Optimization Reports
+- Cost per order/route/courier; average cost; cost vs revenue; optimization reports
+
+---
+
+## 7. Validations & Rules
+- Address validation; delivery window feasibility; vehicle capacity; hazmat restrictions; POD required for high-value
+
+## 8. Integrations
+- Inventory/WMS (pick/pack), Sales (orders), Accounting (invoices), Courier APIs (labels/tracking), Mobile apps (driver)
+
+## 9. Reports & KPIs
+- On-time delivery %, first-attempt success %, average delivery time, cost per delivery, return rate
+
+## 10. Edge Cases
+- Failed delivery attempts and reschedules; wrong address; severe weather reroutes; partial returns
+
+---
+
+## Appendix
+
+### A. Worked Examples
+- A.1 Same-day delivery slotting: if order placed before 1pm and zone=A → offer 4–6pm slot, else next-day
+- A.2 POD failure flow: OTP failed twice → capture photo + customer ID; mark as exception and notify support
+- A.3 Multi-courier selection: choose courier with lowest cost meeting SLA (on-time ≥ 95%) for weight band and destination
+
+### B. Glossary
+- POD: Proof of Delivery
+- ETA: Estimated Time of Arrival
+- First-attempt success: Delivered on first visit without reschedule
 

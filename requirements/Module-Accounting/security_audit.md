@@ -1,95 +1,96 @@
-## 🔹 10. Security & Audit – Full Breakdown
+## 🔹 Security & Audit – Detailed Requirements
 
-### 1. Role-Based Access to Financial Data
-**Fields:**
-- User ID / Name
-- Role
-- Accessible Modules
-- Permissions (Read, Write, Approve)
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Roles, Permissions, and SoD
+- 3. Approvals & Thresholds
+- 4. Audit Trail & Evidence
+- 5. Period Close & Locks
+- 6. Backup, Restore, and Retention
+- 7. Compliance & External Audit Support
+- 8. Authentication & 2FA
+- 9. Monitoring & Alerts
 
-**Features:**
-- Granular Access Control
-- Role Hierarchy Management
-- User Permission Audit
-- Integration with HR / User Management System
+---
 
-### 2. Approval Workflow for Journal Entries & Payments
-**Fields:**
-- Transaction ID
-- Initiator
-- Approver(s)
-- Approval Status
-- Comments / Notes
+### 1. Purpose & Scope
+- Enforce secure access, proper approvals, and a complete audit trail for accounting processes
+- Align with cross-cutting security requirements while specifying accounting needs
 
-**Features:**
-- Multi-Level Approval Workflow
-- Email / SMS Notifications
-- Audit Trail for Approvals
-- Integration with GL & Payments Module
+---
 
-### 3. Audit Trail of All Financial Transactions
-**Fields:**
-- Transaction ID
-- User ID
-- Date & Time
-- Action Performed
-- Old vs New Values
+### 2. Roles, Permissions, and SoD
+- Roles & Permissions
+  - View/Post/Edit/Approve by module (GL, AP, AR, Bank, Period Close)
+  - Branch/Company scoped access; sensitive accounts masked
+- Segregation of Duties (SoD)
+  - Conflict rules (e.g., create + approve + post); prevent or require compensating approval
+- Access Reviews
+  - Periodic user access certification; report of rights changes
 
-**Features:**
-- Full Transaction History
-- Filter & Search by User / Module / Date
-- Tamper-Proof Logs
-- Exportable Reports for Audit
+---
 
-### 4. Period Closing & Locking Mechanism
-**Fields:**
-- Fiscal Period
-- Closing Date
-- Locked Status
-- User / Admin Responsible
+### 3. Approvals & Thresholds
+- Maker-Checker
+  - Journals, payments, revaluations, period close require approvals based on amount/account/dimension
+- Thresholds
+  - Multi-level approvals; delegation and escalation; SLAs and reminders
+- Evidence
+  - Attachments and comments captured at approval steps
 
-**Features:**
-- Prevents Postings to Closed Periods
-- Soft & Hard Lock Options
-- Notifications for Pending Postings
-- Integration with Reporting & GL Modules
+---
 
-### 5. Backup & Restore Accounting Data
-**Fields:**
-- Backup ID / Date
-- Backup Type (Full / Incremental)
-- Storage Location
-- Restore Date
+### 4. Audit Trail & Evidence
+- Logs
+  - Immutable logs for create/edit/approve/post/reverse; before/after values; correlation IDs
+- Search & Export
+  - Filter by user/module/date; export to CSV/PDF for auditors
+- Retention
+  - Configurable retention; legal hold support
 
-**Features:**
-- Scheduled Automated Backups
-- Manual Backup Option
-- Secure Restore Mechanism
-- Encryption & Versioning
+---
 
-### 6. Compliance Reports (IFRS, GAAP)
-**Fields:**
-- Report Type
-- Period
-- Applicable Standards
-- Prepared By / Reviewed By
+### 5. Period Close & Locks
+- Locks
+  - Soft/hard period locks; override with justification and approver trail
+- Pre-Close Checks
+  - Unposted journals, pending approvals, reconciliation variances
+- Reopen
+  - Controlled with audit justification; change impact report
 
-**Features:**
-- Standardized Compliance Templates
-- Auto-Generation from GL Data
-- Audit-Ready Format
-- Export to PDF / Excel
+---
 
-### 7. 2FA for Finance Users
-**Fields:**
-- User ID / Email / Phone
-- 2FA Type (SMS, App, Email)
-- Activation Status
-- Last Verification Date
+### 6. Backup, Restore, and Retention
+- Backups
+  - Scheduled full/incremental backups; encryption; integrity checks
+- Restore
+  - Point-in-time restore procedures; tested runbooks; access-controlled
+- Retention
+  - Policy-driven data retention; purge with approvals; audit of purges
 
-**Features:**
-- Enforced Two-Factor Authentication
-- Integration with Login & Transaction Approvals
-- Recovery & Backup Codes
-- Security Logs & Alerts
+---
+
+### 7. Compliance & External Audit Support
+- Standards
+  - Mapping and reports aligned to IFRS/GAAP; change logs for policy updates
+- Audit Support
+  - Auditor read-only scoped access; evidence package exports (logs, reports, samples)
+
+---
+
+### 8. Authentication & 2FA
+- Requirements
+  - 2FA for finance and admin roles; device/session management; IP allowlists (optional)
+- Recovery
+  - Backup codes; admin-assisted recovery with approvals
+
+---
+
+### 9. Monitoring & Alerts
+- Monitoring
+  - Dashboards for approvals pending, SoD violations, exceptions, failed postings
+- Alerts
+  - Threshold breaches, suspicious access, repeated failures; integrations with email/SMS/pager
+
+---
 

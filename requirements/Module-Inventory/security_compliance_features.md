@@ -1,100 +1,53 @@
-## 🔹 8. Security & Compliance
+## 🔹 Security & Compliance – Detailed Requirements
 
-### 8.1 User Authentication & Access Control
-- User ID (auto-generated)
-- Username / Email
-- Password / Authentication Method (Password, OTP, SSO, MFA)
-- Role / Permissions (Admin, Manager, Staff, Viewer)
-- Access Level (View / Add / Update / Delete / Approve)
-- Last Login Date & Time
-- Account Status (Active / Inactive / Locked / Suspended)
-- Created By / Date
-- Last Updated By / Date
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Authentication & Access Control
+- 3. Role-Based Access Control (RBAC)
+- 4. Audit Trail & Activity Logging
+- 5. Data Protection & Encryption
+- 6. Compliance Management
+- 7. Security Policies & Configuration
+- 8. Incident Management & Alerts
+- 9. Backup & Disaster Recovery
+- 10. Compliance Reporting & Audits
+- 11. Integrations
 
-### 8.2 Role-Based Access Control (RBAC)
-- Role ID (auto-generated)
-- Role Name
-- Description / Responsibilities
-- Assigned Users
-- Permissions / Access Modules
-- Created By / Date
-- Last Updated By / Date
+---
 
-### 8.3 Audit Trail & Activity Logging
-- Audit ID (auto-generated)
-- User ID / Role
-- Action Performed (Login, Add, Update, Delete, Approve, Reject)
-- Module / Feature Accessed
-- Record / Transaction ID
-- Previous Value / New Value
-- Timestamp / Date & Time
-- IP Address / Device Info
-- Notes / Remarks
+### 1. Purpose & Scope
+- Apply security and compliance controls specific to Inventory while aligning with cross-cutting security requirements
 
-### 8.4 Data Encryption & Protection
-- Encryption ID (auto-generated)
-- Data Type (Database, File, Transmission)
-- Encryption Method (AES, RSA, SSL/TLS)
-- Key Management Details
-- Status (Active / Expired / Rotated)
-- Notes / Remarks
+### 2. Authentication & Access Control
+- User ID, credentials/SSO/MFA, roles/permissions, last login, account status, created/updated
+- Device binding and session policies for mobile/IoT users
 
-### 8.5 Compliance Management
-- Compliance ID (auto-generated)
-- Standard / Regulation (ISO, GDPR, HIPAA, PCI-DSS, SOX, etc.)
-- Applicable Modules / Processes
-- Compliance Status (Compliant / Non-Compliant / Pending Audit)
-- Audit / Review Date
-- Responsible Person / Department
-- Notes / Remarks
+### 3. Role-Based Access Control (RBAC)
+- Roles, descriptions, assigned users, permissions per module; created/updated
+- Warehouse/branch scoping; sensitive cost/valuation fields masked for non-authorized roles
 
-### 8.6 Security Policies & Configuration
-- Policy ID (auto-generated)
-- Policy Name / Description
-- Applicability (Modules / Users / Data)
-- Enforcement Level (Mandatory / Optional)
-- Status (Active / Inactive / Deprecated)
-- Created By / Date
-- Last Updated By / Date
+### 4. Audit Trail & Activity Logging
+- Audit IDs, user/role, action, module, record id, before/after values, timestamp, IP/device, notes
+- Tamper-evident logs; export for audit
 
-### 8.7 Security Alerts & Incident Management
-- Incident / Alert ID (auto-generated)
-- Incident Type (Unauthorized Access, Breach, Data Leak, Malware, Phishing)
-- Module / Feature Affected
-- Detected By (User / System / Monitoring Tool)
-- Severity Level (High / Medium / Low)
-- Status (Open / Investigating / Resolved / Closed)
-- Reported By / Assigned To
-- Timestamp / Date & Time
-- Notes / Actions Taken
+### 5. Data Protection & Encryption
+- Data types (db/files/transit), methods (AES/RSA/TLS), key management and rotation, status
 
-### 8.8 Backup & Disaster Recovery
-- Backup ID (auto-generated)
-- Data Type (Database / Files / System Configuration)
-- Backup Schedule / Frequency (Daily / Weekly / Monthly)
-- Backup Location / Storage Medium
-- Backup Status (Completed / Failed / Pending)
-- Restore Test Date & Result
-- Responsible Person / Department
-- Notes / Remarks
+### 6. Compliance Management
+- Standards (ISO, GDPR, SOX, HIPAA, PCI-DSS as applicable), modules/process coverage, status, audit/review dates, owners
 
-### 8.9 Compliance Reporting & Audits
-- Report ID (auto-generated)
-- Audit Type (Internal / External / Regulatory)
-- Module / Process Covered
-- Findings / Non-Compliance Items
-- Corrective Actions / Status
-- Auditor / Review By
-- Audit Date & Time
-- Notes / Remarks
+### 7. Security Policies & Configuration
+- Policies by module/user/data; enforcement levels; lifecycle (active/deprecated)
 
-### 8.10 Integration with Other Modules
-- Integration ID (auto-generated)
-- Source Module (Inventory, Sales, Purchase, Finance, HR)
-- Destination Module (ERP, Accounting, BI Tools, Security Dashboard)
-- Linked Transaction / Record IDs
-- Sync Type (Real-Time / Batch)
-- Status (Success / Failed / Pending)
-- Last Sync Timestamp
-- Error Log / Remarks
+### 8. Incident Management & Alerts
+- Incident types (unauthorized access/breach/malware/etc.), severity, status, owners, timestamps, actions taken
+
+### 9. Backup & Disaster Recovery
+- Backup schedule/location/status; restore testing and results; responsible teams
+
+### 10. Compliance Reporting & Audits
+- Internal/external audit records, findings, corrective actions, statuses, dates
+
+### 11. Integrations
+- Security dashboards/SIEM; inventory modules to ERP/Accounting/BI; sync types and error logs
 

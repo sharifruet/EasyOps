@@ -1,95 +1,55 @@
-## 🔹 9. Mobility & IoT
+## 🔹 Mobility & IoT – Detailed Requirements
 
-### 9.1 Mobile App Access
-- App User ID (auto-generated)
-- User ID / Role
-- Device ID / Type (iOS / Android)
-- App Version
-- Login / Logout Timestamps
-- Last Activity Date & Time
-- Permissions / Access Level
-- Status (Active / Inactive / Suspended)
-- Notes / Remarks
+### Table of Contents
+- 1. Purpose & Scope
+- 2. Mobile App Access & Security
+- 3. Mobile Inventory Operations
+- 4. Mobile Approvals & Workflows
+- 5. IoT Device Integration
+- 6. Real-Time Stock & Condition Monitoring
+- 7. Alerts & Notifications
+- 8. Geolocation & Tracking
+- 9. Device Health & Maintenance
+- 10. Integrations
+- 11. Validations & Edge Cases
 
-### 9.2 Mobile Inventory Management
-- Transaction ID (auto-generated)
-- Product ID / SKU
-- Batch / Lot / Serial Number (if applicable)
-- Warehouse / Location ID
-- Quantity Added / Removed / Transferred
-- Unit of Measure
-- Triggered By (User / Mobile App / IoT Device)
-- Timestamp / Date & Time
-- Notes / Remarks
+---
 
-### 9.3 Mobile Approvals & Workflows
-- Workflow ID (auto-generated)
-- Transaction ID (PO, SO, Stock Adjustment, Transfer)
-- Requestor User ID
-- Approver User ID / Role
-- Approval Status (Pending / Approved / Rejected)
-- Approval Date & Time
-- Notes / Remarks
+### 1. Purpose & Scope
+- Enable field and warehouse users to operate via mobile, and integrate sensors/IoT for real-time inventory state
 
-### 9.4 IoT Device Integration
-- Device ID (auto-generated)
-- Device Type (RFID Reader, Sensor, GPS Tracker, Temperature Sensor, Barcode Scanner)
-- Product ID / SKU / Batch / Serial Number Linked
-- Location / Zone / Warehouse ID
-- Device Status (Active / Inactive / Faulty / Maintenance)
-- Last Data Transmission Timestamp
-- Data Type Collected (Temperature, Humidity, Stock Movement, Location)
-- Notes / Remarks
+### 2. Mobile App Access & Security
+- App User ID, User/Role, Device ID/Type, App Version, Login/Logout, Last Activity, Permissions, Status, Notes
+- Security: device binding, 2FA (optional), offline session policies
 
-### 9.5 Real-Time Stock & Condition Monitoring
-- Monitoring ID (auto-generated)
-- Product ID / SKU / Batch / Serial
-- Warehouse / Location / Zone ID
-- Current Stock Quantity
-- Stock Reserved / Available
-- Sensor Data (Temperature, Humidity, Motion, etc.)
-- Timestamp / Date & Time
-- Alerts Triggered (Yes / No)
-- Notes / Remarks
+### 3. Mobile Inventory Operations
+- Transaction ID, Product/SKU, Batch/Lot/Serial, Location, Qty +/- / Transfer, UoM, Triggered by, Timestamp, Notes
+- Flows: scan → validate → confirm → sync; offline capture with conflict resolution
 
-### 9.6 Alerts & Notifications via Mobile / IoT
-- Alert ID (auto-generated)
-- Trigger Type (Low Stock, Expiry, Temperature Alert, Movement, Delay, Damage)
-- Product ID / SKU / Batch / Serial Number
-- Warehouse / Location ID
-- Priority Level (High / Medium / Low)
-- Recipient (User ID / Role / Mobile / Email / App Push)
-- Delivery Method
-- Status (Sent / Pending / Acknowledged / Failed)
-- Timestamp / Date & Time
-- Notes / Remarks
+### 4. Mobile Approvals & Workflows
+- Workflow ID, Transaction refs (PO/SO/Adjust/Transfer), Requestor, Approver/Role, Status, Dates, Notes
+- SLA and escalations; quick actions with audit
 
-### 9.7 Geolocation & GPS Tracking
-- Tracking ID (auto-generated)
-- Device ID / Vehicle ID
-- Warehouse / Outlet / Route ID
-- GPS Coordinates (Latitude, Longitude)
-- Timestamp / Date & Time
-- Movement Status (In Transit / Arrived / Delayed)
-- Notes / Remarks
+### 5. IoT Device Integration
+- Device ID/Type (RFID, sensor, GPS, scanner), Linked Product/Batch/Serial, Location, Status, Last Txn, Data Types, Notes
+- Security: provisioning, key rotation, access scopes
 
-### 9.8 IoT Device Health & Maintenance
-- Device ID
-- Last Maintenance Date
-- Next Scheduled Maintenance
-- Battery / Power Status
-- Connectivity Status
-- Issues / Faults Logged
-- Responsible Technician / Department
-- Notes / Remarks
+### 6. Real-Time Stock & Condition Monitoring
+- Monitoring ID, Product/Batch/Serial, Location, Stock levels, Sensor data, Timestamp, Alerts, Notes
 
-### 9.9 Integration with Other Modules
-- Integration ID (auto-generated)
-- Source Module (Inventory, Warehouse, Logistics, Mobile App)
-- Destination Module (ERP, BI, Accounting, Dashboard)
-- Data Types / Transaction IDs Linked
-- Sync Type (Real-Time / Batch / Scheduled)
-- Status (Success / Failed / Pending)
-- Last Sync Timestamp
-- Error Log / Remarks
+### 7. Alerts & Notifications
+- Alert ID, Trigger (low stock/expiry/temperature/motion/delay/damage), Product/Batch/Serial, Location, Priority, Recipient, Method, Status, Timestamp
+
+### 8. Geolocation & Tracking
+- Tracking ID, Device/Vehicle, Route, GPS coordinates, Timestamp, Movement status, Notes
+
+### 9. Device Health & Maintenance
+- Device ID, Last/Next maintenance, Battery/Power, Connectivity, Faults, Technician, Notes
+
+### 10. Integrations
+- Integration ID, Source (Inventory/Warehouse/Logistics/Mobile), Destination (ERP/BI/Accounting), Data types, Sync type, Status, Timestamps, Error log
+
+### 11. Validations & Edge Cases
+- Validations: device auth, duplicate scans, stale sensor data, location accuracy thresholds
+- Edge Cases: offline operations with delayed sync; sensor drift; GPS loss; tamper alerts
 

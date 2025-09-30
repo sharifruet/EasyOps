@@ -1,14 +1,25 @@
 # CRM: Leads & Prospects
 
-## Problem Statement
+## Table of Contents
+- Purpose
+- Roles & Permissions
+- Data Model
+- Core Flows
+- Validations & Rules
+- Integrations & Events
+- Reports & KPIs
+- Edge Cases
+- Appendix
+
+## Purpose
 Centralize lead capture from multiple channels and manage qualification to increase conversion.
 
-## User Roles & Permissions
+## Roles & Permissions
 - Sales Rep: create/update leads, convert to contact/opportunity
 - Sales Manager: assign leads, bulk actions, SLA oversight
 - Marketing: import leads, campaign attribution
 
-## Entities & Fields
+## Data Model
 - Lead
   - Name, Company, Email, Phone, Source, Campaign, Owner, Status, Score, Tags
   - Address, Industry, Size, Notes, Attachments, Consent flags
@@ -22,7 +33,7 @@ Centralize lead capture from multiple channels and manage qualification to incre
 4. Convert to Account/Contact and create Opportunity
 5. De-duplicate with fuzzy match; merge
 
-## Validations & Business Rules
+## Validations & Rules
 - Required fields per source; email/phone format
 - Duplicate prevention by email/phone + name/company similarity
 - Conversion allowed only for qualified statuses
@@ -39,3 +50,7 @@ Centralize lead capture from multiple channels and manage qualification to incre
 ## Edge Cases
 - Reopen disqualified leads with reason tracking
 - GDPR consent management and suppression lists
+
+## Appendix
+- Example assignment rule: country = BD → owner group "Dhaka Team"; round-robin
+- Example qualification rule: score ≥ 70 and job title contains "Manager" → create opp

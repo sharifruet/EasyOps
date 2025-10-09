@@ -1,14 +1,15 @@
 package com.easyops.users.repository;
 
-import com.easyops.users.entity.User;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import com.easyops.users.entity.User;
 
 /**
  * User Repository
@@ -75,7 +76,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param organizationId Organization ID
      * @return List of users
      */
-    @Query("SELECT u FROM User u JOIN u.organizations o WHERE o.organizationId = :organizationId")
+    @Query(value = "SELECT u.* FROM users.users u " +
+           "JOIN users.user_organizations uo ON u.id = uo.user_id " +
+           "WHERE uo.organization_id = :organizationId", nativeQuery = true)
     List<User> findByOrganizationId(@Param("organizationId") UUID organizationId);
 
     /**
@@ -84,21 +87,24 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param roleId Role ID
      * @return List of users
      */
-    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.roleId = :roleId")
+    @Query(value = "SELECT u.* FROM users.users u " +
+           "JOIN rbac.user_roles ur ON u.id = ur.user_id " +
+           "WHERE ur.role_id = :roleId", nativeQuery = true)
     List<User> findByRoleId(@Param("roleId") UUID roleId);
 
     /**
      * Search users by name or email
      * 
      * @param searchTerm Search term
-     * @return List of users
+     * @param pageable Pagination parameters
+     * @return Page of users
      */
     @Query("SELECT u FROM User u WHERE " +
            "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(u.username) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
-    List<User> searchUsers(@Param("searchTerm") String searchTerm);
+    org.springframework.data.domain.Page<User> searchUsers(@Param("searchTerm") String searchTerm, org.springframework.data.domain.Pageable pageable);
 
     /**
      * Count active users

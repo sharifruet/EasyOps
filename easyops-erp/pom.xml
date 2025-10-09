@@ -14,6 +14,7 @@
     <description>Comprehensive Enterprise Resource Planning System</description>
 
     <properties>
+        <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,6 +45,9 @@
         <module>services/eureka</module>
         <module>services/api-gateway</module>
         <module>services/user-management</module>
+        <module>services/auth-service</module>
+        <module>services/rbac-service</module>
+        <module>services/organization-service</module>
     </modules>
 
     <dependencyManagement>
@@ -143,8 +147,9 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
                     <configuration>
-                        <source>25</source>
-                        <target>25</target>
+                        <source>21</source>
+                        <target>21</target>
+                        <release>21</release>
                     </configuration>
                 </plugin>
 

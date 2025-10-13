@@ -89,11 +89,25 @@ easyops-erp/
 
 ## 📖 Documentation
 
-- [Requirements Documentation](../requirements/)
-- [API Documentation](docs/api/)
-- [Architecture Documentation](docs/architecture/)
-- [Development Guide](docs/development/)
-- [Deployment Guide](docs/deployment/)
+### Main Documentation
+- [Architecture Documentation](./ARCHITECTURE.md) - System architecture overview
+- [Docker Setup Guide](./DOCKER_START.md) - Docker deployment guide
+- [Testing Guide](./TESTING_GUIDE.md) - Testing strategy and guides
+- [Quick Start](./QUICKSTART.md) - Quick start guide
+- [Frontend Guide](./FRONTEND_GUIDE.md) - Frontend development guide
+
+### Implementation Documentation
+- **[📁 Implementation Docs](./implementations/)** - All implementation guides and phase completion reports
+  - Phase 0 Complete Guide
+  - Phase 0.2 Organization & RBAC
+  - Phase 0.3 Monitoring & Notifications
+  - Service-specific guides
+  - Quick start guides
+  - Troubleshooting & fixes
+
+### Requirements
+- [Requirements Documentation](../requirements/) - Detailed system requirements
+- [Administrative Requirements](../requirements/administrative/) - Phase 0 requirements
 
 ## 🤝 Contributing
 

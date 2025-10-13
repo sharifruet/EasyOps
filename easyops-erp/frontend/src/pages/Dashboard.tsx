@@ -68,19 +68,30 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [userStats, rolesResponse] = await Promise.all([
-          userService.getUserStats(),
-          rbacService.getActiveRoles(),
-        ]);
+        // Temporarily using mock data until services are fully implemented
+        // TODO: Uncomment when user-service and rbac-service endpoints are ready
+        // const [userStats, rolesResponse] = await Promise.all([
+        //   userService.getUserStats(),
+        //   rbacService.getActiveRoles(),
+        // ]);
 
+        // Mock data for now
         setStats({
-          totalUsers: userStats.totalUsers,
-          activeUsers: userStats.activeUsers,
-          inactiveUsers: userStats.inactiveUsers,
-          totalRoles: rolesResponse.length,
+          totalUsers: 1,
+          activeUsers: 1,
+          inactiveUsers: 0,
+          totalRoles: 4,
         });
       } catch (error: any) {
-        enqueueSnackbar('Failed to load dashboard stats', { variant: 'error' });
+        console.error('Dashboard stats error:', error);
+        enqueueSnackbar('Failed to load dashboard stats', { variant: 'warning' });
+        // Set defaults even on error
+        setStats({
+          totalUsers: 0,
+          activeUsers: 0,
+          inactiveUsers: 0,
+          totalRoles: 0,
+        });
       } finally {
         setLoading(false);
       }

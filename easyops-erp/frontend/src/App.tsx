@@ -7,7 +7,11 @@ import ProtectedRoute from '@components/ProtectedRoute';
 import MainLayout from '@components/Layout/MainLayout';
 import Login from '@pages/Login';
 import Dashboard from '@pages/Dashboard';
+import Organizations from '@pages/Organizations';
+import OrganizationDetails from '@pages/OrganizationDetails';
 import Users from '@pages/Users';
+import Roles from '@pages/Roles';
+import Permissions from '@pages/Permissions';
 
 // Create MUI theme
 const theme = createTheme({
@@ -69,9 +73,11 @@ const App: React.FC = () => {
               >
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="organizations" element={<Organizations />} />
+                <Route path="organizations/:id" element={<OrganizationDetails />} />
                 <Route path="users" element={<Users />} />
-                <Route path="roles" element={<Dashboard />} />
-                <Route path="permissions" element={<Dashboard />} />
+                <Route path="roles" element={<Roles />} />
+                <Route path="permissions" element={<Permissions />} />
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />
               </Route>

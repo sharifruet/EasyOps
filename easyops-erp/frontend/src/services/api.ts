@@ -1,6 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+// Direct auth service URL to avoid CORS issues (temporary)
+const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:8083';
 
 class ApiService {
   private api: AxiosInstance;
@@ -38,7 +40,13 @@ class ApiService {
           try {
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
-              const response = await this.post('/api/auth/refresh', {
+              // Use direct auth service for refresh to avoid CORS issues
+              const authApi = axios.create({
+                baseURL: AUTH_SERVICE_URL,
+                headers: { 'Content-Type': 'application/json' },
+              });
+              
+              const response = await authApi.post('/api/auth/refresh', {
                 refreshToken,
               });
 
@@ -51,6 +59,7 @@ class ApiService {
             }
           } catch (refreshError) {
             // Refresh failed, logout user
+            console.error('Token refresh failed:', refreshError);
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');

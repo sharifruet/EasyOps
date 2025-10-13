@@ -24,6 +24,7 @@ import {
   People as PeopleIcon,
   Security as SecurityIcon,
   AdminPanelSettings as AdminIcon,
+  Business as BusinessIcon,
   AccountCircle,
   Logout,
   Settings,
@@ -40,6 +41,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Organizations', icon: <BusinessIcon />, path: '/organizations' },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Roles', icon: <SecurityIcon />, path: '/roles' },
   { text: 'Permissions', icon: <AdminIcon />, path: '/permissions' },

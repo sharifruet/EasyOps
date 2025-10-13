@@ -152,3 +152,6 @@ export interface ApiResponse<T> {
   error?: ApiError;
 }
 
+// Organization Types (re-export from organization.ts)
+export * from './organization';
+

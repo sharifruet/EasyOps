@@ -126,8 +126,9 @@ public class UserController {
      * @return Page of users
      */
     @GetMapping("/search")
-    public ResponseEntity<Page<UserResponse>> searchUsers(@RequestParam String searchTerm, 
-                                                        Pageable pageable) {
+    public ResponseEntity<Page<UserResponse>> searchUsers(
+            @RequestParam(name = "searchTerm", required = true) String searchTerm, 
+            Pageable pageable) {
         Page<UserResponse> users = userService.searchUsers(searchTerm, pageable);
         return ResponseEntity.ok(users);
     }

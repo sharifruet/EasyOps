@@ -6,23 +6,45 @@ spring:
     name: organization-service
   profiles:
     active: dev
+  
   datasource:
     url: jdbc:postgresql://localhost:5432/easyops
     username: easyops
     password: easyops123
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  redis:
-    host: localhost
-    port: 6379
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
   cache:
     type: redis
+  
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 60000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
 eureka:
   client:
@@ -30,6 +52,7 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 management:
   endpoints:
@@ -39,35 +62,69 @@ management:
   endpoint:
     health:
       show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 logging:
   level:
     com.easyops: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# OpenAPI Documentation
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
 
 ---
+# Development Profile
 spring:
   config:
     activate:
       on-profile: dev
+  
   datasource:
     url: jdbc:postgresql://postgres:5432/easyops
-  redis:
-    host: redis
+    username: easyops
+    password: easyops123
+  
+  data:
+    redis:
+      host: redis
+      port: 6379
 
 eureka:
   client:
     service-url:
       defaultZone: http://eureka:8761/eureka/
 
+logging:
+  level:
+    root: INFO
+    com.easyops: DEBUG
+
 ---
+# Production Profile
 spring:
   config:
     activate:
       on-profile: prod
+
+  jpa:
+    show-sql: false
+  
 logging:
   level:
     root: WARN
     com.easyops: INFO
   file:
     name: logs/organization-service.log
-

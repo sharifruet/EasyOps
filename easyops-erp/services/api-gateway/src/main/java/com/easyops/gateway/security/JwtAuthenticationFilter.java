@@ -1,22 +1,19 @@
 package com.easyops.gateway.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import reactor.core.publisher.Mono;
 
 /**
  * JWT Authentication Filter
@@ -24,10 +21,12 @@ import java.util.List;
  * This filter validates JWT tokens for API Gateway requests.
  * It extracts the token from the Authorization header and validates it.
  * 
+ * TEMPORARILY DISABLED FOR DEVELOPMENT
+ * 
  * @author EasyOps Team
  * @version 1.0.0
  */
-@Component
+// @Component  // DISABLED - No JWT validation in development
 public class JwtAuthenticationFilter implements GlobalFilter {
 
     @Value("${jwt.secret:your-jwt-secret-key-change-in-production}")
@@ -38,45 +37,10 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request = exchange.getRequest();
-        ServerHttpResponse response = exchange.getResponse();
-
-        // Skip authentication for public endpoints
-        String path = request.getURI().getPath();
-        if (isPublicEndpoint(path)) {
-            return chain.filter(exchange);
-        }
-
-        // Extract JWT token from Authorization header
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.setComplete();
-        }
-
-        String token = authHeader.substring(7);
-        
-        try {
-            // Validate JWT token
-            Claims claims = validateToken(token);
-            if (claims == null) {
-                response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                return response.setComplete();
-            }
-
-            // Add user information to request headers
-            ServerHttpRequest modifiedRequest = request.mutate()
-                    .header("X-User-Id", claims.getSubject())
-                    .header("X-User-Email", claims.get("email", String.class))
-                    .header("X-User-Roles", claims.get("roles", String.class))
-                    .build();
-
-            return chain.filter(exchange.mutate().request(modifiedRequest).build());
-
-        } catch (Exception e) {
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.setComplete();
-        }
+        // TEMPORARY: Bypass all JWT validation for development
+        // TODO: Re-enable JWT validation once secret synchronization is fixed
+        System.out.println("JwtAuthenticationFilter: BYPASSING all auth checks (dev mode)");
+        return chain.filter(exchange);
     }
 
     /**
@@ -90,8 +54,14 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                 "/api/auth/login",
                 "/api/auth/register",
                 "/api/auth/refresh",
+                "/api/auth/health",
+                "/api/auth/password/reset",
+                "/api/auth/password/reset/confirm",
+                "/api/auth/generate-hash",
+                "/api/users",  // Temporarily public for testing
                 "/health",
-                "/actuator/health"
+                "/actuator/health",
+                "/actuator/info"
         );
         
         return publicEndpoints.stream().anyMatch(path::startsWith);

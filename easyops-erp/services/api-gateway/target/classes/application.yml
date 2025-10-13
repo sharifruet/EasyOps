@@ -31,13 +31,26 @@ spring:
           uri: lb://monitoring-service
           predicates:
             - Path=/api/monitoring/**
+        - id: organization-service
+          uri: lb://organization-service
+          predicates:
+            - Path=/api/organizations/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_LAST
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "*"
-            allowed-methods: "*"
-            allowed-headers: "*"
-            allow-credentials: true
+            allowedOriginPatterns: "*"
+            allowedMethods: 
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
 
 eureka:
   client:
@@ -48,16 +61,8 @@ eureka:
 
 # JWT Configuration
 jwt:
-  secret: your-jwt-secret-key-change-in-production
+  secret: easyops-jwt-secret-key-change-this-in-production-minimum-256-bits
   expiration: 86400000
-
-# Security Configuration
-security:
-  cors:
-    allowed-origins: "*"
-    allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-    allowed-headers: "*"
-    allow-credentials: true
 
 management:
   endpoints:

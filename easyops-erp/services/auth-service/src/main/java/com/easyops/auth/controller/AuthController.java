@@ -23,12 +23,25 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 @Slf4j
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    /**
+     * Test endpoint to generate password hash
+     */
+    @GetMapping("/generate-hash/{password}")
+    public ResponseEntity<Map<String, String>> generateHash(@PathVariable String password) {
+        org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder = 
+            new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+        String hash = encoder.encode(password);
+        Map<String, String> response = new HashMap<>();
+        response.put("password", password);
+        response.put("hash", hash);
+        return ResponseEntity.ok(response);
+    }
 
     /**
      * Login endpoint

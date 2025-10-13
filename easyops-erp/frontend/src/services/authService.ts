@@ -1,4 +1,5 @@
 import api from './api';
+import axios from 'axios';
 import {
   LoginRequest,
   LoginResponse,
@@ -7,9 +8,15 @@ import {
   ChangePasswordRequest,
 } from '@types/index';
 
+// Temporary: Use direct auth service URL to avoid CORS issues
+const authApi = axios.create({
+  baseURL: 'http://localhost:8083',
+  headers: { 'Content-Type': 'application/json' },
+});
+
 class AuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/api/auth/login', credentials);
+    const response = await authApi.post<LoginResponse>('/api/auth/login', credentials);
     const data = response.data;
 
     // Store tokens and user info
@@ -28,7 +35,7 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
-      await api.post('/api/auth/logout');
+      await authApi.post('/api/auth/logout');
     } finally {
       // Clear local storage regardless of API call result
       localStorage.removeItem('accessToken');
@@ -38,7 +45,7 @@ class AuthService {
   }
 
   async refreshToken(refreshToken: string): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/api/auth/refresh', {
+    const response = await authApi.post<LoginResponse>('/api/auth/refresh', {
       refreshToken,
     });
     return response.data;

@@ -44,6 +44,10 @@ spring:
   config:
     activate:
       on-profile: dev
+  security:
+    user:
+      name: admin
+      password: admin
 
 eureka:
   server:

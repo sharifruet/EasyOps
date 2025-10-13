@@ -48,6 +48,8 @@
         <module>services/auth-service</module>
         <module>services/rbac-service</module>
         <module>services/organization-service</module>
+        <module>services/notification-service</module>
+        <module>services/monitoring-service</module>
     </modules>
 
     <dependencyManagement>

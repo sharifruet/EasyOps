@@ -28,6 +28,10 @@ import {
   AccountCircle,
   Logout,
   Settings,
+  AccountBalance as AccountingIcon,
+  AccountTree as CoAIcon,
+  Receipt as JournalIcon,
+  Assessment as ReportIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@contexts/AuthContext';
 
@@ -39,9 +43,31 @@ interface MenuItem {
   path: string;
 }
 
-const menuItems: MenuItem[] = [
+interface MenuItemType {
+  text: string;
+  icon: React.ReactElement;
+  path: string;
+  children?: MenuItemType[];
+}
+
+const menuItems: MenuItemType[] = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Organizations', icon: <BusinessIcon />, path: '/organizations' },
+  { 
+    text: 'Accounting', 
+    icon: <AccountingIcon />, 
+    path: '/accounting',
+    children: [
+      { text: 'Chart of Accounts', icon: <CoAIcon />, path: '/accounting/chart-of-accounts' },
+      { text: 'Journal Entry', icon: <JournalIcon />, path: '/accounting/journal-entry' },
+      { text: 'Trial Balance', icon: <ReportIcon />, path: '/accounting/trial-balance' },
+      { text: '---' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Customer Invoices', icon: <JournalIcon />, path: '/accounting/invoices' },
+      { text: 'Vendor Bills', icon: <JournalIcon />, path: '/accounting/bills' },
+      { text: 'Bank Reconciliation', icon: <AccountingIcon />, path: '/accounting/bank-reconciliation' },
+      { text: 'Aging Reports', icon: <ReportIcon />, path: '/accounting/aging-reports' },
+    ]
+  },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Roles', icon: <SecurityIcon />, path: '/roles' },
   { text: 'Permissions', icon: <AdminIcon />, path: '/permissions' },
@@ -76,6 +102,17 @@ const MainLayout: React.FC = () => {
     setMobileOpen(false);
   };
 
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
+    Accounting: true, // Expand accounting by default
+  });
+
+  const toggleMenu = (menuText: string) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [menuText]: !prev[menuText],
+    }));
+  };
+
   const drawer = (
     <div>
       <Toolbar>
@@ -86,12 +123,41 @@ const MainLayout: React.FC = () => {
       <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton onClick={() => handleNavigation(item.path)}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
+          <React.Fragment key={item.text}>
+            <ListItem disablePadding>
+              <ListItemButton 
+                onClick={() => {
+                  if (item.children) {
+                    toggleMenu(item.text);
+                  } else {
+                    handleNavigation(item.path);
+                  }
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+                {item.children && (
+                  <Typography variant="caption">
+                    {expandedMenus[item.text] ? '▼' : '▶'}
+                  </Typography>
+                )}
+              </ListItemButton>
+            </ListItem>
+            {item.children && expandedMenus[item.text] && (
+              <List component="div" disablePadding>
+                {item.children.map((child) => (
+                  <ListItem key={child.text} disablePadding sx={{ pl: 4 }}>
+                    <ListItemButton onClick={() => handleNavigation(child.path)}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        {child.icon}
+                      </ListItemIcon>
+                      <ListItemText primary={child.text} primaryTypographyProps={{ variant: 'body2' }} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </React.Fragment>
         ))}
       </List>
     </div>

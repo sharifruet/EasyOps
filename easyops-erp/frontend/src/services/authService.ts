@@ -8,9 +8,9 @@ import {
   ChangePasswordRequest,
 } from '@types/index';
 
-// Temporary: Use direct auth service URL to avoid CORS issues
+// Use API Gateway for auth service calls
 const authApi = axios.create({
-  baseURL: 'http://localhost:8083',
+  baseURL: 'http://localhost:8081',
   headers: { 'Content-Type': 'application/json' },
 });
 

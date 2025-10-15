@@ -23,6 +23,10 @@ This directory contains all implementation documentation, guides, and completion
 - **[PHASE_0.3_IMPLEMENTATION_COMPLETE.md](./PHASE_0.3_IMPLEMENTATION_COMPLETE.md)** - Complete implementation guide
 - **[PHASE_0.3_QUICK_START.md](./PHASE_0.3_QUICK_START.md)** - Quick start guide for Phase 0.3
 
+#### Phase 1.1 - Accounting: CoA & GL Foundation ✅
+- **[PHASE_1.1_COMPLETE.md](./PHASE_1.1_COMPLETE.md)** - Complete implementation guide
+- **[PHASE_1.1_QUICK_START.md](./PHASE_1.1_QUICK_START.md)** - Quick start guide for Phase 1.1
+
 ---
 
 ## 🔧 Service Implementation Guides

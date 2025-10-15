@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 // Direct auth service URL to avoid CORS issues (temporary)
-const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:8083';
+const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:8081';
 
 class ApiService {
   private api: AxiosInstance;
@@ -40,9 +40,9 @@ class ApiService {
           try {
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
-              // Use direct auth service for refresh to avoid CORS issues
+              // Use API Gateway for refresh token
               const authApi = axios.create({
-                baseURL: AUTH_SERVICE_URL,
+                baseURL: API_BASE_URL,
                 headers: { 'Content-Type': 'application/json' },
               });
               

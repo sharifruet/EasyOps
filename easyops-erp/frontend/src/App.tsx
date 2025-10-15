@@ -12,6 +12,13 @@ import OrganizationDetails from '@pages/OrganizationDetails';
 import Users from '@pages/Users';
 import Roles from '@pages/Roles';
 import Permissions from '@pages/Permissions';
+import ChartOfAccounts from '@pages/accounting/ChartOfAccounts';
+import JournalEntry from '@pages/accounting/JournalEntry';
+import TrialBalance from '@pages/accounting/TrialBalance';
+import Invoices from '@pages/accounting/Invoices';
+import Bills from '@pages/accounting/Bills';
+import BankReconciliation from '@pages/accounting/BankReconciliation';
+import AgingReports from '@pages/accounting/AgingReports';
 
 // Create MUI theme
 const theme = createTheme({
@@ -78,6 +85,18 @@ const App: React.FC = () => {
                 <Route path="users" element={<Users />} />
                 <Route path="roles" element={<Roles />} />
                 <Route path="permissions" element={<Permissions />} />
+                
+                {/* Accounting Routes - Phase 1.1 */}
+                <Route path="accounting/chart-of-accounts" element={<ChartOfAccounts />} />
+                <Route path="accounting/journal-entry" element={<JournalEntry />} />
+                <Route path="accounting/trial-balance" element={<TrialBalance />} />
+                
+                {/* Accounting Routes - Phase 1.2 */}
+                <Route path="accounting/invoices" element={<Invoices />} />
+                <Route path="accounting/bills" element={<Bills />} />
+                <Route path="accounting/bank-reconciliation" element={<BankReconciliation />} />
+                <Route path="accounting/aging-reports" element={<AgingReports />} />
+                
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />
               </Route>

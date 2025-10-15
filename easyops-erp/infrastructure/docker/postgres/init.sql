@@ -739,3 +739,15 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA notifications TO easyops_dev;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA integration TO easyops_dev;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA notifications TO easyops_dev;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA integration TO easyops_dev;
+
+-- ============================================================
+-- PHASE 1.1: Accounting Module - CoA & GL Foundation
+-- ============================================================
+
+\i /docker-entrypoint-initdb.d/phase_1.1_accounting_schema.sql
+
+-- ============================================================
+-- PHASE 1.2: AR, AP, and Bank Management
+-- ============================================================
+
+\i /docker-entrypoint-initdb.d/phase_1.2_ar_ap_bank_schema.sql

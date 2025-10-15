@@ -35,6 +35,14 @@ spring:
           uri: lb://organization-service
           predicates:
             - Path=/api/organizations/**
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**, /api/webhooks/**
+        - id: accounting-service
+          uri: lb://accounting-service
+          predicates:
+            - Path=/api/accounting/**
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_LAST
       globalcors:

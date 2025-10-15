@@ -25,29 +25,60 @@ This module covers core financials (GL, journals, TB, P&L, BS, CF), subledgers (
 
 ## Development Phases (EasyOps Accounting)
 
-- Phase 1: Foundations & GL
-  - CoA setup, Journal posting (manual + system), GL, TB, basic P&L/BS, period locks
-  - Minimal reporting (ledger/TB exports), basic RBAC, audit trail
+> **📋 Detailed Implementation Plan**: See [PHASE_1_IMPLEMENTATION_PLAN.md](PHASE_1_IMPLEMENTATION_PLAN.md) for complete phased breakdown
 
-- Phase 2: Cash & Banks, AP/AR Basics
-  - Bank & cash management (accounts, deposits, transfers, reconciliation), AP/AR posting from bills/invoices
-  - Payment/receipt batches, aging reports, supplier/customer statements
+### Phase 1.1 - CoA & GL Foundation (Months 7-8)
+- Chart of Accounts (CoA) setup with hierarchical structure
+- General Ledger implementation with double-entry validation
+- Manual journal entry posting
+- Fiscal period management
+- Basic reports: Trial Balance, Account Ledger, P&L, Balance Sheet
+- **Duration**: 2 months | **Services**: accounting-service, coa-service
 
-- Phase 3: Integrations & Automation
-  - Procurement/Inventory links (GR/IR, COGS), payroll integration, recurring journals, approval workflows
-  - Scheduling, notifications, import/export templates, APIs for journals/reports
+### Phase 1.2 - Subledgers & Cash Management (Months 9-10)
+- Accounts Receivable (AR): Invoicing, payments, aging
+- Accounts Payable (AP): Bills, payments, aging
+- Bank & cash management
+- Bank reconciliation with automated matching
+- Payment/receipt processing
+- **Duration**: 2 months | **Services**: ar-service, ap-service, bank-service
 
-- Phase 4: Multi-Currency/Branch & Compliance
-  - Multi-currency postings and revaluations; branch/company dimensions; intercompany
-  - Tax engine (VAT/GST/withholding), return preparation, e-filing integrations (where supported)
+### Phase 1.3 - Integrations & Automation (Months 11-12)
+- Inventory integration (GR/IR, COGS)
+- Payroll integration
+- Recurring journals and automated posting
+- Approval workflows
+- Import/export capabilities
+- **Duration**: 2 months | **Services**: integration-service, automation-service, workflow-service
 
-- Phase 5: Advanced Reporting & Close
-  - Dashboards, budget vs actual, custom report layouts; close calendar and tasks
-  - Consolidation & translation, elimination entries; performance/scalability hardening
+### Phase 1.4 - Multi-Currency, Multi-Branch & Compliance (Months 13-14)
+- Multi-currency support with revaluation
+- Multi-branch/company accounting
+- Intercompany transactions
+- Tax engine (VAT/GST/Withholding)
+- E-invoicing and compliance
+- **Duration**: 2 months | **Services**: currency-service, tax-service, compliance-service
 
-- Phase 6: Hardening & Audit Readiness
-  - SoD reviews, access certification, retention/backups, DR testing
-  - External auditor packages, data lineage, observability dashboards
+### Phase 1.5 - Advanced Reporting & Financial Close (Month 15)
+- Advanced financial statements
+- Financial close automation with checklist
+- Budget management and variance analysis
+- Analytics dashboards and KPIs
+- Custom report designer
+- **Duration**: 1 month | **Services**: reporting-service, close-service, budget-service, analytics-service
+
+---
+
+### Implementation Summary
+
+| Phase | Duration | Services | Key Features |
+|-------|----------|----------|--------------|
+| 1.1 | 2 months | 2 services | CoA, GL, Journals, Trial Balance |
+| 1.2 | 2 months | 3 services | AR, AP, Bank, Reconciliation |
+| 1.3 | 2 months | 3 services | Integration, Automation, Workflow |
+| 1.4 | 2 months | 3 services | Multi-currency, Tax, Compliance |
+| 1.5 | 1 month | 4 services | Reports, Close, Budget, Analytics |
+| **Total** | **9 months** | **15 services** | **Complete Accounting Module** |
 
 Notes
 - Cross-cutting requirements live under `requirements/cross-cutting/` and apply across modules.

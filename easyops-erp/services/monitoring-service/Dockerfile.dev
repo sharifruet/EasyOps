@@ -1,19 +1,16 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy parent pom first
-COPY pom.xml .
-
-# Copy monitoring service
-COPY services/monitoring-service ./services/monitoring-service
+# Copy the entire repository to ensure all modules are available
+COPY . .
 
 # Build the service
-RUN mvn clean package -pl services/monitoring-service -am -DskipTests
+RUN mvn clean package -pl services/monitoring-service -am -DskipTests spring-boot:repackage
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-COPY --from=build /app/services/monitoring-service/target/*.jar app.jar
+COPY --from=build /app/services/monitoring-service/target/monitoring-service-1.0.0.jar app.jar
 
 EXPOSE 8087
 

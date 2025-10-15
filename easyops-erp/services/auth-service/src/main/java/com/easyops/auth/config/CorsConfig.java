@@ -9,7 +9,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 /**
  * CORS Configuration
  * 
- * Disables CORS in auth-service since API Gateway handles it.
+ * Enables CORS in auth-service to allow direct frontend access.
  * 
  * @author EasyOps Team
  * @version 1.0.0
@@ -19,10 +19,26 @@ public class CorsConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        // Return a configuration source that doesn't add any CORS headers
-        // API Gateway will handle all CORS
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Allow frontend origin
+        configuration.addAllowedOriginPattern("*");
+        
+        // Allow all HTTP methods
+        configuration.addAllowedMethod("*");
+        
+        // Allow all headers
+        configuration.addAllowedHeader("*");
+        
+        // Allow credentials
+        configuration.setAllowCredentials(true);
+        
+        // Cache preflight response for 1 hour
+        configuration.setMaxAge(3600L);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Don't register any CORS configuration - this prevents Spring from adding headers
+        source.registerCorsConfiguration("/**", configuration);
+        
         return source;
     }
 }

@@ -8,6 +8,13 @@ spring:
     active: dev
   mvc:
     dispatch-options-request: false
+  web:
+    cors:
+      allowed-origin-patterns: "*"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
   datasource:
     url: jdbc:postgresql://localhost:5432/easyops
     username: easyops

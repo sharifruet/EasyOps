@@ -29,7 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(AbstractHttpConfigurer::disable) // Completely disable CORS in this service
+            .cors(cors -> {}) // Enable CORS using CorsConfig class
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
             )

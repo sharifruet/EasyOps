@@ -50,6 +50,10 @@
         <module>services/organization-service</module>
         <module>services/notification-service</module>
         <module>services/monitoring-service</module>
+        <module>services/accounting-service</module>
+        <module>services/ar-service</module>
+        <module>services/ap-service</module>
+        <module>services/bank-service</module>
     </modules>
 
     <dependencyManagement>

@@ -30,5 +30,7 @@ public interface ChartOfAccountsRepository extends JpaRepository<ChartOfAccounts
     List<ChartOfAccounts> findByLevel(@Param("orgId") UUID organizationId, @Param("level") Integer level);
     
     boolean existsByOrganizationIdAndAccountCode(UUID organizationId, String accountCode);
+    
+    long countByOrganizationId(UUID organizationId);
 }
 

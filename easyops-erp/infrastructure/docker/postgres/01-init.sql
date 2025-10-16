@@ -744,22 +744,21 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA integration TO easyops_dev;
 -- PHASE 1.1: Accounting Module - CoA & GL Foundation
 -- ============================================================
 
-\i /docker-entrypoint-initdb.d/_phase_1.1_accounting_schema.sql
+\i /docker-entrypoint-initdb.d/_phase_1.1_accounting_schema.sql.inc
 
 -- ============================================================
 -- PHASE 1.2: AR, AP, and Bank Management
 -- ============================================================
 
-\i /docker-entrypoint-initdb.d/_phase_1.2_ar_ap_bank_schema.sql
-
--- ============================================================
--- Load COA Template Data
--- ============================================================
-
-\i /docker-entrypoint-initdb.d/_coa_template_standard.sql
+\i /docker-entrypoint-initdb.d/_phase_1.2_ar_ap_bank_schema.sql.inc
 
 -- ============================================================
 -- Apply Schema Updates
 -- ============================================================
 
-\i /docker-entrypoint-initdb.d/_update_schema.sql
+\i /docker-entrypoint-initdb.d/_update_schema.sql.inc
+
+-- ============================================================
+-- Note: COA Template Data (_coa_template_standard.sql.template) should
+-- be loaded per organization, not during database initialization
+-- ============================================================

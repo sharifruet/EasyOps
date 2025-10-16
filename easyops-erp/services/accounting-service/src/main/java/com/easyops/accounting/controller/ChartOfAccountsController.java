@@ -83,5 +83,18 @@ public class ChartOfAccountsController {
         coaService.deactivateAccount(accountId, organizationId);
         return ResponseEntity.noContent().build();
     }
+    
+    @PostMapping("/organization/{organizationId}/load-standard-coa")
+    @Operation(summary = "Load standard Chart of Accounts template for organization")
+    public ResponseEntity<String> loadStandardCoA(
+            @PathVariable UUID organizationId,
+            @RequestHeader(value = "X-User-Id", required = false) UUID userId) {
+        try {
+            int accountsCreated = coaService.loadStandardCoA(organizationId, userId);
+            return ResponseEntity.ok("Successfully loaded " + accountsCreated + " accounts for organization.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 

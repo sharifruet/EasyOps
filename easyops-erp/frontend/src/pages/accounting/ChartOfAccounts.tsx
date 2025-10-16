@@ -33,10 +33,12 @@ import {
   AccountTree as TreeIcon,
   List as ListIcon,
 } from '@mui/icons-material';
+import { useAuth } from '../../contexts/AuthContext';
 import accountingService from '../../services/accountingService';
 import { ChartOfAccount, CoARequest, AccountType } from '../../types/accounting';
 
 const ChartOfAccounts: React.FC = () => {
+  const { currentOrganizationId } = useAuth();
   const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ const ChartOfAccounts: React.FC = () => {
   const [editingAccount, setEditingAccount] = useState<ChartOfAccount | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
   
-  const organizationId = localStorage.getItem('currentOrganizationId') || '';
+  const organizationId = currentOrganizationId || '';
 
   const [formData, setFormData] = useState<CoARequest>({
     organizationId: organizationId,
@@ -59,8 +61,10 @@ const ChartOfAccounts: React.FC = () => {
   });
 
   useEffect(() => {
-    loadAccounts();
-  }, []);
+    if (organizationId) {
+      loadAccounts();
+    }
+  }, [organizationId]);
 
   const loadAccounts = async () => {
     setLoading(true);

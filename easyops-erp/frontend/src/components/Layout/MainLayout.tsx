@@ -61,7 +61,11 @@ const menuItems: MenuItemType[] = [
       { text: 'Chart of Accounts', icon: <CoAIcon />, path: '/accounting/chart-of-accounts' },
       { text: 'Journal Entry', icon: <JournalIcon />, path: '/accounting/journal-entry' },
       { text: 'Trial Balance', icon: <ReportIcon />, path: '/accounting/trial-balance' },
-      { text: '---' as any, icon: <></>, path: '' }, // Divider
+      { text: 'General Ledger', icon: <ReportIcon />, path: '/accounting/general-ledger' },
+      { text: 'Profit & Loss', icon: <ReportIcon />, path: '/accounting/profit-loss' },
+      { text: 'Balance Sheet', icon: <ReportIcon />, path: '/accounting/balance-sheet' },
+      { text: 'Cash Flow', icon: <ReportIcon />, path: '/accounting/cash-flow' },
+      { text: '---' as any, icon: <></>, path: '' }, // Divider - AR/AP/Bank features below
       { text: 'Customer Invoices', icon: <JournalIcon />, path: '/accounting/invoices' },
       { text: 'Vendor Bills', icon: <JournalIcon />, path: '/accounting/bills' },
       { text: 'Bank Reconciliation', icon: <AccountingIcon />, path: '/accounting/bank-reconciliation' },

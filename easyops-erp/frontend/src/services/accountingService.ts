@@ -91,6 +91,101 @@ const accountingService = {
     });
     return response.data;
   },
+
+  // Fiscal Year & Period APIs
+  async getFiscalYears(organizationId: string): Promise<FiscalYear[]> {
+    const response = await api.get(`/api/accounting/fiscal-years/organization/${organizationId}`);
+    return response.data;
+  },
+
+  async getOpenFiscalYears(organizationId: string): Promise<FiscalYear[]> {
+    const response = await api.get(`/api/accounting/fiscal-years/organization/${organizationId}/open`);
+    return response.data;
+  },
+
+  async getPeriods(organizationId: string): Promise<Period[]> {
+    const response = await api.get(`/api/accounting/fiscal-years/organization/${organizationId}/periods`);
+    return response.data;
+  },
+
+  async getOpenPeriods(organizationId: string): Promise<Period[]> {
+    const response = await api.get(`/api/accounting/fiscal-years/organization/${organizationId}/periods/open`);
+    return response.data;
+  },
+
+  async setupCurrentFiscalYear(organizationId: string): Promise<FiscalYear> {
+    const response = await api.post(`/api/accounting/fiscal-years/organization/${organizationId}/setup-current-year`);
+    return response.data;
+  },
+
+  // Bank Service APIs
+  async getBankAccounts(organizationId: string): Promise<any[]> {
+    const response = await api.get('/api/bank/accounts', {
+      params: { organizationId, activeOnly: true }
+    });
+    return response.data;
+  },
+
+  async getBankTransactions(accountId: string, startDate?: string, endDate?: string): Promise<any[]> {
+    const params: any = { accountId };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
+    const response = await api.get('/api/bank/transactions', { params });
+    return response.data;
+  },
+
+  async getUnreconciledTransactions(accountId: string): Promise<any[]> {
+    const response = await api.get('/api/bank/transactions/unreconciled', {
+      params: { accountId }
+    });
+    return response.data;
+  },
+
+  async createReconciliation(data: any): Promise<any> {
+    const response = await api.post('/api/bank/reconciliations', data);
+    return response.data;
+  },
+
+  // AR Service APIs
+  async getARAgingReport(organizationId: string, asOfDate?: string): Promise<any[]> {
+    const params: any = { organizationId };
+    if (asOfDate) params.asOfDate = asOfDate;
+    
+    const response = await api.get('/api/ar/aging', { params });
+    return response.data;
+  },
+
+  async getARInvoices(organizationId: string, status?: string): Promise<any[]> {
+    const params: any = { organizationId };
+    if (status) params.status = status;
+    
+    const response = await api.get('/api/ar/invoices', { params });
+    return response.data;
+  },
+
+  async getOutstandingInvoices(organizationId: string): Promise<any[]> {
+    const response = await api.get('/api/ar/invoices/outstanding', {
+      params: { organizationId }
+    });
+    return response.data;
+  },
+
+  // AP Service APIs
+  async getAPBills(organizationId: string, status?: string): Promise<any[]> {
+    const params: any = { organizationId };
+    if (status) params.status = status;
+    
+    const response = await api.get('/api/ap/bills', { params });
+    return response.data;
+  },
+
+  async getOutstandingBills(organizationId: string): Promise<any[]> {
+    const response = await api.get('/api/ap/bills/outstanding', {
+      params: { organizationId }
+    });
+    return response.data;
+  },
 };
 
 export default accountingService;

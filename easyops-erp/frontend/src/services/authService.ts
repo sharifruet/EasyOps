@@ -30,6 +30,18 @@ class AuthService {
       lastName: data.lastName,
     }));
 
+    // Fetch user's organizations and store the first one as current
+    try {
+      const orgsResponse = await api.get('/api/organizations?page=0&size=1');
+      if (orgsResponse.data.content && orgsResponse.data.content.length > 0) {
+        const firstOrg = orgsResponse.data.content[0];
+        localStorage.setItem('currentOrganizationId', firstOrg.id);
+        localStorage.setItem('currentOrganizationName', firstOrg.name);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user organizations:', error);
+    }
+
     return data;
   }
 
@@ -41,6 +53,8 @@ class AuthService {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+      localStorage.removeItem('currentOrganizationId');
+      localStorage.removeItem('currentOrganizationName');
     }
   }
 
@@ -83,6 +97,19 @@ class AuthService {
   getCurrentUser(): any | null {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
+  }
+
+  getCurrentOrganizationId(): string | null {
+    return localStorage.getItem('currentOrganizationId');
+  }
+
+  getCurrentOrganizationName(): string | null {
+    return localStorage.getItem('currentOrganizationName');
+  }
+
+  setCurrentOrganization(organizationId: string, organizationName: string): void {
+    localStorage.setItem('currentOrganizationId', organizationId);
+    localStorage.setItem('currentOrganizationName', organizationName);
   }
 
   isAuthenticated(): boolean {

@@ -15,18 +15,66 @@ import {
   TextField,
   MenuItem,
   Chip,
+  Grid,
+  CircularProgress,
 } from '@mui/material';
 import { Download as DownloadIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { useAuth } from '../../contexts/AuthContext';
 import accountingService from '../../services/accountingService';
-import { TrialBalance as TrialBalanceType, AccountType } from '../../types/accounting';
+import { TrialBalance as TrialBalanceType, AccountType, Period, FiscalYear } from '../../types/accounting';
 
 const TrialBalance: React.FC = () => {
+  const { currentOrganizationId } = useAuth();
   const [trialBalance, setTrialBalance] = useState<TrialBalanceType[]>([]);
+  const [periods, setPeriods] = useState<Period[]>([]);
+  const [fiscalYears, setFiscalYears] = useState<FiscalYear[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [periodId, setPeriodId] = useState<string>('');
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>('');
   
-  const organizationId = localStorage.getItem('currentOrganizationId') || '';
+  const organizationId = currentOrganizationId || '';
+
+  useEffect(() => {
+    if (organizationId) {
+      loadFiscalYearsAndPeriods();
+    }
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (periodId && organizationId) {
+      loadTrialBalance();
+    }
+  }, [periodId]);
+
+  const loadFiscalYearsAndPeriods = async () => {
+    try {
+      const [years, allPeriods] = await Promise.all([
+        accountingService.getOpenFiscalYears(organizationId),
+        accountingService.getOpenPeriods(organizationId)
+      ]);
+      
+      setFiscalYears(years);
+      setPeriods(allPeriods);
+      
+      // Auto-select current period based on today's date
+      const today = new Date().toISOString().split('T')[0];
+      const currentPeriod = allPeriods.find(
+        p => p.startDate <= today && p.endDate >= today && p.status === 'OPEN'
+      );
+      
+      if (currentPeriod) {
+        setPeriodId(currentPeriod.id);
+        setSelectedFiscalYear(currentPeriod.fiscalYearId);
+      } else if (allPeriods.length > 0) {
+        // If no current period, select the most recent open period
+        setPeriodId(allPeriods[0].id);
+        setSelectedFiscalYear(allPeriods[0].fiscalYearId);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load periods');
+    }
+  };
 
   const loadTrialBalance = async () => {
     if (!periodId) {
@@ -45,6 +93,18 @@ const TrialBalance: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handlePeriodChange = (newPeriodId: string) => {
+    setPeriodId(newPeriodId);
+    const selectedPeriod = periods.find(p => p.id === newPeriodId);
+    if (selectedPeriod) {
+      setSelectedFiscalYear(selectedPeriod.fiscalYearId);
+    }
+  };
+
+  const filteredPeriods = selectedFiscalYear
+    ? periods.filter(p => p.fiscalYearId === selectedFiscalYear)
+    : periods;
 
   const calculateTotals = () => {
     return trialBalance.reduce(
@@ -108,34 +168,103 @@ const TrialBalance: React.FC = () => {
         </Alert>
       )}
 
+      {!organizationId && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No organization selected. Please log in and select an organization.
+        </Alert>
+      )}
+
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box display="flex" gap={2} alignItems="center">
-            <TextField
-              label="Period"
-              value={periodId}
-              onChange={(e) => setPeriodId(e.target.value)}
-              placeholder="Enter Period ID"
-              sx={{ flexGrow: 1 }}
-              helperText="Note: Period selection UI will be added in next iteration"
-            />
-            <Button
-              variant="contained"
-              onClick={loadTrialBalance}
-              disabled={!periodId}
-            >
-              Load Trial Balance
-            </Button>
-          </Box>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Fiscal Year"
+                value={selectedFiscalYear}
+                onChange={(e) => {
+                  setSelectedFiscalYear(e.target.value);
+                  // Reset period selection when fiscal year changes
+                  setPeriodId('');
+                }}
+                disabled={fiscalYears.length === 0}
+              >
+                <MenuItem value="">
+                  <em>All Years</em>
+                </MenuItem>
+                {fiscalYears.map((fy) => (
+                  <MenuItem key={fy.id} value={fy.id}>
+                    {fy.yearCode} ({fy.startDate} to {fy.endDate})
+                    {fy.isClosed && <Chip label="Closed" size="small" sx={{ ml: 1 }} />}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                label="Period"
+                value={periodId}
+                onChange={(e) => handlePeriodChange(e.target.value)}
+                disabled={periods.length === 0}
+                helperText={periods.length === 0 ? "No periods available. Please set up a fiscal year first." : ""}
+              >
+                <MenuItem value="">
+                  <em>Select Period</em>
+                </MenuItem>
+                {filteredPeriods.map((period) => (
+                  <MenuItem key={period.id} value={period.id}>
+                    {period.periodName} ({period.startDate} to {period.endDate})
+                    <Chip 
+                      label={period.status} 
+                      size="small" 
+                      color={period.status === 'OPEN' ? 'success' : 'default'}
+                      sx={{ ml: 1 }} 
+                    />
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            
+            <Grid item xs={12} md={2}>
+              <Button
+                variant="contained"
+                onClick={loadTrialBalance}
+                disabled={!periodId || loading}
+                fullWidth
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+              >
+                {loading ? 'Loading...' : 'Generate'}
+              </Button>
+            </Grid>
+          </Grid>
         </CardContent>
       </Card>
 
       {trialBalance.length > 0 && (
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Trial Balance Report
-            </Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Trial Balance Report
+                </Typography>
+                {periodId && (
+                  <Typography variant="body2" color="text.secondary">
+                    Period: {periods.find(p => p.id === periodId)?.periodName || 'Unknown'} 
+                    {' '}({periods.find(p => p.id === periodId)?.startDate} to {periods.find(p => p.id === periodId)?.endDate})
+                  </Typography>
+                )}
+              </Box>
+              <Chip 
+                label={`${trialBalance.length} Accounts`} 
+                color="primary" 
+                variant="outlined"
+              />
+            </Box>
 
             <TableContainer>
               <Table>

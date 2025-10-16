@@ -18,6 +18,7 @@ import {
   Chip,
   MenuItem,
   Grid,
+  Autocomplete,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -26,17 +27,19 @@ import {
   Check as PostIcon,
   Undo as ReverseIcon,
 } from '@mui/icons-material';
+import { useAuth } from '../../contexts/AuthContext';
 import accountingService from '../../services/accountingService';
 import { JournalEntryRequest, JournalLineRequest, ChartOfAccount, JournalEntry as JournalEntryType } from '../../types/accounting';
 
 const JournalEntry: React.FC = () => {
+  const { currentOrganizationId } = useAuth();
   const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
   const [journals, setJournals] = useState<JournalEntryType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const organizationId = localStorage.getItem('currentOrganizationId') || '';
+  const organizationId = currentOrganizationId || '';
 
   const [formData, setFormData] = useState<JournalEntryRequest>({
     organizationId: organizationId,
@@ -50,9 +53,11 @@ const JournalEntry: React.FC = () => {
   });
 
   useEffect(() => {
-    loadPostingAccounts();
-    loadJournals();
-  }, []);
+    if (organizationId) {
+      loadPostingAccounts();
+      loadJournals();
+    }
+  }, [organizationId]);
 
   const loadPostingAccounts = async () => {
     try {
@@ -150,6 +155,12 @@ const JournalEntry: React.FC = () => {
         Journal Entry
       </Typography>
 
+      {!organizationId && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No organization selected. Please select an organization or contact your administrator.
+        </Alert>
+      )}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
@@ -216,22 +227,35 @@ const JournalEntry: React.FC = () => {
                     <TableBody>
                       {formData.lines.map((line, index) => (
                         <TableRow key={index}>
-                          <TableCell>
-                            <TextField
-                              select
+                          <TableCell sx={{ minWidth: 250 }}>
+                            <Autocomplete
                               size="small"
-                              value={line.accountId}
-                              onChange={(e) => handleLineChange(index, 'accountId', e.target.value)}
+                              options={accounts}
+                              value={accounts.find(acc => acc.id === line.accountId) || null}
+                              onChange={(_, newValue) => handleLineChange(index, 'accountId', newValue?.id || '')}
+                              getOptionLabel={(option) => `${option.accountCode} - ${option.accountName}`}
+                              renderOption={(props, option) => (
+                                <li {...props} key={option.id}>
+                                  <Box>
+                                    <Typography variant="body2" fontWeight="bold">
+                                      {option.accountCode}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {option.accountName}
+                                    </Typography>
+                                  </Box>
+                                </li>
+                              )}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  placeholder="Type to search..."
+                                  required={!line.accountId}
+                                />
+                              )}
+                              isOptionEqualToValue={(option, value) => option.id === value.id}
                               fullWidth
-                              required
-                            >
-                              <MenuItem value="">Select Account</MenuItem>
-                              {accounts.map((account) => (
-                                <MenuItem key={account.id} value={account.id}>
-                                  {account.accountCode} - {account.accountName}
-                                </MenuItem>
-                              ))}
-                            </TextField>
+                            />
                           </TableCell>
                           <TableCell>
                             <TextField

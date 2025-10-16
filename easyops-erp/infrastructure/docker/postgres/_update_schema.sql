@@ -98,7 +98,12 @@ CREATE INDEX IF NOT EXISTS idx_invitations_org ON admin.invitations(organization
 CREATE INDEX IF NOT EXISTS idx_invitations_email ON admin.invitations(email);
 CREATE INDEX IF NOT EXISTS idx_invitations_token ON admin.invitations(token);
 
--- Create triggers (assuming function exists)
+-- Create triggers (assuming function exists) - Drop first if they exist
+DROP TRIGGER IF EXISTS update_org_settings_updated_at ON admin.organization_settings;
+DROP TRIGGER IF EXISTS update_departments_updated_at ON admin.departments;
+DROP TRIGGER IF EXISTS update_locations_updated_at ON admin.locations;
+DROP TRIGGER IF EXISTS update_user_organizations_updated_at ON admin.user_organizations;
+
 CREATE TRIGGER update_org_settings_updated_at BEFORE UPDATE ON admin.organization_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON admin.departments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_locations_updated_at BEFORE UPDATE ON admin.locations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -132,4 +137,3 @@ ALTER TABLE admin.organizations ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP
 ALTER TABLE admin.organizations ADD COLUMN IF NOT EXISTS max_users INTEGER DEFAULT 10;
 ALTER TABLE admin.organizations ADD COLUMN IF NOT EXISTS max_storage BIGINT DEFAULT 1073741824;
 ALTER TABLE admin.organizations ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'ACTIVE';
-EOF

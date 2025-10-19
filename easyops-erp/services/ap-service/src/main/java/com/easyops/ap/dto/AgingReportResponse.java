@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgingReportResponse {
+    
     private UUID billId;
     private String billNumber;
     private LocalDate billDate;
@@ -27,4 +28,3 @@ public class AgingReportResponse {
     private BigDecimal days61To90;
     private BigDecimal days90Plus;
 }
-

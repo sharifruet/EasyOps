@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY . .
 
 # Download dependencies for this module (and required modules)
-RUN mvn -B -q -pl services/eureka -am dependency:go-offline
+# RUN mvn -B -q -pl services/eureka -am dependency:go-offline
+# Dependencies will be downloaded on first container run instead
 
 # Expose port
 EXPOSE 8761

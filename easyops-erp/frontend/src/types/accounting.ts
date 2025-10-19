@@ -168,3 +168,87 @@ export interface AccountBalance {
   lastUpdated: string;
 }
 
+// Financial Reports
+
+export interface GeneralLedgerEntry {
+  transactionDate: string;
+  journalNumber: string;
+  description: string;
+  accountCode: string;
+  accountName: string;
+  debit: number;
+  credit: number;
+  runningBalance: number;
+  journalEntryId: string;
+  journalLineId: string;
+  status: string;
+  reference?: string;
+}
+
+export interface ProfitLossReport {
+  organizationName: string;
+  periodName: string;
+  startDate: string;
+  endDate: string;
+  revenueAccounts: AccountLineItem[];
+  totalRevenue: number;
+  cogsAccounts: AccountLineItem[];
+  totalCOGS: number;
+  grossProfit: number;
+  grossProfitMargin: number;
+  operatingExpenses: AccountLineItem[];
+  totalOperatingExpenses: number;
+  operatingIncome: number;
+  netIncome: number;
+  netProfitMargin: number;
+}
+
+export interface BalanceSheetReport {
+  organizationName: string;
+  asOfDate: string;
+  currentAssets: AccountLineItem[];
+  totalCurrentAssets: number;
+  fixedAssets: AccountLineItem[];
+  totalFixedAssets: number;
+  totalAssets: number;
+  currentLiabilities: AccountLineItem[];
+  totalCurrentLiabilities: number;
+  longTermLiabilities: AccountLineItem[];
+  totalLongTermLiabilities: number;
+  totalLiabilities: number;
+  equityAccounts: AccountLineItem[];
+  totalEquity: number;
+  totalLiabilitiesAndEquity: number;
+  balanced: boolean;
+}
+
+export interface CashFlowReport {
+  organizationName: string;
+  periodName: string;
+  startDate: string;
+  endDate: string;
+  netIncome: number;
+  operatingAdjustments: CashFlowLineItem[];
+  netCashFromOperations: number;
+  investingActivities: CashFlowLineItem[];
+  netCashFromInvesting: number;
+  financingActivities: CashFlowLineItem[];
+  netCashFromFinancing: number;
+  netCashFlow: number;
+  cashAtBeginning: number;
+  cashAtEnd: number;
+}
+
+export interface AccountLineItem {
+  accountCode: string;
+  accountName: string;
+  amount: number;
+  accountCategory?: string;
+}
+
+export interface CashFlowLineItem {
+  description: string;
+  amount: number;
+  accountCode?: string;
+}
+

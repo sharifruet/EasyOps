@@ -1,5 +1,6 @@
 package com.easyops.ar.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class ARInvoiceLine {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id", nullable = false)
+    @JsonBackReference
     private ARInvoice invoice;
     
     @Column(name = "line_number", nullable = false)

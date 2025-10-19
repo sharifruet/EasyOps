@@ -70,6 +70,27 @@ public class InvoiceService {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new RuntimeException("Customer not found with ID: " + request.getCustomerId()));
         
+        // Calculate invoice total first for credit limit check
+        BigDecimal invoiceTotal = calculateInvoiceTotal(request.getLines());
+        
+        // Check credit limit
+        if (customer.getCreditLimit() != null && customer.getCreditLimit().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal currentBalance = customer.getCurrentBalance() != null ? customer.getCurrentBalance() : BigDecimal.ZERO;
+            BigDecimal newBalance = currentBalance.add(invoiceTotal);
+            
+            if (newBalance.compareTo(customer.getCreditLimit()) > 0) {
+                customer.setCreditLimitExceeded(true);
+                customerRepository.save(customer);
+                
+                log.warn("Credit limit exceeded for customer {}: Current={}, New Invoice={}, Credit Limit={}", 
+                    customer.getCustomerName(), currentBalance, invoiceTotal, customer.getCreditLimit());
+                
+                throw new RuntimeException(String.format(
+                    "Credit limit exceeded for customer '%s'. Current balance: %.2f, New invoice: %.2f, Credit limit: %.2f, New balance would be: %.2f",
+                    customer.getCustomerName(), currentBalance, invoiceTotal, customer.getCreditLimit(), newBalance));
+            }
+        }
+        
         // Create invoice
         ARInvoice invoice = new ARInvoice();
         invoice.setOrganizationId(request.getOrganizationId());
@@ -142,6 +163,21 @@ public class InvoiceService {
         }
         
         invoice.setStatus("POSTED");
+        invoice.setPaymentStatus("UNPAID");
+        
+        // Update customer balance
+        Customer customer = invoice.getCustomer();
+        BigDecimal currentBalance = customer.getCurrentBalance() != null ? customer.getCurrentBalance() : BigDecimal.ZERO;
+        customer.setCurrentBalance(currentBalance.add(invoice.getTotalAmount()));
+        
+        // Check if credit limit is now exceeded
+        if (customer.getCreditLimit() != null && customer.getCreditLimit().compareTo(BigDecimal.ZERO) > 0) {
+            customer.setCreditLimitExceeded(customer.getCurrentBalance().compareTo(customer.getCreditLimit()) > 0);
+        }
+        
+        customerRepository.save(customer);
+        log.info("Updated customer {} balance to: {}", customer.getCustomerName(), customer.getCurrentBalance());
+        
         return invoiceRepository.save(invoice);
     }
     
@@ -181,6 +217,33 @@ public class InvoiceService {
         }
         
         invoiceRepository.deleteById(id);
+    }
+    
+    /**
+     * Helper method to calculate invoice total from line items
+     */
+    private BigDecimal calculateInvoiceTotal(List<InvoiceLineRequest> lines) {
+        BigDecimal total = BigDecimal.ZERO;
+        
+        for (InvoiceLineRequest lineRequest : lines) {
+            BigDecimal lineSubtotal = lineRequest.getQuantity()
+                    .multiply(lineRequest.getUnitPrice())
+                    .setScale(4, RoundingMode.HALF_UP);
+            
+            BigDecimal discount = lineSubtotal
+                    .multiply(lineRequest.getDiscountPercent())
+                    .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            
+            lineSubtotal = lineSubtotal.subtract(discount);
+            
+            BigDecimal lineTax = lineSubtotal
+                    .multiply(lineRequest.getTaxPercent())
+                    .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            
+            total = total.add(lineSubtotal).add(lineTax);
+        }
+        
+        return total.setScale(2, RoundingMode.HALF_UP);
     }
 }
 

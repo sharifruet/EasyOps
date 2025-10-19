@@ -147,6 +147,17 @@ const ChartOfAccounts: React.FC = () => {
     }
   };
 
+  const handleLoadStandardCOA = async () => {
+    if (window.confirm('This will load a standard chart of accounts template. Continue?')) {
+      try {
+        await accountingService.loadStandardCOA(organizationId);
+        loadAccounts();
+      } catch (err: any) {
+        setError(err.message || 'Failed to load standard chart of accounts');
+      }
+    }
+  };
+
   const getAccountTypeColor = (type: AccountType) => {
     const colors: Record<AccountType, string> = {
       ASSET: 'success',
@@ -264,6 +275,7 @@ const ChartOfAccounts: React.FC = () => {
                             size="small"
                             onClick={() => handleOpenDialog(account)}
                             color="primary"
+                            title={account.isSystemAccount ? "View/Edit Account" : "Edit Account"}
                           >
                             <EditIcon />
                           </IconButton>
@@ -272,9 +284,19 @@ const ChartOfAccounts: React.FC = () => {
                               size="small"
                               onClick={() => handleDeactivate(account.id)}
                               color="error"
+                              title="Deactivate Account"
                             >
                               <DeleteIcon />
                             </IconButton>
+                          )}
+                          {account.isSystemAccount && (
+                            <Chip
+                              label="System"
+                              size="small"
+                              color="default"
+                              variant="outlined"
+                              sx={{ ml: 1 }}
+                            />
                           )}
                         </TableCell>
                       </TableRow>

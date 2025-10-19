@@ -329,6 +329,12 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
+      - MAIL_HOST=mail.i2gether.com
+      - MAIL_PORT=465
+      - MAIL_USERNAME=easyops@i2gether.com
+      - MAIL_PASSWORD=x169up2fcu
+      - EMAIL_FROM=easyops@i2gether.com
+      - EMAIL_ENABLED=true
     depends_on:
       eureka:
         condition: service_healthy
@@ -485,6 +491,42 @@ services:
       - easyops-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8092/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sales-service:
+    build:
+      context: .
+      dockerfile: services/sales-service/Dockerfile.dev
+    container_name: easyops-sales-service
+    ports:
+      - "8093:8093"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
+      - SPRING_DATASOURCE_USERNAME=easyops
+      - SPRING_DATASOURCE_PASSWORD=easyops123
+      - SPRING_REDIS_HOST=redis
+      - ACCOUNTING_SERVICE_URL=http://accounting-service:8080
+      - AR_SERVICE_URL=http://ar-service:8090
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8095
+    depends_on:
+      eureka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      accounting-service:
+        condition: service_healthy
+      ar-service:
+        condition: service_healthy
+    networks:
+      - easyops-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8093/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5

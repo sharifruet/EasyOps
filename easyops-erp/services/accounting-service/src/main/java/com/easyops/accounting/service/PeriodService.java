@@ -18,6 +18,7 @@ import java.util.UUID;
 public class PeriodService {
     
     private final PeriodRepository periodRepository;
+    private final FiscalYearService fiscalYearService;
     
     public Period getPeriodById(UUID periodId) {
         return periodRepository.findById(periodId)
@@ -25,8 +26,24 @@ public class PeriodService {
     }
     
     public Period getPeriodForDate(UUID organizationId, LocalDate date) {
-        return periodRepository.findByOrganizationIdAndDate(organizationId, date)
-            .orElseThrow(() -> new RuntimeException("No period found for date: " + date));
+        // Try to find existing period
+        var periodOpt = periodRepository.findByOrganizationIdAndDate(organizationId, date);
+        
+        if (periodOpt.isEmpty()) {
+            // Auto-create fiscal year and periods if they don't exist
+            log.info("No period found for date {}. Auto-creating fiscal year and periods for organization: {}", date, organizationId);
+            try {
+                fiscalYearService.createCurrentFiscalYearWithPeriods(organizationId);
+                // Try again after creation
+                periodOpt = periodRepository.findByOrganizationIdAndDate(organizationId, date);
+            } catch (RuntimeException e) {
+                // Fiscal year might already exist, try to find the period again
+                log.warn("Error auto-creating fiscal year: {}. Retrying period lookup.", e.getMessage());
+                periodOpt = periodRepository.findByOrganizationIdAndDate(organizationId, date);
+            }
+        }
+        
+        return periodOpt.orElseThrow(() -> new RuntimeException("No period found for date: " + date + ". Please set up fiscal years."));
     }
     
     public List<Period> getOrganizationPeriods(UUID organizationId) {

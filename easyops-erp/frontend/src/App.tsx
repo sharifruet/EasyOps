@@ -15,10 +15,26 @@ import Permissions from '@pages/Permissions';
 import ChartOfAccounts from '@pages/accounting/ChartOfAccounts';
 import JournalEntry from '@pages/accounting/JournalEntry';
 import TrialBalance from '@pages/accounting/TrialBalance';
+import GeneralLedger from '@pages/accounting/GeneralLedger';
+import ProfitLoss from '@pages/accounting/ProfitLoss';
+import BalanceSheet from '@pages/accounting/BalanceSheet';
+import CashFlow from '@pages/accounting/CashFlow';
 import Invoices from '@pages/accounting/Invoices';
 import Bills from '@pages/accounting/Bills';
 import BankReconciliation from '@pages/accounting/BankReconciliation';
+import BankAccounts from '@pages/accounting/BankAccounts';
+import BankTransactions from '@pages/accounting/BankTransactions';
 import AgingReports from '@pages/accounting/AgingReports';
+import ARAgingReport from '@pages/accounting/ARAgingReport';
+import APAgingReport from '@pages/accounting/APAgingReport';
+import CreditNotes from '@pages/accounting/CreditNotes';
+import CustomerStatements from '@pages/accounting/CustomerStatements';
+import VendorStatements from '@pages/accounting/VendorStatements';
+import PaymentReminders from '@pages/accounting/PaymentReminders';
+import AccountingDashboard from '@pages/accounting/Dashboard';
+import Quotations from '@pages/sales/Quotations';
+import SalesOrders from '@pages/sales/SalesOrders';
+import SalesDashboard from '@pages/sales/SalesDashboard';
 
 // Create MUI theme
 const theme = createTheme({
@@ -87,15 +103,33 @@ const App: React.FC = () => {
                 <Route path="permissions" element={<Permissions />} />
                 
                 {/* Accounting Routes - Phase 1.1 */}
+                <Route path="accounting/dashboard" element={<AccountingDashboard />} />
                 <Route path="accounting/chart-of-accounts" element={<ChartOfAccounts />} />
                 <Route path="accounting/journal-entry" element={<JournalEntry />} />
                 <Route path="accounting/trial-balance" element={<TrialBalance />} />
+                <Route path="accounting/general-ledger" element={<GeneralLedger />} />
+                <Route path="accounting/profit-loss" element={<ProfitLoss />} />
+                <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
+                <Route path="accounting/cash-flow" element={<CashFlow />} />
                 
                 {/* Accounting Routes - Phase 1.2 */}
                 <Route path="accounting/invoices" element={<Invoices />} />
+                <Route path="accounting/credit-notes" element={<CreditNotes />} />
                 <Route path="accounting/bills" element={<Bills />} />
+                <Route path="accounting/bank-accounts" element={<BankAccounts />} />
+                <Route path="accounting/bank-transactions" element={<BankTransactions />} />
                 <Route path="accounting/bank-reconciliation" element={<BankReconciliation />} />
                 <Route path="accounting/aging-reports" element={<AgingReports />} />
+                <Route path="accounting/ar-aging-report" element={<ARAgingReport />} />
+                <Route path="accounting/ap-aging-report" element={<APAgingReport />} />
+                <Route path="accounting/customer-statements" element={<CustomerStatements />} />
+                <Route path="accounting/vendor-statements" element={<VendorStatements />} />
+                <Route path="accounting/payment-reminders" element={<PaymentReminders />} />
+                
+                {/* Sales Routes - Phase 2.0 */}
+                <Route path="sales/dashboard" element={<SalesDashboard />} />
+                <Route path="sales/quotations" element={<Quotations />} />
+                <Route path="sales/orders" element={<SalesOrders />} />
                 
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />

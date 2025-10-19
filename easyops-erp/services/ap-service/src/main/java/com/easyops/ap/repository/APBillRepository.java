@@ -25,6 +25,12 @@ public interface APBillRepository extends JpaRepository<APBill, UUID> {
     @Query("SELECT b FROM APBill b WHERE b.organizationId = :orgId AND b.dueDate < :date AND b.balanceDue > 0")
     List<APBill> findOverdueBills(@Param("orgId") UUID organizationId, @Param("date") LocalDate date);
     
+    @Query("SELECT b FROM APBill b WHERE b.vendor.id = :vendorId AND b.billDate BETWEEN :startDate AND :endDate ORDER BY b.billDate")
+    List<APBill> findByVendorIdAndBillDateBetween(@Param("vendorId") UUID vendorId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    @Query("SELECT b FROM APBill b WHERE b.vendor.id = :vendorId AND b.billDate < :asOfDate ORDER BY b.billDate")
+    List<APBill> findByVendorIdAndBillDateBefore(@Param("vendorId") UUID vendorId, @Param("asOfDate") LocalDate asOfDate);
+    
     boolean existsByBillNumber(String billNumber);
 }
 

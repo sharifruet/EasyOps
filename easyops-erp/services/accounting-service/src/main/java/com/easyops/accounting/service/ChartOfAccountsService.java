@@ -66,6 +66,17 @@ public class ChartOfAccountsService {
     
     @Cacheable(value = "coa", key = "#organizationId")
     public List<ChartOfAccounts> getOrganizationAccounts(UUID organizationId) {
+        // Auto-load standard COA if organization has no accounts
+        long count = coaRepository.countByOrganizationId(organizationId);
+        if (count == 0) {
+            log.info("No accounts found for organization: {}. Auto-loading standard chart of accounts.", organizationId);
+            try {
+                loadStandardCoA(organizationId, null);
+            } catch (Exception e) {
+                log.warn("Failed to auto-load standard COA for organization {}: {}", organizationId, e.getMessage());
+            }
+        }
+        
         return coaRepository.findByOrganizationIdOrderByAccountCode(organizationId);
     }
     
@@ -118,6 +129,17 @@ public class ChartOfAccountsService {
     @CacheEvict(value = "coa", key = "#organizationId")
     public void deactivateAccount(UUID accountId, UUID organizationId) {
         ChartOfAccounts account = getAccountById(accountId);
+        
+        // Verify account belongs to organization
+        if (!account.getOrganizationId().equals(organizationId)) {
+            throw new RuntimeException("Account does not belong to organization");
+        }
+        
+        // Prevent deactivation of system accounts
+        if (account.getIsSystemAccount() != null && account.getIsSystemAccount()) {
+            throw new RuntimeException("Cannot deactivate system account. System accounts are required for proper operation.");
+        }
+        
         account.setIsActive(false);
         coaRepository.save(account);
         log.info("Deactivated account: {}", account.getAccountCode());
@@ -131,7 +153,8 @@ public class ChartOfAccountsService {
         // Check if organization already has accounts
         long existingCount = coaRepository.countByOrganizationId(organizationId);
         if (existingCount > 0) {
-            throw new RuntimeException("Organization already has " + existingCount + " accounts. Cannot load template.");
+            log.warn("Organization {} already has {} accounts. Skipping template load.", organizationId, existingCount);
+            return 0;
         }
         
         int accountsCreated = 0;
@@ -224,6 +247,7 @@ public class ChartOfAccountsService {
             account.setCreatedBy(createdBy);
             account.setIsActive(true);
             account.setAllowManualEntry(!isGroup); // Group accounts don't allow manual entry
+            account.setIsSystemAccount(true); // Mark standard accounts as system accounts (non-removable)
             
             coaRepository.save(account);
             return 1;

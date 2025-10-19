@@ -1,5 +1,6 @@
 package com.easyops.ar.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Customer {
     
     @Id
@@ -39,11 +41,17 @@ public class Customer {
     @Column(name = "credit_limit", precision = 19, scale = 4)
     private BigDecimal creditLimit = BigDecimal.ZERO;
     
+    @Column(name = "current_balance", precision = 19, scale = 4)
+    private BigDecimal currentBalance = BigDecimal.ZERO;
+    
     @Column(name = "payment_terms")
     private Integer paymentTerms = 30;
     
     @Column(name = "is_active")
     private Boolean isActive = true;
+    
+    @Column(name = "credit_limit_exceeded")
+    private Boolean creditLimitExceeded = false;
     
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

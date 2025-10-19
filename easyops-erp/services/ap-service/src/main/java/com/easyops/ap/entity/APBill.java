@@ -1,5 +1,6 @@
 package com.easyops.ap.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -92,6 +93,7 @@ public class APBill {
     private LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<APBillLine> lines = new ArrayList<>();
     
     public void addLine(APBillLine line) {

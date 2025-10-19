@@ -1,5 +1,6 @@
 package com.easyops.ar.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -89,6 +90,7 @@ public class ARInvoice {
     private LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<ARInvoiceLine> lines = new ArrayList<>();
     
     // Helper method to add line

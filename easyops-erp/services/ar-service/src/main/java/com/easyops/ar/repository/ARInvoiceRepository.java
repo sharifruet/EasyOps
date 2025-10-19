@@ -30,6 +30,12 @@ public interface ARInvoiceRepository extends JpaRepository<ARInvoice, UUID> {
     @Query("SELECT i FROM ARInvoice i WHERE i.organizationId = :orgId AND i.dueDate < :date AND i.balanceDue > 0")
     List<ARInvoice> findOverdueInvoices(@Param("orgId") UUID organizationId, @Param("date") LocalDate date);
     
+    @Query("SELECT i FROM ARInvoice i WHERE i.customer.id = :customerId AND i.invoiceDate BETWEEN :startDate AND :endDate ORDER BY i.invoiceDate")
+    List<ARInvoice> findByCustomerIdAndInvoiceDateBetween(@Param("customerId") UUID customerId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    @Query("SELECT i FROM ARInvoice i WHERE i.customer.id = :customerId AND i.invoiceDate < :asOfDate ORDER BY i.invoiceDate")
+    List<ARInvoice> findByCustomerIdAndInvoiceDateBefore(@Param("customerId") UUID customerId, @Param("asOfDate") LocalDate asOfDate);
+    
     boolean existsByInvoiceNumber(String invoiceNumber);
 }
 

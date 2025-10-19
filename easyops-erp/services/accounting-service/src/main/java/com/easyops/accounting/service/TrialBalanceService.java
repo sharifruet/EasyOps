@@ -21,20 +21,28 @@ public class TrialBalanceService {
     private EntityManager entityManager;
     
     public List<TrialBalanceResponse> getTrialBalance(UUID organizationId, UUID periodId) {
+        // Calculate trial balance directly from journal entries (not from account_balances table)
         String sql = """
             SELECT 
                 coa.account_code as accountCode,
                 coa.account_name as accountName,
                 coa.account_type as accountType,
-                COALESCE(ab.opening_balance, 0) as openingBalance,
-                COALESCE(ab.debit_total, 0) as debitTotal,
-                COALESCE(ab.credit_total, 0) as creditTotal,
-                COALESCE(ab.closing_balance, 0) as closingBalance
+                COALESCE(coa.opening_balance, 0) as openingBalance,
+                COALESCE(SUM(jl.debit_amount), 0) as debitTotal,
+                COALESCE(SUM(jl.credit_amount), 0) as creditTotal,
+                COALESCE(coa.opening_balance, 0) + COALESCE(SUM(jl.debit_amount), 0) - COALESCE(SUM(jl.credit_amount), 0) as closingBalance
             FROM accounting.chart_of_accounts coa
-            LEFT JOIN accounting.account_balances ab ON coa.id = ab.account_id AND ab.period_id = :periodId
+            LEFT JOIN accounting.journal_lines jl ON coa.id = jl.account_id
+            LEFT JOIN accounting.journal_entries je ON jl.journal_entry_id = je.id 
+                AND je.period_id = :periodId 
+                AND je.status = 'POSTED'
             WHERE coa.organization_id = :orgId
             AND coa.is_group = false
             AND coa.is_active = true
+            GROUP BY coa.id, coa.account_code, coa.account_name, coa.account_type, coa.opening_balance
+            HAVING COALESCE(coa.opening_balance, 0) != 0 
+                OR COALESCE(SUM(jl.debit_amount), 0) != 0 
+                OR COALESCE(SUM(jl.credit_amount), 0) != 0
             ORDER BY coa.account_code
             """;
         

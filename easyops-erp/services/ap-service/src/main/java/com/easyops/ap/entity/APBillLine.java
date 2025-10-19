@@ -1,5 +1,6 @@
 package com.easyops.ap.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class APBillLine {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id", nullable = false)
+    @JsonBackReference
     private APBill bill;
     
     @Column(name = "line_number", nullable = false)

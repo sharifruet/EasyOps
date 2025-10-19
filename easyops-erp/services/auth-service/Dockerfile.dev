@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY . .
 
 # Download dependencies for this module (and required modules)
-RUN mvn -B -q -pl services/auth-service -am dependency:go-offline
+# Note: dependency:go-offline can fail with network issues, so we skip it in dev mode
+# Dependencies will be downloaded on first run instead
+# RUN mvn -B -q -pl services/auth-service -am dependency:go-offline
 
 # Expose port
 EXPOSE 8083

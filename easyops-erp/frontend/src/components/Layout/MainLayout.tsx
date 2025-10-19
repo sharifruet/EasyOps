@@ -58,6 +58,8 @@ const menuItems: MenuItemType[] = [
     icon: <AccountingIcon />, 
     path: '/accounting',
     children: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/accounting/dashboard' },
+      { text: '---accounting-div1' as any, icon: <></>, path: '' }, // Divider
       { text: 'Chart of Accounts', icon: <CoAIcon />, path: '/accounting/chart-of-accounts' },
       { text: 'Journal Entry', icon: <JournalIcon />, path: '/accounting/journal-entry' },
       { text: 'Trial Balance', icon: <ReportIcon />, path: '/accounting/trial-balance' },
@@ -65,11 +67,30 @@ const menuItems: MenuItemType[] = [
       { text: 'Profit & Loss', icon: <ReportIcon />, path: '/accounting/profit-loss' },
       { text: 'Balance Sheet', icon: <ReportIcon />, path: '/accounting/balance-sheet' },
       { text: 'Cash Flow', icon: <ReportIcon />, path: '/accounting/cash-flow' },
-      { text: '---' as any, icon: <></>, path: '' }, // Divider - AR/AP/Bank features below
+      { text: '---accounting-div2' as any, icon: <></>, path: '' }, // Divider - AR/AP/Bank features below
       { text: 'Customer Invoices', icon: <JournalIcon />, path: '/accounting/invoices' },
+      { text: 'Credit Notes', icon: <JournalIcon />, path: '/accounting/credit-notes' },
       { text: 'Vendor Bills', icon: <JournalIcon />, path: '/accounting/bills' },
+      { text: 'Bank Accounts', icon: <AccountingIcon />, path: '/accounting/bank-accounts' },
+      { text: 'Bank Transactions', icon: <JournalIcon />, path: '/accounting/bank-transactions' },
       { text: 'Bank Reconciliation', icon: <AccountingIcon />, path: '/accounting/bank-reconciliation' },
       { text: 'Aging Reports', icon: <ReportIcon />, path: '/accounting/aging-reports' },
+      { text: 'AR Aging Report', icon: <ReportIcon />, path: '/accounting/ar-aging-report' },
+      { text: 'AP Aging Report', icon: <ReportIcon />, path: '/accounting/ap-aging-report' },
+      { text: 'Customer Statements', icon: <ReportIcon />, path: '/accounting/customer-statements' },
+      { text: 'Vendor Statements', icon: <ReportIcon />, path: '/accounting/vendor-statements' },
+      { text: 'Payment Reminders', icon: <ReportIcon />, path: '/accounting/payment-reminders' },
+    ]
+  },
+  { 
+    text: 'Sales', 
+    icon: <BusinessIcon />, 
+    path: '/sales',
+    children: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/sales/dashboard' },
+      { text: '---sales-div1' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Quotations', icon: <ReportIcon />, path: '/sales/quotations' },
+      { text: 'Sales Orders', icon: <JournalIcon />, path: '/sales/orders' },
     ]
   },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },

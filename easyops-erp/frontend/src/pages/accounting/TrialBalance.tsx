@@ -22,6 +22,7 @@ import { Download as DownloadIcon, Refresh as RefreshIcon } from '@mui/icons-mat
 import { useAuth } from '../../contexts/AuthContext';
 import accountingService from '../../services/accountingService';
 import { TrialBalance as TrialBalanceType, AccountType, Period, FiscalYear } from '../../types/accounting';
+import { exportTrialBalanceToExcel } from '../../utils/excelExport';
 
 const TrialBalance: React.FC = () => {
   const { currentOrganizationId } = useAuth();
@@ -156,8 +157,9 @@ const TrialBalance: React.FC = () => {
             variant="contained"
             startIcon={<DownloadIcon />}
             disabled={trialBalance.length === 0}
+            onClick={() => exportTrialBalanceToExcel(trialBalance)}
           >
-            Export
+            Export to Excel
           </Button>
         </Box>
       </Box>

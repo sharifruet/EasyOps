@@ -179,6 +179,11 @@ const ChartOfAccounts: React.FC = () => {
 
   return (
     <Box>
+      {!organizationId && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No organization selected. Please select an organization to view and manage your chart of accounts.
+        </Alert>
+      )}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Chart of Accounts</Typography>
         <Box display="flex" gap={2}>
@@ -190,9 +195,17 @@ const ChartOfAccounts: React.FC = () => {
             {viewMode === 'list' ? 'Tree View' : 'List View'}
           </Button>
           <Button
+            variant="outlined"
+            onClick={handleLoadStandardCOA}
+            disabled={!organizationId || loading}
+          >
+            Load Standard COA
+          </Button>
+          <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
+            disabled={!organizationId}
           >
             Add Account
           </Button>

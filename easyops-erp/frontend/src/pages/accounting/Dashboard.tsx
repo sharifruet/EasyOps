@@ -29,7 +29,7 @@ import {
   Refresh
 } from "@mui/icons-material";
 import { useAuth } from "../../contexts/AuthContext";
-import { accountingService } from "../../services/accountingService";
+import accountingService from "../../services/accountingService";
 import { useNavigate } from "react-router-dom";
 
 interface DashboardSummary {

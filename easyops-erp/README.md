@@ -24,6 +24,10 @@ easyops-erp/
 │   ├── docker/               # Docker configurations
 │   ├── kubernetes/            # Kubernetes manifests
 │   └── terraform/             # Terraform configurations
+├── database-versioning/        # Database Schema Management
+│   ├── changelog/            # Liquibase changesets
+│   ├── scripts/              # Migration scripts
+│   └── docs/                 # Database documentation
 ├── docs/                      # Documentation
 ├── tests/                     # Test suites
 └── scripts/                   # Development scripts
@@ -36,6 +40,8 @@ easyops-erp/
 - Java 25
 - Node.js 20+
 - Maven 3.9+
+- Liquibase (for database migrations)
+- PostgreSQL client tools
 
 ### Development Environment Setup
 
@@ -50,7 +56,16 @@ easyops-erp/
    ./scripts/dev-start.sh
    ```
 
-3. **Access the application**
+3. **Start the complete development environment**
+   ```bash
+   # Simple startup (recommended)
+   ./scripts/start-dev-simple.sh
+   
+   # Or use Docker Compose directly
+   docker-compose up -d
+   ```
+
+4. **Access the application**
    - Frontend: http://localhost:3000
    - API Gateway: http://localhost:8081
    - Adminer: http://localhost:8080
@@ -95,6 +110,7 @@ easyops-erp/
 - [Testing Guide](./TESTING_GUIDE.md) - Testing strategy and guides
 - [Quick Start](./QUICKSTART.md) - Quick start guide
 - [Frontend Guide](./FRONTEND_GUIDE.md) - Frontend development guide
+- **[📁 Database Versioning](./database-versioning/README.md)** - Database schema management with Liquibase
 
 ### Implementation Documentation
 - **[📁 Implementation Docs](./implementations/)** - All implementation guides and phase completion reports

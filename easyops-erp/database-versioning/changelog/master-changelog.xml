@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Include all change sets organized by phases -->
+    
+    <!-- Phase 0: Core System Foundation -->
+    <include file="phase-0/001-initial-schema.sql" relativeToChangelogFile="true"/>
+    <include file="phase-0/002-auth-schema.sql" relativeToChangelogFile="true"/>
+    <include file="phase-0/003-rbac-schema.sql" relativeToChangelogFile="true"/>
+    <include file="phase-0/004-notifications.sql" relativeToChangelogFile="true"/>
+    <include file="phase-0/005-integration.sql" relativeToChangelogFile="true"/>
+    
+    <!-- Phase 1: Accounting Module -->
+    <include file="phase-1/101-accounting-schema.sql" relativeToChangelogFile="true"/>
+    <include file="phase-1/102-ar-ap-bank.sql" relativeToChangelogFile="true"/>
+    <include file="phase-1/103-fixes-and-updates.sql" relativeToChangelogFile="true"/>
+    
+    <!-- Phase 2: Sales Module -->
+    <include file="phase-2/201-sales-schema.sql" relativeToChangelogFile="true"/>
+    <include file="phase-2/202-sales-updates.sql" relativeToChangelogFile="true"/>
+    
+           <!-- Reference Data -->
+           <include file="data/001-default-roles.sql" relativeToChangelogFile="true"/>
+           <include file="data/002-default-permissions.sql" relativeToChangelogFile="true"/>
+           <include file="data/003-system-config.sql" relativeToChangelogFile="true"/>
+           
+           <!-- Test Data (Development and Testing) -->
+           <include file="data/004-test-data.sql" relativeToChangelogFile="true"/>
+           <include file="data/005-sales-test-data.sql" relativeToChangelogFile="true"/>
+           <include file="data/006-accounting-test-data.sql" relativeToChangelogFile="true"/>
+    
+</databaseChangeLog>

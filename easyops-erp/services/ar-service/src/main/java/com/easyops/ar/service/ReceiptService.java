@@ -125,11 +125,6 @@ public class ReceiptService {
         BigDecimal currentBalance = customer.getCurrentBalance() != null ? customer.getCurrentBalance() : BigDecimal.ZERO;
         customer.setCurrentBalance(currentBalance.subtract(receipt.getAmount()));
         
-        // Update credit limit exceeded flag
-        if (customer.getCreditLimit() != null && customer.getCreditLimit().compareTo(BigDecimal.ZERO) > 0) {
-            customer.setCreditLimitExceeded(customer.getCurrentBalance().compareTo(customer.getCreditLimit()) > 0);
-        }
-        
         customerRepository.save(customer);
         log.info("Updated customer {} balance to: {} after receipt", customer.getCustomerName(), customer.getCurrentBalance());
         

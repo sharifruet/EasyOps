@@ -27,8 +27,8 @@ public class CustomerController {
     @GetMapping
     @Operation(summary = "Get all customers for an organization")
     public ResponseEntity<List<Customer>> getAllCustomers(
-            @RequestParam UUID organizationId,
-            @RequestParam(required = false, defaultValue = "false") boolean activeOnly) {
+            @RequestParam("organizationId") UUID organizationId,
+            @RequestParam(value = "activeOnly", required = false, defaultValue = "false") boolean activeOnly) {
         
         log.info("GET /api/sales/customers - organizationId: {}, activeOnly: {}", organizationId, activeOnly);
         
@@ -41,7 +41,7 @@ public class CustomerController {
     
     @GetMapping("/{id}")
     @Operation(summary = "Get customer by ID")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable UUID id) {
+    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") UUID id) {
         log.info("GET /api/sales/customers/{}", id);
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
@@ -56,7 +56,7 @@ public class CustomerController {
     @PutMapping("/{id}")
     @Operation(summary = "Update customer")
     public ResponseEntity<Customer> updateCustomer(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody CustomerRequest request) {
         log.info("PUT /api/sales/customers/{}", id);
         return ResponseEntity.ok(customerService.updateCustomer(id, request));
@@ -64,7 +64,7 @@ public class CustomerController {
     
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete customer")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") UUID id) {
         log.info("DELETE /api/sales/customers/{}", id);
         customerService.deleteCustomer(id);
         return ResponseEntity.noContent().build();
@@ -72,7 +72,7 @@ public class CustomerController {
     
     @PostMapping("/{id}/deactivate")
     @Operation(summary = "Deactivate customer")
-    public ResponseEntity<Customer> deactivateCustomer(@PathVariable UUID id) {
+    public ResponseEntity<Customer> deactivateCustomer(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/customers/{}/deactivate", id);
         return ResponseEntity.ok(customerService.deactivateCustomer(id));
     }

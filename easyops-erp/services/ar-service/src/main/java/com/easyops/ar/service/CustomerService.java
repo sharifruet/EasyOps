@@ -48,6 +48,13 @@ public class CustomerService {
         }
         
         Customer customer = new Customer();
+        
+        // If ID is provided (for syncing from other services), use it
+        if (request.getId() != null) {
+            customer.setId(request.getId());
+            log.info("Using provided customer ID: {}", request.getId());
+        }
+        
         customer.setOrganizationId(request.getOrganizationId());
         customer.setCustomerCode(request.getCustomerCode());
         customer.setCustomerName(request.getCustomerName());

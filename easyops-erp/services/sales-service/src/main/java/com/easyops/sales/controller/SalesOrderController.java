@@ -31,8 +31,8 @@ public class SalesOrderController {
     @GetMapping
     @Operation(summary = "Get all sales orders for an organization")
     public ResponseEntity<List<SalesOrder>> getAllOrders(
-            @RequestParam UUID organizationId,
-            @RequestParam(required = false) String status) {
+            @RequestParam("organizationId") UUID organizationId,
+            @RequestParam(value = "status", required = false) String status) {
         
         log.info("GET /api/sales/orders - organizationId: {}, status: {}", organizationId, status);
         
@@ -46,8 +46,8 @@ public class SalesOrderController {
     @GetMapping("/customer/{customerId}")
     @Operation(summary = "Get orders for a specific customer")
     public ResponseEntity<List<SalesOrder>> getOrdersByCustomer(
-            @RequestParam UUID organizationId,
-            @PathVariable UUID customerId) {
+            @RequestParam("organizationId") UUID organizationId,
+            @PathVariable("customerId") UUID customerId) {
         
         log.info("GET /api/sales/orders/customer/{} - organizationId: {}", customerId, organizationId);
         
@@ -57,14 +57,14 @@ public class SalesOrderController {
     
     @GetMapping("/ready-for-invoicing")
     @Operation(summary = "Get orders ready for invoicing")
-    public ResponseEntity<List<SalesOrder>> getOrdersReadyForInvoicing(@RequestParam UUID organizationId) {
+    public ResponseEntity<List<SalesOrder>> getOrdersReadyForInvoicing(@RequestParam("organizationId") UUID organizationId) {
         log.info("GET /api/sales/orders/ready-for-invoicing - organizationId: {}", organizationId);
         return ResponseEntity.ok(salesOrderService.getOrdersReadyForInvoicing(organizationId));
     }
     
     @GetMapping("/{id}")
     @Operation(summary = "Get sales order by ID")
-    public ResponseEntity<SalesOrder> getOrderById(@PathVariable UUID id) {
+    public ResponseEntity<SalesOrder> getOrderById(@PathVariable("id") UUID id) {
         log.info("GET /api/sales/orders/{}", id);
         return ResponseEntity.ok(salesOrderService.getOrderById(id));
     }
@@ -78,7 +78,7 @@ public class SalesOrderController {
     
     @PostMapping("/from-quotation/{quotationId}")
     @Operation(summary = "Create sales order from quotation")
-    public ResponseEntity<SalesOrder> createOrderFromQuotation(@PathVariable UUID quotationId) {
+    public ResponseEntity<SalesOrder> createOrderFromQuotation(@PathVariable("quotationId") UUID quotationId) {
         log.info("POST /api/sales/orders/from-quotation/{}", quotationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(salesOrderService.createOrderFromQuotation(quotationId));
     }
@@ -86,7 +86,7 @@ public class SalesOrderController {
     @PutMapping("/{id}")
     @Operation(summary = "Update sales order")
     public ResponseEntity<SalesOrder> updateOrder(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody SalesOrderRequest request) {
         log.info("PUT /api/sales/orders/{}", id);
         return ResponseEntity.ok(salesOrderService.updateOrder(id, request));
@@ -94,7 +94,7 @@ public class SalesOrderController {
     
     @PostMapping("/{id}/confirm")
     @Operation(summary = "Confirm sales order")
-    public ResponseEntity<SalesOrder> confirmOrder(@PathVariable UUID id) {
+    public ResponseEntity<SalesOrder> confirmOrder(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/orders/{}/confirm", id);
         return ResponseEntity.ok(salesOrderService.confirmOrder(id));
     }
@@ -102,36 +102,36 @@ public class SalesOrderController {
     @PostMapping("/{id}/approve")
     @Operation(summary = "Approve sales order")
     public ResponseEntity<SalesOrder> approveOrder(
-            @PathVariable UUID id,
-            @RequestParam UUID approvedBy) {
+            @PathVariable("id") UUID id,
+            @RequestParam("approvedBy") UUID approvedBy) {
         log.info("POST /api/sales/orders/{}/approve - approvedBy: {}", id, approvedBy);
         return ResponseEntity.ok(salesOrderService.approveOrder(id, approvedBy));
     }
     
     @PostMapping("/{id}/start-processing")
     @Operation(summary = "Start processing order")
-    public ResponseEntity<SalesOrder> startProcessing(@PathVariable UUID id) {
+    public ResponseEntity<SalesOrder> startProcessing(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/orders/{}/start-processing", id);
         return ResponseEntity.ok(salesOrderService.startProcessing(id));
     }
     
     @PostMapping("/{id}/complete")
     @Operation(summary = "Complete order")
-    public ResponseEntity<SalesOrder> completeOrder(@PathVariable UUID id) {
+    public ResponseEntity<SalesOrder> completeOrder(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/orders/{}/complete", id);
         return ResponseEntity.ok(salesOrderService.completeOrder(id));
     }
     
     @PostMapping("/{id}/cancel")
     @Operation(summary = "Cancel order")
-    public ResponseEntity<SalesOrder> cancelOrder(@PathVariable UUID id) {
+    public ResponseEntity<SalesOrder> cancelOrder(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/orders/{}/cancel", id);
         return ResponseEntity.ok(salesOrderService.cancelOrder(id));
     }
     
     @PostMapping("/{id}/convert-to-invoice")
     @Operation(summary = "Convert sales order to AR invoice")
-    public ResponseEntity<Map<String, Object>> convertToInvoice(@PathVariable UUID id) {
+    public ResponseEntity<Map<String, Object>> convertToInvoice(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/orders/{}/convert-to-invoice", id);
         UUID invoiceId = salesIntegrationService.convertOrderToInvoice(id);
         Map<String, Object> response = new HashMap<>();
@@ -142,7 +142,7 @@ public class SalesOrderController {
     
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete sales order")
-    public ResponseEntity<Void> deleteOrder(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteOrder(@PathVariable("id") UUID id) {
         log.info("DELETE /api/sales/orders/{}", id);
         salesOrderService.deleteOrder(id);
         return ResponseEntity.noContent().build();

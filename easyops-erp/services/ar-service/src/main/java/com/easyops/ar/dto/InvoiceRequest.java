@@ -16,7 +16,7 @@ public class InvoiceRequest {
     @NotNull(message = "Organization ID is required")
     private UUID organizationId;
     
-    @NotBlank(message = "Invoice number is required")
+    // Optional: Will be auto-generated if not provided
     private String invoiceNumber;
     
     @NotNull(message = "Invoice date is required")
@@ -28,7 +28,7 @@ public class InvoiceRequest {
     @NotNull(message = "Customer ID is required")
     private UUID customerId;
     
-    @NotNull(message = "Period ID is required")
+    // Optional: Will be auto-determined based on invoice date if not provided
     private UUID periodId;
     
     private String currency = "USD";

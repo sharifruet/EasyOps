@@ -27,9 +27,9 @@ public class ProductController {
     @GetMapping
     @Operation(summary = "Get all products for an organization")
     public ResponseEntity<List<Product>> getAllProducts(
-            @RequestParam UUID organizationId,
-            @RequestParam(required = false, defaultValue = "false") boolean activeOnly,
-            @RequestParam(required = false) String productType) {
+            @RequestParam("organizationId") UUID organizationId,
+            @RequestParam(value = "activeOnly", required = false, defaultValue = "false") boolean activeOnly,
+            @RequestParam(value = "productType", required = false) String productType) {
         
         log.info("GET /api/sales/products - organizationId: {}, activeOnly: {}, productType: {}", 
                 organizationId, activeOnly, productType);
@@ -48,7 +48,7 @@ public class ProductController {
     
     @GetMapping("/{id}")
     @Operation(summary = "Get product by ID")
-    public ResponseEntity<Product> getProductById(@PathVariable UUID id) {
+    public ResponseEntity<Product> getProductById(@PathVariable("id") UUID id) {
         log.info("GET /api/sales/products/{}", id);
         return ResponseEntity.ok(productService.getProductById(id));
     }
@@ -63,7 +63,7 @@ public class ProductController {
     @PutMapping("/{id}")
     @Operation(summary = "Update product")
     public ResponseEntity<Product> updateProduct(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody ProductRequest request) {
         log.info("PUT /api/sales/products/{}", id);
         return ResponseEntity.ok(productService.updateProduct(id, request));
@@ -71,7 +71,7 @@ public class ProductController {
     
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete product")
-    public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable("id") UUID id) {
         log.info("DELETE /api/sales/products/{}", id);
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
@@ -79,7 +79,7 @@ public class ProductController {
     
     @PostMapping("/{id}/deactivate")
     @Operation(summary = "Deactivate product")
-    public ResponseEntity<Product> deactivateProduct(@PathVariable UUID id) {
+    public ResponseEntity<Product> deactivateProduct(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/products/{}/deactivate", id);
         return ResponseEntity.ok(productService.deactivateProduct(id));
     }

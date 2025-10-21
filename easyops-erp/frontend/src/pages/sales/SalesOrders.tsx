@@ -23,6 +23,7 @@ import {
   Grid,
   Paper,
   Menu,
+  Autocomplete,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -445,19 +446,28 @@ const SalesOrders = () => {
                 <Paper key={index} sx={{ p: 2, mb: 2 }}>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={4}>
-                      <TextField
-                        select
+                      <Autocomplete
                         fullWidth
-                        label="Product"
-                        value={line.productId}
-                        onChange={(e) => handleLineChange(index, "productId", e.target.value)}
-                      >
-                        {products.map((product) => (
-                          <MenuItem key={product.id} value={product.id}>
-                            {product.productName}
-                          </MenuItem>
-                        ))}
-                      </TextField>
+                        options={products}
+                        getOptionLabel={(option) => option.productName}
+                        value={products.find(p => p.id === line.productId) || null}
+                        onChange={(event, newValue) => {
+                          handleLineChange(index, "productId", newValue?.id || "");
+                        }}
+                        renderInput={(params) => (
+                          <TextField {...params} label="Product" placeholder="Search products..." />
+                        )}
+                        renderOption={(props, option) => (
+                          <li {...props} key={option.id}>
+                            <Box>
+                              <Typography variant="body2">{option.productName}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {option.productCode} - ${option.unitPrice}
+                              </Typography>
+                            </Box>
+                          </li>
+                        )}
+                      />
                     </Grid>
                     <Grid item xs={12} md={2}>
                       <TextField

@@ -43,6 +43,22 @@ spring:
           uri: lb://accounting-service
           predicates:
             - Path=/api/accounting/**
+        - id: ar-service
+          uri: lb://ar-service
+          predicates:
+            - Path=/api/ar/**
+        - id: ap-service
+          uri: lb://ap-service
+          predicates:
+            - Path=/api/ap/**
+        - id: bank-service
+          uri: lb://bank-service
+          predicates:
+            - Path=/api/bank/**
+        - id: sales-service
+          uri: lb://sales-service
+          predicates:
+            - Path=/api/sales/**
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_LAST
       globalcors:

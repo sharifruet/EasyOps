@@ -36,6 +36,11 @@ const salesService = {
     await api.delete(`/api/sales/customers/${id}`);
   },
 
+  async deactivateCustomer(id: string): Promise<Customer> {
+    const response = await api.post(`/api/sales/customers/${id}/deactivate`);
+    return response.data;
+  },
+
   // Product APIs
   async getProducts(organizationId: string, activeOnly: boolean = false): Promise<Product[]> {
     const response = await api.get('/api/sales/products', {
@@ -61,6 +66,11 @@ const salesService = {
 
   async deleteProduct(id: string): Promise<void> {
     await api.delete(`/api/sales/products/${id}`);
+  },
+
+  async deactivateProduct(id: string): Promise<Product> {
+    const response = await api.post(`/api/sales/products/${id}/deactivate`);
+    return response.data;
   },
 
   // Quotation APIs

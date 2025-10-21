@@ -35,6 +35,8 @@ import AccountingDashboard from '@pages/accounting/Dashboard';
 import Quotations from '@pages/sales/Quotations';
 import SalesOrders from '@pages/sales/SalesOrders';
 import SalesDashboard from '@pages/sales/SalesDashboard';
+import Products from '@pages/sales/Products';
+import SalesCustomers from '@pages/sales/Customers';
 
 // Create MUI theme
 const theme = createTheme({
@@ -128,6 +130,8 @@ const App: React.FC = () => {
                 
                 {/* Sales Routes - Phase 2.0 */}
                 <Route path="sales/dashboard" element={<SalesDashboard />} />
+                <Route path="sales/products" element={<Products />} />
+                <Route path="sales/customers" element={<SalesCustomers />} />
                 <Route path="sales/quotations" element={<Quotations />} />
                 <Route path="sales/orders" element={<SalesOrders />} />
                 

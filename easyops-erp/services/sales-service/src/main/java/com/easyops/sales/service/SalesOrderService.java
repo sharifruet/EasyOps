@@ -56,7 +56,7 @@ public class SalesOrderService {
     
     @Transactional(readOnly = true)
     public SalesOrder getOrderById(UUID id) {
-        return salesOrderRepository.findById(id)
+        return salesOrderRepository.findByIdWithLines(id)
                 .orElseThrow(() -> new RuntimeException("Sales order not found with id: " + id));
     }
     

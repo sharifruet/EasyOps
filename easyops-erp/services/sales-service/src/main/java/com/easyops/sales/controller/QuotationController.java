@@ -27,8 +27,8 @@ public class QuotationController {
     @GetMapping
     @Operation(summary = "Get all quotations for an organization")
     public ResponseEntity<List<Quotation>> getAllQuotations(
-            @RequestParam UUID organizationId,
-            @RequestParam(required = false) String status) {
+            @RequestParam("organizationId") UUID organizationId,
+            @RequestParam(value = "status", required = false) String status) {
         
         log.info("GET /api/sales/quotations - organizationId: {}, status: {}", organizationId, status);
         
@@ -42,8 +42,8 @@ public class QuotationController {
     @GetMapping("/customer/{customerId}")
     @Operation(summary = "Get quotations for a specific customer")
     public ResponseEntity<List<Quotation>> getQuotationsByCustomer(
-            @RequestParam UUID organizationId,
-            @PathVariable UUID customerId) {
+            @RequestParam("organizationId") UUID organizationId,
+            @PathVariable("customerId") UUID customerId) {
         
         log.info("GET /api/sales/quotations/customer/{} - organizationId: {}", customerId, organizationId);
         
@@ -53,7 +53,7 @@ public class QuotationController {
     
     @GetMapping("/{id}")
     @Operation(summary = "Get quotation by ID")
-    public ResponseEntity<Quotation> getQuotationById(@PathVariable UUID id) {
+    public ResponseEntity<Quotation> getQuotationById(@PathVariable("id") UUID id) {
         log.info("GET /api/sales/quotations/{}", id);
         return ResponseEntity.ok(quotationService.getQuotationById(id));
     }
@@ -68,7 +68,7 @@ public class QuotationController {
     @PutMapping("/{id}")
     @Operation(summary = "Update quotation")
     public ResponseEntity<Quotation> updateQuotation(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody QuotationRequest request) {
         log.info("PUT /api/sales/quotations/{}", id);
         return ResponseEntity.ok(quotationService.updateQuotation(id, request));
@@ -76,28 +76,28 @@ public class QuotationController {
     
     @PostMapping("/{id}/send")
     @Operation(summary = "Send quotation to customer")
-    public ResponseEntity<Quotation> sendQuotation(@PathVariable UUID id) {
+    public ResponseEntity<Quotation> sendQuotation(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/quotations/{}/send", id);
         return ResponseEntity.ok(quotationService.sendQuotation(id));
     }
     
     @PostMapping("/{id}/accept")
     @Operation(summary = "Accept quotation")
-    public ResponseEntity<Quotation> acceptQuotation(@PathVariable UUID id) {
+    public ResponseEntity<Quotation> acceptQuotation(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/quotations/{}/accept", id);
         return ResponseEntity.ok(quotationService.acceptQuotation(id));
     }
     
     @PostMapping("/{id}/reject")
     @Operation(summary = "Reject quotation")
-    public ResponseEntity<Quotation> rejectQuotation(@PathVariable UUID id) {
+    public ResponseEntity<Quotation> rejectQuotation(@PathVariable("id") UUID id) {
         log.info("POST /api/sales/quotations/{}/reject", id);
         return ResponseEntity.ok(quotationService.rejectQuotation(id));
     }
     
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete quotation")
-    public ResponseEntity<Void> deleteQuotation(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteQuotation(@PathVariable("id") UUID id) {
         log.info("DELETE /api/sales/quotations/{}", id);
         quotationService.deleteQuotation(id);
         return ResponseEntity.noContent().build();
@@ -105,7 +105,7 @@ public class QuotationController {
     
     @PostMapping("/expire-old")
     @Operation(summary = "Expire old quotations")
-    public ResponseEntity<Void> expireOldQuotations(@RequestParam UUID organizationId) {
+    public ResponseEntity<Void> expireOldQuotations(@RequestParam("organizationId") UUID organizationId) {
         log.info("POST /api/sales/quotations/expire-old - organizationId: {}", organizationId);
         quotationService.expireOldQuotations(organizationId);
         return ResponseEntity.ok().build();

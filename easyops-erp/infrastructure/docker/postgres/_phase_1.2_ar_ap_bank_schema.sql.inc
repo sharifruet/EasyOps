@@ -16,6 +16,7 @@ CREATE TABLE accounting.customers (
     email VARCHAR(255),
     phone VARCHAR(50),
     credit_limit DECIMAL(19, 4) DEFAULT 0,
+    current_balance DECIMAL(19, 4) DEFAULT 0,
     payment_terms INTEGER DEFAULT 30, -- Days
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -30,7 +31,7 @@ CREATE TABLE accounting.ar_invoices (
     invoice_date DATE NOT NULL,
     due_date DATE NOT NULL,
     customer_id UUID NOT NULL REFERENCES accounting.customers(id),
-    period_id UUID NOT NULL REFERENCES accounting.periods(id),
+    period_id UUID REFERENCES accounting.periods(id), -- Optional: can be auto-determined or assigned later
     currency VARCHAR(3) DEFAULT 'USD',
     subtotal DECIMAL(19, 4) DEFAULT 0,
     tax_amount DECIMAL(19, 4) DEFAULT 0,
@@ -90,6 +91,71 @@ CREATE TABLE accounting.ar_receipt_allocations (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- AR Credit Notes
+CREATE TABLE accounting.ar_credit_notes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES admin.organizations(id) ON DELETE CASCADE,
+    credit_note_number VARCHAR(50) UNIQUE NOT NULL,
+    credit_note_date DATE NOT NULL,
+    customer_id UUID NOT NULL REFERENCES accounting.customers(id),
+    invoice_id UUID REFERENCES accounting.ar_invoices(id), -- Optional reference to invoice
+    reason VARCHAR(20), -- RETURN, DAMAGE, PRICING_ERROR, DISCOUNT, CANCELLATION, OTHER
+    notes VARCHAR(1000),
+    subtotal DECIMAL(15, 2) DEFAULT 0,
+    tax_amount DECIMAL(15, 2) DEFAULT 0,
+    total_amount DECIMAL(15, 2) DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'DRAFT', -- DRAFT, POSTED, APPLIED, CANCELLED
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100)
+);
+
+-- AR Credit Note Lines
+CREATE TABLE accounting.ar_credit_note_lines (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    credit_note_id UUID NOT NULL REFERENCES accounting.ar_credit_notes(id) ON DELETE CASCADE,
+    line_number INTEGER NOT NULL,
+    description VARCHAR(500),
+    quantity DECIMAL(15, 4) DEFAULT 1,
+    unit_price DECIMAL(15, 2) DEFAULT 0,
+    discount_percent DECIMAL(5, 2) DEFAULT 0,
+    tax_percent DECIMAL(5, 2) DEFAULT 0,
+    line_total DECIMAL(15, 2) DEFAULT 0,
+    account_id UUID REFERENCES accounting.chart_of_accounts(id) -- Revenue account to credit
+);
+
+-- Payment Reminder Configuration
+CREATE TABLE accounting.reminder_config (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL UNIQUE REFERENCES admin.organizations(id) ON DELETE CASCADE,
+    enabled BOOLEAN DEFAULT false,
+    days_before_due INTEGER, -- Reminder before due date (e.g., -7 = 7 days before)
+    days_after_due_level1 INTEGER DEFAULT 1, -- First overdue reminder
+    days_after_due_level2 INTEGER DEFAULT 7, -- Second overdue reminder
+    days_after_due_level3 INTEGER DEFAULT 14, -- Third overdue reminder
+    email_template_before_due VARCHAR(2000),
+    email_template_level1 VARCHAR(2000),
+    email_template_level2 VARCHAR(2000),
+    email_template_level3 VARCHAR(2000),
+    send_copy_to_email VARCHAR(255), -- CC email for all reminders
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Payment Reminder History
+CREATE TABLE accounting.reminder_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES admin.organizations(id) ON DELETE CASCADE,
+    invoice_id UUID NOT NULL REFERENCES accounting.ar_invoices(id) ON DELETE CASCADE,
+    sent_date DATE NOT NULL,
+    reminder_level INTEGER NOT NULL, -- 0=before due, 1,2,3=overdue levels
+    recipient_email VARCHAR(255) NOT NULL,
+    email_sent BOOLEAN DEFAULT false,
+    error_message VARCHAR(500),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ============================================================
 -- ACCOUNTS PAYABLE (AP)
 -- ============================================================
@@ -117,7 +183,7 @@ CREATE TABLE accounting.ap_bills (
     bill_date DATE NOT NULL,
     due_date DATE NOT NULL,
     vendor_id UUID NOT NULL REFERENCES accounting.vendors(id),
-    period_id UUID NOT NULL REFERENCES accounting.periods(id),
+    period_id UUID REFERENCES accounting.periods(id), -- Optional: can be auto-determined or assigned later
     currency VARCHAR(3) DEFAULT 'USD',
     subtotal DECIMAL(19, 4) DEFAULT 0,
     tax_amount DECIMAL(19, 4) DEFAULT 0,

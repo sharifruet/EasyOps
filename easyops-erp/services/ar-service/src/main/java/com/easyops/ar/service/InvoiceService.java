@@ -59,11 +59,18 @@ public class InvoiceService {
     
     @Transactional
     public ARInvoice createInvoice(InvoiceRequest request) {
-        log.info("Creating new invoice: {}", request.getInvoiceNumber());
+        // Auto-generate invoice number if not provided
+        String invoiceNumber = request.getInvoiceNumber();
+        if (invoiceNumber == null || invoiceNumber.trim().isEmpty()) {
+            invoiceNumber = generateInvoiceNumber(request.getOrganizationId());
+            log.info("Auto-generated invoice number: {}", invoiceNumber);
+        } else {
+            log.info("Creating new invoice: {}", invoiceNumber);
+        }
         
         // Check if invoice number already exists
-        if (invoiceRepository.existsByInvoiceNumber(request.getInvoiceNumber())) {
-            throw new RuntimeException("Invoice number already exists: " + request.getInvoiceNumber());
+        if (invoiceRepository.existsByInvoiceNumber(invoiceNumber)) {
+            throw new RuntimeException("Invoice number already exists: " + invoiceNumber);
         }
         
         // Fetch customer
@@ -79,9 +86,6 @@ public class InvoiceService {
             BigDecimal newBalance = currentBalance.add(invoiceTotal);
             
             if (newBalance.compareTo(customer.getCreditLimit()) > 0) {
-                customer.setCreditLimitExceeded(true);
-                customerRepository.save(customer);
-                
                 log.warn("Credit limit exceeded for customer {}: Current={}, New Invoice={}, Credit Limit={}", 
                     customer.getCustomerName(), currentBalance, invoiceTotal, customer.getCreditLimit());
                 
@@ -91,14 +95,22 @@ public class InvoiceService {
             }
         }
         
+        // Auto-determine period ID if not provided (using a simple approach - same year/month as invoice date)
+        UUID periodId = request.getPeriodId();
+        if (periodId == null) {
+            // For now, we'll set it to null and let the accounting period be optional
+            // TODO: Implement proper period lookup via Accounting Service API call
+            log.warn("Period ID not provided, setting to null. Invoice date: {}", request.getInvoiceDate());
+        }
+        
         // Create invoice
         ARInvoice invoice = new ARInvoice();
         invoice.setOrganizationId(request.getOrganizationId());
-        invoice.setInvoiceNumber(request.getInvoiceNumber());
+        invoice.setInvoiceNumber(invoiceNumber);
         invoice.setInvoiceDate(request.getInvoiceDate());
         invoice.setDueDate(request.getDueDate());
         invoice.setCustomer(customer);
-        invoice.setPeriodId(request.getPeriodId());
+        invoice.setPeriodId(periodId);
         invoice.setCurrency(request.getCurrency());
         invoice.setNotes(request.getNotes());
         invoice.setCreatedBy(request.getCreatedBy());
@@ -170,11 +182,6 @@ public class InvoiceService {
         BigDecimal currentBalance = customer.getCurrentBalance() != null ? customer.getCurrentBalance() : BigDecimal.ZERO;
         customer.setCurrentBalance(currentBalance.add(invoice.getTotalAmount()));
         
-        // Check if credit limit is now exceeded
-        if (customer.getCreditLimit() != null && customer.getCreditLimit().compareTo(BigDecimal.ZERO) > 0) {
-            customer.setCreditLimitExceeded(customer.getCurrentBalance().compareTo(customer.getCreditLimit()) > 0);
-        }
-        
         customerRepository.save(customer);
         log.info("Updated customer {} balance to: {}", customer.getCustomerName(), customer.getCurrentBalance());
         
@@ -244,6 +251,20 @@ public class InvoiceService {
         }
         
         return total.setScale(2, RoundingMode.HALF_UP);
+    }
+    
+    /**
+     * Helper method to generate invoice number
+     */
+    private String generateInvoiceNumber(UUID organizationId) {
+        // Find the highest invoice number for this organization
+        String prefix = "INV-";
+        
+        // Get count of invoices for this organization
+        long count = invoiceRepository.findByOrganizationId(organizationId).size();
+        
+        // Generate next number (count + 1, padded to 6 digits)
+        return String.format("%s%06d", prefix, count + 1);
     }
 }
 

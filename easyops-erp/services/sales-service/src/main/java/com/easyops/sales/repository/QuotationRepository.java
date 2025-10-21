@@ -14,11 +14,17 @@ import java.util.UUID;
 @Repository
 public interface QuotationRepository extends JpaRepository<Quotation, UUID> {
     
-    List<Quotation> findByOrganizationIdOrderByQuotationDateDesc(UUID organizationId);
+    @Query("SELECT DISTINCT q FROM Quotation q LEFT JOIN FETCH q.lines WHERE q.organizationId = :orgId ORDER BY q.quotationDate DESC")
+    List<Quotation> findByOrganizationIdOrderByQuotationDateDesc(@Param("orgId") UUID organizationId);
     
-    List<Quotation> findByOrganizationIdAndStatus(UUID organizationId, String status);
+    @Query("SELECT DISTINCT q FROM Quotation q LEFT JOIN FETCH q.lines WHERE q.organizationId = :orgId AND q.status = :status")
+    List<Quotation> findByOrganizationIdAndStatus(@Param("orgId") UUID organizationId, @Param("status") String status);
     
-    List<Quotation> findByOrganizationIdAndCustomerId(UUID organizationId, UUID customerId);
+    @Query("SELECT DISTINCT q FROM Quotation q LEFT JOIN FETCH q.lines WHERE q.organizationId = :orgId AND q.customerId = :customerId")
+    List<Quotation> findByOrganizationIdAndCustomerId(@Param("orgId") UUID organizationId, @Param("customerId") UUID customerId);
+    
+    @Query("SELECT q FROM Quotation q LEFT JOIN FETCH q.lines WHERE q.id = :id")
+    Optional<Quotation> findByIdWithLines(@Param("id") UUID id);
     
     Optional<Quotation> findByOrganizationIdAndQuotationNumber(UUID organizationId, String quotationNumber);
     

@@ -89,6 +89,9 @@ const menuItems: MenuItemType[] = [
     children: [
       { text: 'Dashboard', icon: <DashboardIcon />, path: '/sales/dashboard' },
       { text: '---sales-div1' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Products', icon: <BusinessIcon />, path: '/sales/products' },
+      { text: 'Customers', icon: <PeopleIcon />, path: '/sales/customers' },
+      { text: '---sales-div2' as any, icon: <></>, path: '' }, // Divider
       { text: 'Quotations', icon: <ReportIcon />, path: '/sales/quotations' },
       { text: 'Sales Orders', icon: <JournalIcon />, path: '/sales/orders' },
     ]

@@ -753,6 +753,12 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA integration TO easyops_dev;
 \i /docker-entrypoint-initdb.d/_phase_1.2_ar_ap_bank_schema.sql.inc
 
 -- ============================================================
+-- PHASE 2: Sales Module
+-- ============================================================
+
+\i /docker-entrypoint-initdb.d/_phase_2_sales_schema.sql.inc
+
+-- ============================================================
 -- Apply Schema Updates
 -- ============================================================
 
@@ -762,3 +768,9 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA integration TO easyops_dev;
 -- Note: COA Template Data (_coa_template_standard.sql.template) should
 -- be loaded per organization, not during database initialization
 -- ============================================================
+
+-- ============================================================
+-- LOAD TEST DATA FOR DEVELOPMENT
+-- ============================================================
+
+\i /docker-entrypoint-initdb.d/_test_data.sql.inc

@@ -50,11 +50,17 @@ public class Customer {
     @Column(name = "is_active")
     private Boolean isActive = true;
     
-    @Column(name = "credit_limit_exceeded")
-    private Boolean creditLimitExceeded = false;
-    
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    
+    // Computed property - not stored in database
+    @Transient
+    public Boolean isCreditLimitExceeded() {
+        if (creditLimit == null || currentBalance == null) {
+            return false;
+        }
+        return currentBalance.compareTo(creditLimit) > 0;
+    }
 }
 

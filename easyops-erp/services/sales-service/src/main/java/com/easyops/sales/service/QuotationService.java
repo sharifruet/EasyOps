@@ -48,7 +48,7 @@ public class QuotationService {
     
     @Transactional(readOnly = true)
     public Quotation getQuotationById(UUID id) {
-        return quotationRepository.findById(id)
+        return quotationRepository.findByIdWithLines(id)
                 .orElseThrow(() -> new RuntimeException("Quotation not found with id: " + id));
     }
     

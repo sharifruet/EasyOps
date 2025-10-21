@@ -10,6 +10,9 @@ import java.util.UUID;
 @Data
 public class CustomerRequest {
     
+    // Optional: For syncing customers from other services (e.g., sales)
+    private UUID id;
+    
     @NotNull(message = "Organization ID is required")
     private UUID organizationId;
     

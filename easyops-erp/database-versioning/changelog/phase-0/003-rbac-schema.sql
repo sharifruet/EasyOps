@@ -66,6 +66,6 @@ CREATE TRIGGER update_roles_updated_at BEFORE UPDATE ON rbac.roles FOR EACH ROW 
 CREATE TRIGGER update_permissions_updated_at BEFORE UPDATE ON rbac.permissions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 --changeset easyops:026-grant-rbac-permissions context:rbac
---comment: Grant permissions on RBAC tables to easyops_dev user
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA rbac TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA rbac TO easyops_dev;
+--comment: Grant permissions on RBAC tables to easyops user
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA rbac TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA rbac TO easyops;

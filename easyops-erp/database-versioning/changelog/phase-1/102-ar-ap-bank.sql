@@ -289,7 +289,7 @@ CREATE TABLE accounting.bank_accounts (
     branch_name VARCHAR(255),
     account_type VARCHAR(50) DEFAULT 'CHECKING',
     currency VARCHAR(3) DEFAULT 'USD',
-    gl_account_id UUID NOT NULL REFERENCES accounting.chart_of_accounts(id),
+    gl_account_id UUID REFERENCES accounting.chart_of_accounts(id),
     opening_balance DECIMAL(19, 4) DEFAULT 0,
     current_balance DECIMAL(19, 4) DEFAULT 0,
     is_active BOOLEAN DEFAULT true,
@@ -358,7 +358,7 @@ CREATE TABLE accounting.reconciliation_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
---changeset easyops:075-create-ar-ap-bank-triggers context:ar,ap,bank
+--changeset easyops:075-create-ar-ap-bank-triggers context:ar,ap,bank splitStatements:false
 --comment: Create triggers for AR/AP/Bank tables
 CREATE OR REPLACE FUNCTION update_invoice_totals()
 RETURNS TRIGGER AS $$
@@ -487,11 +487,9 @@ JOIN accounting.bank_accounts ba ON bt.bank_account_id = ba.id
 ORDER BY ba.account_number, bt.transaction_date, bt.created_at;
 
 --changeset easyops:077-grant-ar-ap-bank-permissions context:ar,ap,bank
---comment: Grant permissions on AR/AP/Bank tables to easyops_dev user
+--comment: Grant permissions on AR/AP/Bank tables to easyops user
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA accounting TO easyops;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA accounting TO easyops_dev;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA accounting TO easyops;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA accounting TO easyops_dev;
-GRANT SELECT ON accounting.v_ar_aging TO easyops, easyops_dev;
-GRANT SELECT ON accounting.v_ap_aging TO easyops, easyops_dev;
-GRANT SELECT ON accounting.v_bank_statement TO easyops, easyops_dev;
+GRANT SELECT ON accounting.v_ar_aging TO easyops;
+GRANT SELECT ON accounting.v_ap_aging TO easyops;
+GRANT SELECT ON accounting.v_bank_statement TO easyops;

@@ -6,7 +6,7 @@ CREATE SCHEMA IF NOT EXISTS accounting;
 
 -- Grant permissions
 GRANT ALL PRIVILEGES ON SCHEMA accounting TO easyops;
-GRANT ALL PRIVILEGES ON SCHEMA accounting TO easyops_dev;
+GRANT ALL PRIVILEGES ON SCHEMA accounting TO easyops;
 
 --changeset easyops:044-create-coa-templates-table context:accounting
 --comment: Create Chart of Accounts template table
@@ -221,7 +221,7 @@ CREATE TABLE accounting.journal_template_lines (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
---changeset easyops:054-create-accounting-triggers context:accounting
+--changeset easyops:054-create-accounting-triggers context:accounting splitStatements:false
 --comment: Create triggers for accounting tables
 CREATE OR REPLACE FUNCTION update_journal_totals()
 RETURNS TRIGGER AS $$
@@ -318,10 +318,8 @@ WHERE je.status = 'POSTED'
 ORDER BY je.journal_date, je.journal_number, jl.line_number;
 
 --changeset easyops:056-grant-accounting-permissions context:accounting
---comment: Grant permissions on accounting tables to easyops_dev user
+--comment: Grant permissions on accounting tables to easyops user
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA accounting TO easyops;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA accounting TO easyops_dev;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA accounting TO easyops;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA accounting TO easyops_dev;
-GRANT SELECT ON accounting.v_trial_balance TO easyops, easyops_dev;
-GRANT SELECT ON accounting.v_account_ledger TO easyops, easyops_dev;
+GRANT SELECT ON accounting.v_trial_balance TO easyops;
+GRANT SELECT ON accounting.v_account_ledger TO easyops;

@@ -1,26 +1,15 @@
 --liquibase formatted sql
 
---changeset easyops:001-create-databases context:initial
---comment: Create development databases if they don't exist
-SELECT 'CREATE DATABASE easyops'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'easyops')\gexec
+--changeset easyops:001-create-databases context:initial runOnChange:false
+--comment: Database creation is handled by Docker postgres initialization
+--comment: The easyops database is automatically created via POSTGRES_DB environment variable
+--comment: Skipping this changeset as it's not needed
+--rollback: -- No rollback needed
 
-SELECT 'CREATE DATABASE easyops_test'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'easyops_test')\gexec
-
---changeset easyops:002-create-dev-user context:initial
---comment: Create development user if it doesn't exist
-DO
-$do$
-BEGIN
-   IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'easyops_dev') THEN
-      CREATE USER easyops_dev WITH PASSWORD 'easyops123';
-   END IF;
-END
-$do$;
-
-GRANT ALL PRIVILEGES ON DATABASE easyops TO easyops_dev;
-GRANT ALL PRIVILEGES ON DATABASE easyops_test TO easyops_dev;
+--changeset easyops:002-create-dev-user context:initial runOnChange:false
+--comment: User creation - using default easyops user from Docker configuration
+--comment: Additional users can be created here if needed in the future
+--rollback: -- No rollback needed
 
 --changeset easyops:003-create-core-schemas context:initial
 --comment: Create core schemas for different modules
@@ -30,14 +19,6 @@ CREATE SCHEMA IF NOT EXISTS auth;
 CREATE SCHEMA IF NOT EXISTS rbac;
 CREATE SCHEMA IF NOT EXISTS system;
 CREATE SCHEMA IF NOT EXISTS audit;
-
--- Grant permissions to development user
-GRANT ALL PRIVILEGES ON SCHEMA admin TO easyops_dev;
-GRANT ALL PRIVILEGES ON SCHEMA users TO easyops_dev;
-GRANT ALL PRIVILEGES ON SCHEMA auth TO easyops_dev;
-GRANT ALL PRIVILEGES ON SCHEMA rbac TO easyops_dev;
-GRANT ALL PRIVILEGES ON SCHEMA system TO easyops_dev;
-GRANT ALL PRIVILEGES ON SCHEMA audit TO easyops_dev;
 
 --changeset easyops:004-create-extensions context:initial
 --comment: Create required PostgreSQL extensions
@@ -255,7 +236,7 @@ CREATE INDEX idx_audit_logs_user_id ON audit.audit_logs(user_id);
 CREATE INDEX idx_audit_logs_created_at ON audit.audit_logs(created_at);
 CREATE INDEX idx_audit_logs_action ON audit.audit_logs(action);
 
---changeset easyops:014-create-updated-at-trigger-function context:initial
+--changeset easyops:014-create-updated-at-trigger-function context:initial splitStatements:false
 --comment: Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -276,17 +257,17 @@ CREATE TRIGGER update_user_organizations_updated_at BEFORE UPDATE ON admin.user_
 CREATE TRIGGER update_configurations_updated_at BEFORE UPDATE ON system.configurations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 --changeset easyops:016-grant-permissions context:initial
---comment: Grant all privileges to easyops_dev user
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA admin TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA users TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA rbac TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA system TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA audit TO easyops_dev;
+--comment: Grant all privileges to easyops user (default user from Docker configuration)
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA admin TO easyops;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA users TO easyops;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO easyops;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA rbac TO easyops;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA system TO easyops;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA audit TO easyops;
 
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA admin TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA users TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA rbac TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA system TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA audit TO easyops_dev;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA admin TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA users TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA rbac TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA system TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA audit TO easyops;

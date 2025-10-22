@@ -53,29 +53,29 @@ INSERT INTO accounting.ar_invoices (organization_id, invoice_number, invoice_dat
 
 --changeset easyops:114-insert-test-ar-invoice-lines context:test-data
 --comment: Insert test AR invoice lines for development and testing
-INSERT INTO accounting.ar_invoice_lines (invoice_id, line_number, description, quantity, unit_price, line_total, tax_percent, tax_amount) VALUES
+INSERT INTO accounting.ar_invoice_lines (invoice_id, line_number, description, quantity, unit_price, line_total, tax_percent) VALUES
 -- Invoice INV-2024-001 lines
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-001'), 1, 'Software Development Services', 100, 120.00, 12000.00, 8.5, 1020.00),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-001'), 2, 'Consulting Services', 20, 150.00, 3000.00, 8.5, 255.00),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-001'), 1, 'Software Development Services', 100, 120.00, 12000.00, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-001'), 2, 'Consulting Services', 20, 150.00, 3000.00, 8.5),
 
 -- Invoice INV-2024-002 lines
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 1, 'Software License Renewal', 50, 99.99, 4999.50, 8.5, 424.96),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 2, 'Support Services', 12, 29.99, 359.88, 8.5, 30.59),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 3, 'Training Services', 10, 150.00, 1500.00, 8.5, 127.50),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 4, 'Implementation Services', 8, 200.00, 1600.00, 8.5, 136.00),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 1, 'Software License Renewal', 50, 99.99, 4999.50, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 2, 'Support Services', 12, 29.99, 359.88, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 3, 'Training Services', 10, 150.00, 1500.00, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-002'), 4, 'Implementation Services', 8, 200.00, 1600.00, 8.5),
 
 -- Invoice INV-2024-003 lines
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-003'), 1, 'Enterprise Software License', 1, 25000.00, 25000.00, 8.5, 2125.00),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-003'), 2, 'Custom Development', 100, 150.00, 15000.00, 8.5, 1275.00),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-003'), 3, 'Integration Services', 50, 100.00, 5000.00, 8.5, 425.00),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-003'), 1, 'Enterprise Software License', 1, 25000.00, 25000.00, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-003'), 2, 'Custom Development', 100, 150.00, 15000.00, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-003'), 3, 'Integration Services', 50, 100.00, 5000.00, 8.5),
 
 -- Invoice INV-2024-004 lines
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-004'), 1, 'Business Consulting', 16, 150.00, 2400.00, 8.5, 204.00),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-004'), 2, 'Strategic Planning', 8, 100.00, 800.00, 8.5, 68.00),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-004'), 1, 'Business Consulting', 16, 150.00, 2400.00, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-004'), 2, 'Strategic Planning', 8, 100.00, 800.00, 8.5),
 
 -- Invoice INV-2024-005 lines (paid)
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-005'), 1, 'Monthly Subscription', 1, 10000.00, 10000.00, 8.5, 850.00),
-((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-005'), 2, 'Additional Services', 10, 200.00, 2000.00, 8.5, 170.00);
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-005'), 1, 'Monthly Subscription', 1, 10000.00, 10000.00, 8.5),
+((SELECT id FROM accounting.ar_invoices WHERE invoice_number = 'INV-2024-005'), 2, 'Additional Services', 10, 200.00, 2000.00, 8.5);
 
 --changeset easyops:115-insert-test-ap-bills context:test-data
 --comment: Insert test AP bills for development and testing
@@ -130,33 +130,33 @@ INSERT INTO accounting.ap_bills (organization_id, bill_number, bill_date, due_da
 
 --changeset easyops:116-insert-test-ap-bill-lines context:test-data
 --comment: Insert test AP bill lines for development and testing
-INSERT INTO accounting.ap_bill_lines (bill_id, line_number, description, quantity, unit_price, line_total, tax_percent, tax_amount) VALUES
+INSERT INTO accounting.ap_bill_lines (bill_id, line_number, description, quantity, unit_price, line_total, tax_percent) VALUES
 -- Bill BILL-2024-001 lines
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 1, 'Printer Paper', 50, 8.99, 449.50, 8.5, 38.21),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 2, 'Pens and Pencils', 100, 1.50, 150.00, 8.5, 12.75),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 3, 'File Folders', 200, 2.00, 400.00, 8.5, 34.00),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 4, 'Notebooks', 50, 5.00, 250.00, 8.5, 21.25),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 5, 'Desk Organizers', 25, 12.00, 300.00, 8.5, 25.50),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 6, 'Staplers', 10, 25.00, 250.00, 8.5, 21.25),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 7, 'Toner Cartridges', 5, 80.00, 400.00, 8.5, 34.00),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 8, 'Markers and Highlighters', 30, 3.00, 90.00, 8.5, 7.65),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 9, 'Binder Clips', 20, 8.00, 160.00, 8.5, 13.60),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 10, 'Post-it Notes', 25, 4.00, 100.00, 8.5, 8.50),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 1, 'Printer Paper', 50, 8.99, 449.50, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 2, 'Pens and Pencils', 100, 1.50, 150.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 3, 'File Folders', 200, 2.00, 400.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 4, 'Notebooks', 50, 5.00, 250.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 5, 'Desk Organizers', 25, 12.00, 300.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 6, 'Staplers', 10, 25.00, 250.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 7, 'Toner Cartridges', 5, 80.00, 400.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 8, 'Markers and Highlighters', 30, 3.00, 90.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 9, 'Binder Clips', 20, 8.00, 160.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-001'), 10, 'Post-it Notes', 25, 4.00, 100.00, 8.5),
 
 -- Bill BILL-2024-002 lines
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-002'), 1, 'Desktop Computers', 10, 1200.00, 12000.00, 8.5, 1020.00),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-002'), 2, 'Monitors', 15, 300.00, 4500.00, 8.5, 382.50),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-002'), 1, 'Desktop Computers', 10, 1200.00, 12000.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-002'), 2, 'Monitors', 15, 300.00, 4500.00, 8.5),
 
 -- Bill BILL-2024-003 lines
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-003'), 1, 'Digital Marketing Campaign', 1, 3000.00, 3000.00, 8.5, 255.00),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-003'), 2, 'Social Media Management', 2, 500.00, 1000.00, 8.5, 85.00),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-003'), 3, 'Content Creation', 10, 100.00, 1000.00, 8.5, 85.00),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-003'), 1, 'Digital Marketing Campaign', 1, 3000.00, 3000.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-003'), 2, 'Social Media Management', 2, 500.00, 1000.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-003'), 3, 'Content Creation', 10, 100.00, 1000.00, 8.5),
 
 -- Bill BILL-2024-004 lines
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 1, 'Cleaning Supplies', 1, 500.00, 500.00, 8.5, 42.50),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 2, 'Paper Towels', 20, 8.00, 160.00, 8.5, 13.60),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 3, 'Disinfectant', 10, 12.00, 120.00, 8.5, 10.20),
-((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 4, 'Trash Bags', 5, 15.00, 75.00, 8.5, 6.38);
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 1, 'Cleaning Supplies', 1, 500.00, 500.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 2, 'Paper Towels', 20, 8.00, 160.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 3, 'Disinfectant', 10, 12.00, 120.00, 8.5),
+((SELECT id FROM accounting.ap_bills WHERE bill_number = 'BILL-2024-004'), 4, 'Trash Bags', 5, 15.00, 75.00, 8.5);
 
 --changeset easyops:117-insert-test-bank-transactions context:test-data
 --comment: Insert test bank transactions for development and testing

@@ -10,7 +10,7 @@ CREATE TRIGGER update_sales_quotation_lines_updated_at BEFORE UPDATE ON sales.qu
 CREATE TRIGGER update_sales_orders_updated_at BEFORE UPDATE ON sales.sales_orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_sales_order_lines_updated_at BEFORE UPDATE ON sales.sales_order_lines FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
---changeset easyops:202-add-sales-foreign-keys context:sales
+--changeset easyops:202-add-sales-foreign-keys context:sales splitStatements:false
 --comment: Add foreign key constraints for sales tables
 
 -- Add foreign key constraints for created_by and updated_by columns

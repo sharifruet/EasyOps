@@ -55,6 +55,7 @@
         <module>services/ap-service</module>
         <module>services/bank-service</module>
         <module>services/sales-service</module>
+        <module>services/inventory-service</module>
     </modules>
 
     <dependencyManagement>

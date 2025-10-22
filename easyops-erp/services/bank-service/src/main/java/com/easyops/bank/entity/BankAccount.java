@@ -42,7 +42,7 @@ public class BankAccount {
     @Column(name = "currency", length = 3)
     private String currency = "USD";
     
-    @Column(name = "gl_account_id", nullable = false)
+    @Column(name = "gl_account_id")
     private UUID glAccountId;
     
     @Column(name = "opening_balance", precision = 19, scale = 4)

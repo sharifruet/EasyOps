@@ -37,6 +37,16 @@ import SalesOrders from '@pages/sales/SalesOrders';
 import SalesDashboard from '@pages/sales/SalesDashboard';
 import Products from '@pages/sales/Products';
 import SalesCustomers from '@pages/sales/Customers';
+import InventoryProducts from '@pages/inventory/Products';
+import StockLevels from '@pages/inventory/StockLevels';
+import Warehouses from '@pages/inventory/Warehouses';
+import BatchTracking from '@pages/inventory/BatchTracking';
+import SerialTracking from '@pages/inventory/SerialTracking';
+import StockCounting from '@pages/inventory/StockCounting';
+import InventoryValuation from '@pages/inventory/InventoryValuation';
+import InventoryReports from '@pages/inventory/InventoryReports';
+import ReorderManagement from '@pages/inventory/ReorderManagement';
+import StockTransfers from '@pages/inventory/StockTransfers';
 
 // Create MUI theme
 const theme = createTheme({
@@ -134,6 +144,18 @@ const App: React.FC = () => {
                 <Route path="sales/customers" element={<SalesCustomers />} />
                 <Route path="sales/quotations" element={<Quotations />} />
                 <Route path="sales/orders" element={<SalesOrders />} />
+                
+                {/* Inventory Routes - Phase 3 Complete */}
+                <Route path="inventory/products" element={<InventoryProducts />} />
+                <Route path="inventory/stock" element={<StockLevels />} />
+                <Route path="inventory/warehouses" element={<Warehouses />} />
+                <Route path="inventory/batches" element={<BatchTracking />} />
+                <Route path="inventory/serials" element={<SerialTracking />} />
+                <Route path="inventory/counting" element={<StockCounting />} />
+                <Route path="inventory/valuation" element={<InventoryValuation />} />
+                <Route path="inventory/reports" element={<InventoryReports />} />
+                <Route path="inventory/reorder" element={<ReorderManagement />} />
+                <Route path="inventory/transfers" element={<StockTransfers />} />
                 
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />

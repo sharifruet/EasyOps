@@ -5,7 +5,7 @@
 CREATE SCHEMA IF NOT EXISTS integration;
 
 -- Grant permissions to development user
-GRANT ALL PRIVILEGES ON SCHEMA integration TO easyops_dev;
+GRANT ALL PRIVILEGES ON SCHEMA integration TO easyops;
 
 --changeset easyops:035-create-webhooks-table context:integration
 --comment: Create webhooks table
@@ -124,6 +124,6 @@ CREATE TRIGGER update_webhooks_updated_at BEFORE UPDATE ON integration.webhooks 
 CREATE TRIGGER update_settings_updated_at BEFORE UPDATE ON system.settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 --changeset easyops:042-grant-integration-permissions context:integration
---comment: Grant permissions on integration tables to easyops_dev user
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA integration TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA integration TO easyops_dev;
+--comment: Grant permissions on integration tables to easyops user
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA integration TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA integration TO easyops;

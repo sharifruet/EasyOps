@@ -1,5 +1,6 @@
 package com.easyops.sales.service;
 
+import com.easyops.sales.client.InventoryClient;
 import com.easyops.sales.dto.SalesOrderRequest;
 import com.easyops.sales.entity.*;
 import com.easyops.sales.repository.CustomerRepository;
@@ -11,9 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,6 +28,7 @@ public class SalesOrderService {
     private final SalesOrderRepository salesOrderRepository;
     private final CustomerRepository customerRepository;
     private final QuotationRepository quotationRepository;
+    private final InventoryClient inventoryClient;
     
     @Value("${sales.order.auto-number-prefix:SO}")
     private String orderPrefix;
@@ -257,11 +262,46 @@ public class SalesOrderService {
             throw new RuntimeException("Order requires approval before confirmation");
         }
         
+        // Allocate inventory for each line
+        for (SalesOrderLine line : order.getLines()) {
+            try {
+                allocateInventoryForOrderLine(order.getOrganizationId(), line, order.getId());
+            } catch (Exception e) {
+                log.error("Failed to allocate inventory for product {}: {}", line.getProductId(), e.getMessage());
+                throw new RuntimeException("Failed to allocate inventory: " + e.getMessage());
+            }
+        }
+        
         order.setStatus("CONFIRMED");
         
         // TODO: Send confirmation email
         
         return salesOrderRepository.save(order);
+    }
+    
+    /**
+     * Allocate inventory for an order line
+     */
+    private void allocateInventoryForOrderLine(UUID organizationId, SalesOrderLine line, UUID orderId) {
+        log.info("Allocating inventory for product: {}, quantity: {}", line.getProductId(), line.getQuantity());
+        
+        // For now, use first available warehouse (Main Warehouse)
+        // TODO: Implement warehouse selection logic
+        
+        Map<String, Object> allocationRequest = new HashMap<>();
+        allocationRequest.put("organizationId", organizationId);
+        allocationRequest.put("productId", line.getProductId());
+        allocationRequest.put("warehouseId", line.getProductId()); // Will need to get proper warehouse
+        allocationRequest.put("quantity", line.getQuantity());
+        allocationRequest.put("salesOrderId", orderId);
+        
+        try {
+            inventoryClient.allocateStock(allocationRequest);
+            log.info("Successfully allocated {} units of product {}", line.getQuantity(), line.getProductId());
+        } catch (Exception e) {
+            log.error("Inventory allocation failed: {}", e.getMessage());
+            throw e;
+        }
     }
     
     @Transactional

@@ -96,6 +96,26 @@ const menuItems: MenuItemType[] = [
       { text: 'Sales Orders', icon: <JournalIcon />, path: '/sales/orders' },
     ]
   },
+  { 
+    text: 'Inventory', 
+    icon: <BusinessIcon />, 
+    path: '/inventory',
+    children: [
+      { text: 'Products', icon: <BusinessIcon />, path: '/inventory/products' },
+      { text: 'Stock Levels', icon: <ReportIcon />, path: '/inventory/stock' },
+      { text: 'Warehouses', icon: <BusinessIcon />, path: '/inventory/warehouses' },
+      { text: '---inventory-div1' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Batch/Lot Tracking', icon: <ReportIcon />, path: '/inventory/batches' },
+      { text: 'Serial Numbers', icon: <ReportIcon />, path: '/inventory/serials' },
+      { text: '---inventory-div2' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Stock Counting', icon: <ReportIcon />, path: '/inventory/counting' },
+      { text: 'Stock Transfers', icon: <JournalIcon />, path: '/inventory/transfers' },
+      { text: '---inventory-div3' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Inventory Valuation', icon: <ReportIcon />, path: '/inventory/valuation' },
+      { text: 'Reports & Analytics', icon: <ReportIcon />, path: '/inventory/reports' },
+      { text: 'Reorder Management', icon: <ReportIcon />, path: '/inventory/reorder' },
+    ]
+  },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Roles', icon: <SecurityIcon />, path: '/roles' },
   { text: 'Permissions', icon: <AdminIcon />, path: '/permissions' },

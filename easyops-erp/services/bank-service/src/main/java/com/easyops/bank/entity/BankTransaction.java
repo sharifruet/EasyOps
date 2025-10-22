@@ -1,5 +1,6 @@
 package com.easyops.bank.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class BankTransaction {
     
     @Id
@@ -24,7 +26,11 @@ public class BankTransaction {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private BankAccount bankAccount;
+    
+    @Column(name = "bank_account_id", insertable = false, updatable = false)
+    private UUID bankAccountId;
     
     @Column(name = "transaction_date", nullable = false)
     private LocalDate transactionDate;

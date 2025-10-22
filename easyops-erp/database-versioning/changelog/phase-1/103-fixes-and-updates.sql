@@ -10,7 +10,7 @@ ALTER TABLE accounting.reminder_config ALTER COLUMN email_template_level1 TYPE V
 ALTER TABLE accounting.reminder_config ALTER COLUMN email_template_level2 TYPE VARCHAR(2000);
 ALTER TABLE accounting.reminder_config ALTER COLUMN email_template_level3 TYPE VARCHAR(2000);
 
---changeset easyops:102-fix-customers-table context:fixes
+--changeset easyops:102-fix-customers-table context:fixes splitStatements:false
 --comment: Fix customers table structure
 -- This changeset applies fixes from _fix_customers_table.sql
 
@@ -46,7 +46,7 @@ END $$;
 -- Update period_id column to be NOT NULL if it's currently nullable
 ALTER TABLE accounting.ar_invoices ALTER COLUMN period_id SET NOT NULL;
 
---changeset easyops:104-fix-ar-credit-notes context:fixes
+--changeset easyops:104-fix-ar-credit-notes context:fixes splitStatements:false
 --comment: Fix AR credit notes table structure
 -- This changeset applies fixes from _fix_ar_credit_notes.sql
 

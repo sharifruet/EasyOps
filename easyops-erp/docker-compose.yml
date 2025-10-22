@@ -138,16 +138,16 @@ services:
 
   # Database Migration Service
   liquibase:
-    image: liquibase/liquibase:4.20
+    image: liquibase/liquibase:4.24
     container_name: easyops-liquibase
     volumes:
       - ./database-versioning/changelog:/liquibase/changelog
-      - ./database-versioning/liquibase.properties:/liquibase/liquibase.properties
     environment:
       LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres:5432/easyops
-      LIQUIBASE_COMMAND_USERNAME: easyops_dev
+      LIQUIBASE_COMMAND_USERNAME: easyops
       LIQUIBASE_COMMAND_PASSWORD: easyops123
-    command: --defaultsFile=/liquibase/liquibase.properties update
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: changelog/master-changelog.xml
+    command: update
     depends_on:
       postgres:
         condition: service_healthy
@@ -542,6 +542,7 @@ services:
       - ACCOUNTING_SERVICE_URL=http://accounting-service:8080
       - AR_SERVICE_URL=http://ar-service:8090
       - NOTIFICATION_SERVICE_URL=http://notification-service:8095
+      - INVENTORY_SERVICE_URL=http://inventory-service:8094
     depends_on:
       eureka:
         condition: service_healthy
@@ -557,6 +558,36 @@ services:
       - easyops-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8093/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Inventory Service (Phase 3.1)
+  inventory-service:
+    build:
+      context: .
+      dockerfile: services/inventory-service/Dockerfile.dev
+    container_name: easyops-inventory-service
+    ports:
+      - "8094:8094"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
+      - SPRING_DATASOURCE_USERNAME=easyops
+      - SPRING_DATASOURCE_PASSWORD=easyops123
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      eureka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - easyops-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8094/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -51,6 +51,6 @@ CREATE INDEX idx_login_attempts_username ON auth.login_attempts(username);
 CREATE INDEX idx_login_attempts_attempted_at ON auth.login_attempts(attempted_at);
 
 --changeset easyops:020-grant-auth-permissions context:auth
---comment: Grant permissions on auth tables to easyops_dev user
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO easyops_dev;
+--comment: Grant permissions on auth tables to easyops user
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO easyops;

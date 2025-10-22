@@ -18,10 +18,16 @@
     <include file="phase-1/101-accounting-schema.sql" relativeToChangelogFile="true"/>
     <include file="phase-1/102-ar-ap-bank.sql" relativeToChangelogFile="true"/>
     <include file="phase-1/103-fixes-and-updates.sql" relativeToChangelogFile="true"/>
+    <include file="phase-1/104-fix-bank-transactions.sql" relativeToChangelogFile="true"/>
     
     <!-- Phase 2: Sales Module -->
     <include file="phase-2/201-sales-schema.sql" relativeToChangelogFile="true"/>
     <include file="phase-2/202-sales-updates.sql" relativeToChangelogFile="true"/>
+    
+    <!-- Phase 3: Inventory Module -->
+    <include file="phase-3/301-inventory-schema.sql" relativeToChangelogFile="true"/>
+    <include file="phase-3/302-reorder-automation.sql" relativeToChangelogFile="true"/>
+    <include file="phase-3/303-stock-transfers.sql" relativeToChangelogFile="true"/>
     
            <!-- Reference Data -->
            <include file="data/001-default-roles.sql" relativeToChangelogFile="true"/>
@@ -32,5 +38,6 @@
            <include file="data/004-test-data.sql" relativeToChangelogFile="true"/>
            <include file="data/005-sales-test-data.sql" relativeToChangelogFile="true"/>
            <include file="data/006-accounting-test-data.sql" relativeToChangelogFile="true"/>
+           <include file="data/007-inventory-test-data.sql" relativeToChangelogFile="true"/>
     
 </databaseChangeLog>

@@ -5,9 +5,9 @@
 CREATE SCHEMA IF NOT EXISTS sales;
 
 -- Grant permissions to development user
-GRANT ALL PRIVILEGES ON SCHEMA sales TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA sales TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA sales TO easyops_dev;
+GRANT ALL PRIVILEGES ON SCHEMA sales TO easyops;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA sales TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA sales TO easyops;
 
 --changeset easyops:079-create-sales-customers-table context:sales
 --comment: Create customers table (Sales Module)

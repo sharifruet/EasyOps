@@ -5,7 +5,7 @@
 CREATE SCHEMA IF NOT EXISTS notifications;
 
 -- Grant permissions to development user
-GRANT ALL PRIVILEGES ON SCHEMA notifications TO easyops_dev;
+GRANT ALL PRIVILEGES ON SCHEMA notifications TO easyops;
 
 --changeset easyops:028-create-notifications-table context:notifications
 --comment: Create in-app notifications table
@@ -98,6 +98,6 @@ CREATE TRIGGER update_email_templates_updated_at BEFORE UPDATE ON notifications.
 CREATE TRIGGER update_notification_preferences_updated_at BEFORE UPDATE ON notifications.notification_preferences FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 --changeset easyops:033-grant-notifications-permissions context:notifications
---comment: Grant permissions on notifications tables to easyops_dev user
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA notifications TO easyops_dev;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA notifications TO easyops_dev;
+--comment: Grant permissions on notifications tables to easyops user
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA notifications TO easyops;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA notifications TO easyops;

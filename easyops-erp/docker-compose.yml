@@ -11,8 +11,10 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       # Note: Database initialization is now handled by Liquibase
       # See database-versioning/ directory for migration scripts
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     networks:
       - easyops-network
     healthcheck:
@@ -147,7 +149,7 @@ services:
       LIQUIBASE_COMMAND_USERNAME: easyops
       LIQUIBASE_COMMAND_PASSWORD: easyops123
       LIQUIBASE_COMMAND_CHANGELOG_FILE: changelog/master-changelog.xml
-    command: update
+    command: ["sh", "-c", "sleep 10 && liquibase update"]
     depends_on:
       postgres:
         condition: service_healthy

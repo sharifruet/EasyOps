@@ -716,6 +716,84 @@
   border-top: 1px solid #dee2e6;
 }
 
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Large modal for complex forms */
+.modal-content.large {
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Transfer lines styling */
+.transfer-lines {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.transfer-lines .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.transfer-lines .section-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.transfer-line {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.transfer-line .form-row {
+  margin-bottom: 0;
+}
+
+.transfer-line .form-group:last-child {
+  display: flex;
+  align-items: flex-end;
+}
+
+.transfer-line .form-group:last-child button {
+  margin-top: 0;
+}
+
+/* Checkbox labels */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Field notes */
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+}
+
 .btn-secondary {
   padding: 10px 20px;
   background: #6c757d;
@@ -730,6 +808,127 @@
 
 .btn-secondary:hover {
   background: #545b62;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.btn-small {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-small.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-small.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-small.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-small.btn-danger:hover {
+  background: #c82333;
+}
+
+.btn-small.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-small.btn-success:hover {
+  background: #218838;
+}
+
+.btn-small.btn-warning {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-small.btn-warning:hover {
+  background: #e0a800;
+}
+
+.status-select {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background: white;
+  cursor: pointer;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* Stock Adjustment Styles */
+.adjustment-form {
+  padding: 20px;
+}
+
+.disabled-input {
+  background-color: #f5f5f5;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.adjustment-summary {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 20px 0;
+}
+
+.adjustment-summary h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.summary-row .positive {
+  color: #28a745;
+}
+
+.summary-row .negative {
+  color: #dc3545;
+}
+
+.field-note {
+  display: block;
+  color: #6c757d;
+  font-size: 12px;
+  margin-top: 4px;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {

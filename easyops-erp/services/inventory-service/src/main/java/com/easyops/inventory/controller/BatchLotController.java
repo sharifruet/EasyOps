@@ -77,6 +77,16 @@ public class BatchLotController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBatch);
     }
     
+    @PutMapping("/{id}")
+    @Operation(summary = "Update batch")
+    public ResponseEntity<BatchLot> updateBatch(
+            @PathVariable UUID id,
+            @Valid @RequestBody BatchLot batch) {
+        log.info("PUT /api/inventory/batches/{} - batch: {}", id, batch.getBatchNumber());
+        BatchLot updatedBatch = batchLotService.updateBatch(id, batch);
+        return ResponseEntity.ok(updatedBatch);
+    }
+    
     @PutMapping("/{id}/status")
     @Operation(summary = "Update batch status")
     public ResponseEntity<BatchLot> updateBatchStatus(
@@ -85,6 +95,14 @@ public class BatchLotController {
         log.info("PUT /api/inventory/batches/{}/status - status: {}", id, status);
         BatchLot batch = batchLotService.updateBatchStatus(id, status);
         return ResponseEntity.ok(batch);
+    }
+    
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete batch")
+    public ResponseEntity<Void> deleteBatch(@PathVariable UUID id) {
+        log.info("DELETE /api/inventory/batches/{}", id);
+        batchLotService.deleteBatch(id);
+        return ResponseEntity.noContent().build();
     }
 }
 

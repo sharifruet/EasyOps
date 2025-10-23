@@ -17,30 +17,30 @@ interface WarehouseValuation {
 }
 
 const InventoryValuation: React.FC = () => {
-  const { currentOrganization } = useAuth();
+  const { currentOrganizationId } = useAuth();
   const [summary, setSummary] = useState<ValuationSummary | null>(null);
   const [warehouseValues, setWarehouseValues] = useState<WarehouseValuation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadValuation();
-  }, [currentOrganization]);
+  }, [currentOrganizationId]);
 
   const loadValuation = async () => {
-    if (!currentOrganization?.id) return;
+    if (!currentOrganizationId) return;
     
     try {
       setLoading(true);
       
       // Get total valuation
       const summaryResponse = await api.get('/api/inventory/valuation/total', {
-        params: { organizationId: currentOrganization.id }
+        params: { organizationId: currentOrganizationId }
       });
       setSummary(summaryResponse.data);
       
       // Get valuation by warehouse
       const warehouseResponse = await api.get('/api/inventory/valuation/by-warehouse', {
-        params: { organizationId: currentOrganization.id }
+        params: { organizationId: currentOrganizationId }
       });
       setWarehouseValues(warehouseResponse.data);
       

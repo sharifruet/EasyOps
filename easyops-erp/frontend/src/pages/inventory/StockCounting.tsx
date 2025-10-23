@@ -16,22 +16,45 @@ interface StockCount {
   completedAt?: string;
 }
 
+interface Warehouse {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  address: string;
+  contact: string;
+  capacity: number;
+  status: string;
+  isActive: boolean;
+}
+
 const StockCounting: React.FC = () => {
-  const { currentOrganization, user } = useAuth();
+  const { currentOrganizationId, user } = useAuth();
   const [counts, setCounts] = useState<StockCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [formData, setFormData] = useState({
+    countNumber: '',
+    countDate: new Date().toISOString().split('T')[0],
+    countType: 'FULL',
+    warehouseId: '',
+    scheduledDate: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
 
   useEffect(() => {
     loadCounts();
-  }, [currentOrganization, filterStatus]);
+    loadWarehouses();
+  }, [currentOrganizationId, filterStatus]);
 
   const loadCounts = async () => {
-    if (!currentOrganization?.id) return;
+    if (!currentOrganizationId) return;
     
     try {
       setLoading(true);
-      const params: any = { organizationId: currentOrganization.id };
+      const params: any = { organizationId: currentOrganizationId };
       if (filterStatus) params.status = filterStatus;
       
       const response = await api.get('/api/inventory/stock-counts', { params });
@@ -41,6 +64,19 @@ const StockCounting: React.FC = () => {
       alert('Failed to load stock counts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadWarehouses = async () => {
+    if (!currentOrganizationId) return;
+    
+    try {
+      const response = await api.get('/api/inventory/warehouses', {
+        params: { organizationId: currentOrganizationId, activeOnly: true }
+      });
+      setWarehouses(response.data);
+    } catch (error) {
+      console.error('Failed to load warehouses:', error);
     }
   };
 
@@ -87,13 +123,54 @@ const StockCounting: React.FC = () => {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentOrganizationId || !user?.id) return;
+
+    try {
+      const countData = {
+        ...formData,
+        organizationId: currentOrganizationId,
+        createdBy: user.id,
+        status: 'SCHEDULED'
+      };
+
+      await api.post('/api/inventory/stock-counts', countData);
+      setShowModal(false);
+      resetForm();
+      loadCounts();
+      alert('Stock count created successfully');
+    } catch (error) {
+      console.error('Failed to create stock count:', error);
+      alert('Failed to create stock count');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      countNumber: '',
+      countDate: new Date().toISOString().split('T')[0],
+      countType: 'FULL',
+      warehouseId: '',
+      scheduledDate: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+  };
+
+  const openModal = () => {
+    // Generate a unique count number
+    const countNumber = `SC-${Date.now()}`;
+    setFormData(prev => ({ ...prev, countNumber }));
+    setShowModal(true);
+  };
+
   if (loading) return <div className="loading">Loading stock counts...</div>;
 
   return (
     <div className="inventory-page">
       <div className="page-header">
         <h1>Stock Counting</h1>
-        <button className="btn-primary" onClick={() => alert('Create Count functionality coming soon')}>
+        <button className="btn-primary" onClick={openModal}>
           + New Stock Count
         </button>
       </div>
@@ -161,6 +238,108 @@ const StockCounting: React.FC = () => {
           <div className="no-data">No stock counts found</div>
         )}
       </div>
+
+      {/* Create Count Modal */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Create New Stock Count</h2>
+              <button className="btn-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="modal-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="countNumber">Count Number *</label>
+                  <input
+                    type="text"
+                    id="countNumber"
+                    value={formData.countNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, countNumber: e.target.value }))}
+                    required
+                    placeholder="e.g., SC-20240101-001"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="countType">Count Type *</label>
+                  <select
+                    id="countType"
+                    value={formData.countType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, countType: e.target.value }))}
+                    required
+                  >
+                    <option value="FULL">Full Count</option>
+                    <option value="CYCLE">Cycle Count</option>
+                    <option value="SPOT">Spot Count</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="warehouseId">Warehouse *</label>
+                  <select
+                    id="warehouseId"
+                    value={formData.warehouseId}
+                    onChange={(e) => setFormData(prev => ({ ...prev, warehouseId: e.target.value }))}
+                    required
+                  >
+                    <option value="">Select Warehouse</option>
+                    {warehouses.map(warehouse => (
+                      <option key={warehouse.id} value={warehouse.id}>
+                        {warehouse.code} - {warehouse.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="countDate">Count Date *</label>
+                  <input
+                    type="date"
+                    id="countDate"
+                    value={formData.countDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, countDate: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="scheduledDate">Scheduled Date</label>
+                  <input
+                    type="date"
+                    id="scheduledDate"
+                    value={formData.scheduledDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="notes">Notes</label>
+                <textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  rows={3}
+                  placeholder="Additional notes for this stock count..."
+                />
+              </div>
+
+              <div className="form-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary">
+                  Create Stock Count
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

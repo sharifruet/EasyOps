@@ -104,6 +104,35 @@ public class BatchLotService {
     
     @Transactional
     @CacheEvict(value = {"batch", "batches"}, allEntries = true)
+    public BatchLot updateBatch(UUID id, BatchLot batchData) {
+        log.info("Updating batch: {}", id);
+        
+        BatchLot existingBatch = getBatchById(id);
+        
+        // Update fields
+        existingBatch.setProductId(batchData.getProductId());
+        existingBatch.setBatchNumber(batchData.getBatchNumber());
+        existingBatch.setLotNumber(batchData.getLotNumber());
+        existingBatch.setManufactureDate(batchData.getManufactureDate());
+        existingBatch.setExpiryDate(batchData.getExpiryDate());
+        existingBatch.setSupplierId(batchData.getSupplierId());
+        existingBatch.setPoNumber(batchData.getPoNumber());
+        existingBatch.setReceiptDate(batchData.getReceiptDate());
+        existingBatch.setInitialQuantity(batchData.getInitialQuantity());
+        existingBatch.setStatus(batchData.getStatus());
+        existingBatch.setQualityCertificate(batchData.getQualityCertificate());
+        existingBatch.setNotes(batchData.getNotes());
+        
+        // Check if batch is expired
+        if (existingBatch.getExpiryDate() != null && existingBatch.getExpiryDate().isBefore(LocalDate.now())) {
+            existingBatch.setStatus("EXPIRED");
+        }
+        
+        return batchLotRepository.save(existingBatch);
+    }
+    
+    @Transactional
+    @CacheEvict(value = {"batch", "batches"}, allEntries = true)
     public BatchLot updateBatchStatus(UUID id, String status) {
         log.info("Updating batch status: {}, new status: {}", id, status);
         
@@ -111,6 +140,21 @@ public class BatchLotService {
         batch.setStatus(status);
         
         return batchLotRepository.save(batch);
+    }
+    
+    @Transactional
+    @CacheEvict(value = {"batch", "batches"}, allEntries = true)
+    public void deleteBatch(UUID id) {
+        log.info("Deleting batch: {}", id);
+        
+        BatchLot batch = getBatchById(id);
+        
+        // Check if batch can be deleted (no current quantity or already depleted)
+        if (batch.getCurrentQuantity().compareTo(BigDecimal.ZERO) > 0) {
+            throw new RuntimeException("Cannot delete batch with remaining quantity");
+        }
+        
+        batchLotRepository.delete(batch);
     }
     
     /**

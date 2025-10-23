@@ -24,7 +24,7 @@ interface TurnoverReport {
 }
 
 const InventoryReports: React.FC = () => {
-  const { currentOrganization } = useAuth();
+  const { currentOrganizationId } = useAuth();
   const [summary, setSummary] = useState<StockSummary | null>(null);
   const [turnover, setTurnover] = useState<TurnoverReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,24 +32,24 @@ const InventoryReports: React.FC = () => {
 
   useEffect(() => {
     loadReports();
-  }, [currentOrganization, turnoverDays]);
+  }, [currentOrganizationId, turnoverDays]);
 
   const loadReports = async () => {
-    if (!currentOrganization?.id) return;
+    if (!currentOrganizationId) return;
     
     try {
       setLoading(true);
       
       // Get stock summary
       const summaryResponse = await api.get('/api/inventory/reports/summary', {
-        params: { organizationId: currentOrganization.id }
+        params: { organizationId: currentOrganizationId }
       });
       setSummary(summaryResponse.data);
       
       // Get turnover analysis
       try {
         const turnoverResponse = await api.get('/api/inventory/reports/turnover', {
-          params: { organizationId: currentOrganization.id, days: turnoverDays }
+          params: { organizationId: currentOrganizationId, days: turnoverDays }
         });
         setTurnover(turnoverResponse.data);
       } catch (error) {

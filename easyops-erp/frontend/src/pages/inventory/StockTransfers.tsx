@@ -33,7 +33,7 @@ interface TransferLine {
 }
 
 const StockTransfers: React.FC = () => {
-  const { currentOrganization, user } = useAuth();
+  const { currentOrganizationId, user } = useAuth();
   const [transfers, setTransfers] = useState<StockTransfer[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
@@ -41,14 +41,14 @@ const StockTransfers: React.FC = () => {
 
   useEffect(() => {
     loadTransfers();
-  }, [currentOrganization, filterStatus, showPendingOnly]);
+  }, [currentOrganizationId, filterStatus, showPendingOnly]);
 
   const loadTransfers = async () => {
-    if (!currentOrganization?.id) return;
+    if (!currentOrganizationId) return;
     
     try {
       setLoading(true);
-      const params: any = { organizationId: currentOrganization.id };
+      const params: any = { organizationId: currentOrganizationId };
       if (filterStatus) params.status = filterStatus;
       if (showPendingOnly) params.pendingOnly = true;
       

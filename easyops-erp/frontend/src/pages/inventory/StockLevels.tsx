@@ -4,7 +4,7 @@ import inventoryService, { Stock, Warehouse } from '../../services/inventoryServ
 import './Inventory.css';
 
 const StockLevels: React.FC = () => {
-  const { currentOrganization } = useAuth();
+  const { currentOrganizationId } = useAuth();
   const [stock, setStock] = useState<Stock[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,17 +13,22 @@ const StockLevels: React.FC = () => {
 
   useEffect(() => {
     loadWarehouses();
-  }, [currentOrganization]);
+  }, [currentOrganizationId]);
 
   useEffect(() => {
     loadStock();
-  }, [currentOrganization, selectedWarehouse, showLowStockOnly]);
+  }, [currentOrganizationId, selectedWarehouse, showLowStockOnly]);
 
   const loadWarehouses = async () => {
-    if (!currentOrganization?.id) return;
+    console.log('loadWarehouses called, currentOrganizationId:', currentOrganizationId);
+    if (!currentOrganizationId) {
+      console.log('No organization ID, returning early');
+      return;
+    }
     
     try {
-      const data = await inventoryService.getWarehouses(currentOrganization.id, true);
+      const data = await inventoryService.getWarehouses(currentOrganizationId, true);
+      console.log('Warehouses loaded:', data);
       setWarehouses(data);
     } catch (error) {
       console.error('Failed to load warehouses:', error);
@@ -31,20 +36,28 @@ const StockLevels: React.FC = () => {
   };
 
   const loadStock = async () => {
-    if (!currentOrganization?.id) return;
+    console.log('loadStock called, currentOrganizationId:', currentOrganizationId);
+    if (!currentOrganizationId) {
+      console.log('No organization ID, returning early');
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
       let data;
       if (showLowStockOnly) {
-        data = await inventoryService.getLowStockItems(currentOrganization.id);
+        console.log('Loading low stock items...');
+        data = await inventoryService.getLowStockItems(currentOrganizationId);
       } else {
+        console.log('Loading all stock...');
         data = await inventoryService.getStock(
-          currentOrganization.id,
+          currentOrganizationId,
           undefined,
           selectedWarehouse || undefined
         );
       }
+      console.log('Stock loaded:', data);
       setStock(data);
     } catch (error) {
       console.error('Failed to load stock:', error);

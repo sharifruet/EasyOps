@@ -4,7 +4,7 @@ import inventoryService, { Product } from '../../services/inventoryService';
 import './Inventory.css';
 
 const Products: React.FC = () => {
-  const { currentOrganization } = useAuth();
+  const { currentOrganizationId } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,14 +14,21 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     loadProducts();
-  }, [currentOrganization, showActiveOnly]);
+  }, [currentOrganizationId, showActiveOnly]);
 
   const loadProducts = async () => {
-    if (!currentOrganization?.id) return;
+    console.log('loadProducts called, currentOrganizationId:', currentOrganizationId);
+    if (!currentOrganizationId) {
+      console.log('No organization ID, returning early');
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
-      const data = await inventoryService.getProducts(currentOrganization.id, showActiveOnly);
+      console.log('Calling inventoryService.getProducts with orgId:', currentOrganizationId);
+      const data = await inventoryService.getProducts(currentOrganizationId, showActiveOnly);
+      console.log('Products loaded:', data);
       setProducts(data);
     } catch (error) {
       console.error('Failed to load products:', error);
@@ -32,11 +39,11 @@ const Products: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    if (!currentOrganization?.id || !searchTerm) return;
+    if (!currentOrganizationId || !searchTerm) return;
     
     try {
       setLoading(true);
-      const data = await inventoryService.searchProducts(currentOrganization.id, searchTerm);
+      const data = await inventoryService.searchProducts(currentOrganizationId, searchTerm);
       setProducts(data);
     } catch (error) {
       console.error('Search failed:', error);
@@ -55,7 +62,7 @@ const Products: React.FC = () => {
       if (product.id) {
         await inventoryService.updateProduct(product.id, product);
       } else {
-        await inventoryService.createProduct({ ...product, organizationId: currentOrganization?.id });
+        await inventoryService.createProduct({ ...product, organizationId: currentOrganizationId });
       }
       setShowDialog(false);
       loadProducts();
@@ -149,6 +156,146 @@ const Products: React.FC = () => {
           <div className="no-data">No products found</div>
         )}
       </div>
+
+      {/* Product Dialog */}
+      {showDialog && (
+        <div className="modal-overlay" onClick={() => setShowDialog(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedProduct ? 'Edit Product' : 'Add Product'}</h2>
+              <button className="close-btn" onClick={() => setShowDialog(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                const productData = {
+                  sku: formData.get('sku') as string,
+                  name: formData.get('name') as string,
+                  description: formData.get('description') as string,
+                  costPrice: parseFloat(formData.get('costPrice') as string) || 0,
+                  sellingPrice: parseFloat(formData.get('sellingPrice') as string) || 0,
+                  uom: formData.get('uom') as string,
+                  reorderLevel: parseFloat(formData.get('reorderLevel') as string) || 0,
+                  minStockLevel: parseFloat(formData.get('minStockLevel') as string) || 0,
+                  productType: formData.get('productType') as string,
+                  status: formData.get('status') as string,
+                };
+                handleSave(productData);
+              }}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>SKU *</label>
+                    <input 
+                      name="sku" 
+                      defaultValue={selectedProduct?.sku || ''} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Name *</label>
+                    <input 
+                      name="name" 
+                      defaultValue={selectedProduct?.name || ''} 
+                      required 
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea 
+                    name="description" 
+                    defaultValue={selectedProduct?.description || ''} 
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Cost Price *</label>
+                    <input 
+                      name="costPrice" 
+                      type="number" 
+                      step="0.01" 
+                      defaultValue={selectedProduct?.costPrice || ''} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Selling Price *</label>
+                    <input 
+                      name="sellingPrice" 
+                      type="number" 
+                      step="0.01" 
+                      defaultValue={selectedProduct?.sellingPrice || ''} 
+                      required 
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>UOM *</label>
+                    <select name="uom" defaultValue={selectedProduct?.uom || 'PCS'} required>
+                      <option value="PCS">PCS</option>
+                      <option value="BOX">BOX</option>
+                      <option value="REAM">REAM</option>
+                      <option value="HOUR">HOUR</option>
+                      <option value="LICENSE">LICENSE</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Product Type *</label>
+                    <select name="productType" defaultValue={selectedProduct?.productType || 'GOODS'} required>
+                      <option value="GOODS">GOODS</option>
+                      <option value="SERVICE">SERVICE</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Reorder Level</label>
+                    <input 
+                      name="reorderLevel" 
+                      type="number" 
+                      step="0.01" 
+                      defaultValue={selectedProduct?.reorderLevel || ''} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Min Stock Level</label>
+                    <input 
+                      name="minStockLevel" 
+                      type="number" 
+                      step="0.01" 
+                      defaultValue={selectedProduct?.minStockLevel || ''} 
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>Status</label>
+                  <select name="status" defaultValue={selectedProduct?.status || 'ACTIVE'}>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                </div>
+                
+                <div className="modal-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setShowDialog(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    {selectedProduct ? 'Update Product' : 'Create Product'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

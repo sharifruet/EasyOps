@@ -116,6 +116,21 @@ const menuItems: MenuItemType[] = [
       { text: 'Reorder Management', icon: <ReportIcon />, path: '/inventory/reorder' },
     ]
   },
+  { 
+    text: 'Purchase', 
+    icon: <BusinessIcon />, 
+    path: '/purchase',
+    children: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/purchase/dashboard' },
+      { text: '---purchase-div1' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Purchase Orders', icon: <JournalIcon />, path: '/purchase/orders' },
+      { text: 'Purchase Receipts', icon: <ReportIcon />, path: '/purchase/receipts' },
+      { text: 'Purchase Invoices', icon: <JournalIcon />, path: '/purchase/invoices' },
+      { text: 'Variance Management', icon: <SecurityIcon />, path: '/purchase/variances' },
+      { text: '---purchase-div2' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Reports & Analytics', icon: <ReportIcon />, path: '/purchase/reports' },
+    ]
+  },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Roles', icon: <SecurityIcon />, path: '/roles' },
   { text: 'Permissions', icon: <AdminIcon />, path: '/permissions' },

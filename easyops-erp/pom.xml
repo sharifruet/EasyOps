@@ -56,6 +56,7 @@
         <module>services/bank-service</module>
         <module>services/sales-service</module>
         <module>services/inventory-service</module>
+        <module>services/purchase-service</module>
     </modules>
 
     <dependencyManagement>

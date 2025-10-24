@@ -47,6 +47,12 @@ import InventoryValuation from '@pages/inventory/InventoryValuation';
 import InventoryReports from '@pages/inventory/InventoryReports';
 import ReorderManagement from '@pages/inventory/ReorderManagement';
 import StockTransfers from '@pages/inventory/StockTransfers';
+import PurchaseDashboard from '@pages/purchase/PurchaseDashboard';
+import PurchaseOrders from '@pages/purchase/PurchaseOrders';
+import PurchaseReceipts from '@pages/purchase/PurchaseReceipts';
+import PurchaseInvoices from '@pages/purchase/PurchaseInvoices';
+import PurchaseReports from '@pages/purchase/PurchaseReports';
+import VarianceManagement from '@pages/purchase/VarianceManagement';
 
 // Create MUI theme
 const theme = createTheme({
@@ -156,6 +162,14 @@ const App: React.FC = () => {
                 <Route path="inventory/reports" element={<InventoryReports />} />
                 <Route path="inventory/reorder" element={<ReorderManagement />} />
                 <Route path="inventory/transfers" element={<StockTransfers />} />
+                
+                {/* Purchase Routes - Phase 4 */}
+                <Route path="purchase/dashboard" element={<PurchaseDashboard />} />
+                <Route path="purchase/orders" element={<PurchaseOrders />} />
+                <Route path="purchase/receipts" element={<PurchaseReceipts />} />
+                <Route path="purchase/invoices" element={<PurchaseInvoices />} />
+                <Route path="purchase/variances" element={<VarianceManagement />} />
+                <Route path="purchase/reports" element={<PurchaseReports />} />
                 
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />

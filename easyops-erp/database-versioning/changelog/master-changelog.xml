@@ -29,6 +29,11 @@
     <include file="phase-3/302-reorder-automation.sql" relativeToChangelogFile="true"/>
     <include file="phase-3/303-stock-transfers.sql" relativeToChangelogFile="true"/>
     
+    <!-- Phase 4: Purchase Module -->
+    <include file="schema/025-purchase-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/026-purchase-triggers-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/027-purchase-matching-logic.sql" relativeToChangelogFile="true"/>
+    
            <!-- Reference Data -->
            <include file="data/001-default-roles.sql" relativeToChangelogFile="true"/>
            <include file="data/002-default-permissions.sql" relativeToChangelogFile="true"/>
@@ -39,5 +44,6 @@
            <include file="data/005-sales-test-data.sql" relativeToChangelogFile="true"/>
            <include file="data/006-accounting-test-data.sql" relativeToChangelogFile="true"/>
            <include file="data/007-inventory-test-data.sql" relativeToChangelogFile="true"/>
+           <include file="data/010-purchase-test-data.sql" relativeToChangelogFile="true"/>
     
 </databaseChangeLog>

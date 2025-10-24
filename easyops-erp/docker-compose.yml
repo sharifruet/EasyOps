@@ -594,6 +594,45 @@ services:
       timeout: 5s
       retries: 5
 
+  # Purchase Service (Phase 4)
+  purchase-service:
+    build:
+      context: .
+      dockerfile: services/purchase-service/Dockerfile.dev
+    container_name: easyops-purchase-service
+    ports:
+      - "8095:8095"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
+      - SPRING_DATASOURCE_USERNAME=easyops
+      - SPRING_DATASOURCE_PASSWORD=easyops123
+      - SPRING_REDIS_HOST=redis
+      - DB_HOST=postgres
+      - DB_NAME=easyops
+      - DB_USER=easyops
+      - DB_PASSWORD=easyops123
+      - REDIS_HOST=redis
+    depends_on:
+      eureka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ap-service:
+        condition: service_healthy
+      inventory-service:
+        condition: service_healthy
+    networks:
+      - easyops-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8095/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Frontend Development
   frontend:
     build:

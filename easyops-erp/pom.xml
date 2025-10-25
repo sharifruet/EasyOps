@@ -57,6 +57,8 @@
         <module>services/sales-service</module>
         <module>services/inventory-service</module>
         <module>services/purchase-service</module>
+        <module>services/hr-service</module>
+        <module>services/crm-service</module>
     </modules>
 
     <dependencyManagement>

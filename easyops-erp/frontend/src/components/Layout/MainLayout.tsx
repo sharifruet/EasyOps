@@ -131,6 +131,47 @@ const menuItems: MenuItemType[] = [
       { text: 'Reports & Analytics', icon: <ReportIcon />, path: '/purchase/reports' },
     ]
   },
+  { 
+    text: 'HR', 
+    icon: <PeopleIcon />, 
+    path: '/hr',
+    children: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/hr/dashboard' },
+      { text: '---hr-div1' as any, icon: <></>, path: '' }, // Divider - Employee Management
+      { text: 'Employees', icon: <PeopleIcon />, path: '/hr/employees' },
+      { text: 'Departments', icon: <BusinessIcon />, path: '/hr/departments' },
+      { text: 'Positions', icon: <AdminIcon />, path: '/hr/positions' },
+      { text: '---hr-div2' as any, icon: <></>, path: '' }, // Divider - Time & Attendance
+      { text: 'Attendance', icon: <DashboardIcon />, path: '/hr/attendance' },
+      { text: 'Timesheets', icon: <JournalIcon />, path: '/hr/timesheets' },
+      { text: 'Leave Requests', icon: <ReportIcon />, path: '/hr/leave-requests' },
+      { text: 'Leave Balance', icon: <ReportIcon />, path: '/hr/leave-balance' },
+      { text: '---hr-div3' as any, icon: <></>, path: '' }, // Divider - Payroll & Benefits
+      { text: 'Payroll Dashboard', icon: <DashboardIcon />, path: '/hr/payroll' },
+      { text: 'Payroll Runs', icon: <JournalIcon />, path: '/hr/payroll-runs' },
+      { text: 'Salary Management', icon: <AccountingIcon />, path: '/hr/salary' },
+      { text: 'Benefits', icon: <BusinessIcon />, path: '/hr/benefits' },
+      { text: 'Reimbursements', icon: <ReportIcon />, path: '/hr/reimbursements' },
+      { text: 'Bonuses', icon: <ReportIcon />, path: '/hr/bonuses' },
+      { text: '---hr-div4' as any, icon: <></>, path: '' }, // Divider - Performance
+      { text: 'Performance Reviews', icon: <ReportIcon />, path: '/hr/performance' },
+      { text: 'Goals', icon: <ReportIcon />, path: '/hr/goals' },
+      { text: 'Development Plans', icon: <BusinessIcon />, path: '/hr/development' },
+      { text: 'Training', icon: <ReportIcon />, path: '/hr/training' },
+    ]
+  },
+  { 
+    text: 'CRM', 
+    icon: <BusinessIcon />, 
+    path: '/crm',
+    children: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/crm/dashboard' },
+      { text: '---crm-div1' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Leads', icon: <PeopleIcon />, path: '/crm/leads' },
+      { text: 'Accounts', icon: <BusinessIcon />, path: '/crm/accounts' },
+      { text: 'Contacts', icon: <PeopleIcon />, path: '/crm/contacts' },
+    ]
+  },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
   { text: 'Roles', icon: <SecurityIcon />, path: '/roles' },
   { text: 'Permissions', icon: <AdminIcon />, path: '/permissions' },
@@ -165,15 +206,16 @@ const MainLayout: React.FC = () => {
     setMobileOpen(false);
   };
 
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-    Accounting: true, // Expand accounting by default
-  });
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
   const toggleMenu = (menuText: string) => {
-    setExpandedMenus(prev => ({
-      ...prev,
-      [menuText]: !prev[menuText],
-    }));
+    setExpandedMenus(prev => {
+      const isCurrentlyExpanded = prev[menuText];
+      // Collapse all other menus and toggle current one
+      const newState: Record<string, boolean> = {};
+      newState[menuText] = !isCurrentlyExpanded;
+      return newState;
+    });
   };
 
   const drawer = (

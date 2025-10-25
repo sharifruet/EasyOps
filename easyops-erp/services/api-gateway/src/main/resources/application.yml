@@ -67,6 +67,14 @@ spring:
           uri: lb://purchase-service
           predicates:
             - Path=/api/purchase/**
+        - id: hr-service
+          uri: lb://HR-SERVICE
+          predicates:
+            - Path=/api/hr/**
+        - id: crm-service
+          uri: lb://CRM-SERVICE
+          predicates:
+            - Path=/api/crm/**
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_LAST
       globalcors:

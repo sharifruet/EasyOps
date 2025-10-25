@@ -53,6 +53,55 @@ import PurchaseReceipts from '@pages/purchase/PurchaseReceipts';
 import PurchaseInvoices from '@pages/purchase/PurchaseInvoices';
 import PurchaseReports from '@pages/purchase/PurchaseReports';
 import VarianceManagement from '@pages/purchase/VarianceManagement';
+import HrDashboard from '@pages/hr/HrDashboard';
+import EmployeeList from '@pages/hr/EmployeeList';
+import EmployeeForm from '@pages/hr/EmployeeForm';
+import EmployeeDetail from '@pages/hr/EmployeeDetail';
+import DepartmentManagement from '@pages/hr/DepartmentManagement';
+import PositionManagement from '@pages/hr/PositionManagement';
+import AttendanceDashboard from '@pages/hr/AttendanceDashboard';
+import TimesheetManager from '@pages/hr/TimesheetManager';
+import LeaveRequestForm from '@pages/hr/LeaveRequestForm';
+import LeaveBalance from '@pages/hr/LeaveBalance';
+import PayrollDashboard from '@pages/hr/PayrollDashboard';
+import PayrollRunManager from '@pages/hr/PayrollRunManager';
+import SalaryStructureManager from '@pages/hr/SalaryStructureManager';
+import BenefitsManagement from '@pages/hr/BenefitsManagement';
+import ReimbursementManagement from '@pages/hr/ReimbursementManagement';
+import BonusManagement from '@pages/hr/BonusManagement';
+import PerformanceManagement from '@pages/hr/PerformanceManagement';
+import GoalManagement from '@pages/hr/GoalManagement';
+import DevelopmentPlan from '@pages/hr/DevelopmentPlan';
+import TrainingManagement from '@pages/hr/TrainingManagement';
+import LeadDashboard from '@pages/crm/LeadDashboard';
+import LeadList from '@pages/crm/LeadList';
+import LeadForm from '@pages/crm/LeadForm';
+import LeadDetail from '@pages/crm/LeadDetail';
+import AccountList from '@pages/crm/AccountList';
+import AccountForm from '@pages/crm/AccountForm';
+import AccountDetail from '@pages/crm/AccountDetail';
+import ContactList from '@pages/crm/ContactList';
+import ContactForm from '@pages/crm/ContactForm';
+import ContactDetail from '@pages/crm/ContactDetail';
+import OpportunityDashboard from '@pages/crm/OpportunityDashboard';
+import OpportunityList from '@pages/crm/OpportunityList';
+import OpportunityForm from '@pages/crm/OpportunityForm';
+import OpportunityDetail from '@pages/crm/OpportunityDetail';
+import PipelineKanban from '@pages/crm/PipelineKanban';
+import SalesForecast from '@pages/crm/SalesForecast';
+import CampaignDashboard from '@pages/crm/CampaignDashboard';
+import CampaignList from '@pages/crm/CampaignList';
+import CampaignForm from '@pages/crm/CampaignForm';
+import TaskManager from '@pages/crm/TaskManager';
+import CalendarView from '@pages/crm/CalendarView';
+import EmailTemplateManager from '@pages/crm/EmailTemplateManager';
+import CaseDashboard from '@pages/crm/CaseDashboard';
+import CaseList from '@pages/crm/CaseList';
+import CaseForm from '@pages/crm/CaseForm';
+import CaseDetail from '@pages/crm/CaseDetail';
+import KnowledgeBaseList from '@pages/crm/KnowledgeBaseList';
+import KnowledgeBaseForm from '@pages/crm/KnowledgeBaseForm';
+import CrmReports from '@pages/crm/CrmReports';
 
 // Create MUI theme
 const theme = createTheme({
@@ -170,6 +219,68 @@ const App: React.FC = () => {
                 <Route path="purchase/invoices" element={<PurchaseInvoices />} />
                 <Route path="purchase/variances" element={<VarianceManagement />} />
                 <Route path="purchase/reports" element={<PurchaseReports />} />
+                
+                {/* HR Routes - Phase 5.1 */}
+                <Route path="hr/dashboard" element={<HrDashboard />} />
+                <Route path="hr/employees" element={<EmployeeList />} />
+                <Route path="hr/employees/new" element={<EmployeeForm />} />
+                <Route path="hr/employees/:id" element={<EmployeeDetail />} />
+                <Route path="hr/employees/:id/edit" element={<EmployeeForm />} />
+                <Route path="hr/departments" element={<DepartmentManagement />} />
+                <Route path="hr/positions" element={<PositionManagement />} />
+                <Route path="hr/attendance" element={<AttendanceDashboard />} />
+                <Route path="hr/timesheets" element={<TimesheetManager />} />
+                <Route path="hr/leave-requests" element={<LeaveRequestForm />} />
+                <Route path="hr/leave-balance" element={<LeaveBalance />} />
+                <Route path="hr/payroll" element={<PayrollDashboard />} />
+                <Route path="hr/payroll-runs" element={<PayrollRunManager />} />
+                <Route path="hr/salary" element={<SalaryStructureManager />} />
+                <Route path="hr/benefits" element={<BenefitsManagement />} />
+                <Route path="hr/reimbursements" element={<ReimbursementManagement />} />
+                <Route path="hr/bonuses" element={<BonusManagement />} />
+                <Route path="hr/performance" element={<PerformanceManagement />} />
+                <Route path="hr/goals" element={<GoalManagement />} />
+                <Route path="hr/development" element={<DevelopmentPlan />} />
+                <Route path="hr/training" element={<TrainingManagement />} />
+                
+                {/* CRM Routes - Phase 6.1, 6.2, 6.3 & 6.4 Complete */}
+                <Route path="crm" element={<LeadDashboard />} />
+                <Route path="crm/dashboard" element={<LeadDashboard />} />
+                <Route path="crm/leads" element={<LeadList />} />
+                <Route path="crm/leads/new" element={<LeadForm />} />
+                <Route path="crm/leads/:id" element={<LeadDetail />} />
+                <Route path="crm/leads/:id/edit" element={<LeadForm />} />
+                <Route path="crm/accounts" element={<AccountList />} />
+                <Route path="crm/accounts/new" element={<AccountForm />} />
+                <Route path="crm/accounts/:id" element={<AccountDetail />} />
+                <Route path="crm/accounts/:id/edit" element={<AccountForm />} />
+                <Route path="crm/contacts" element={<ContactList />} />
+                <Route path="crm/contacts/new" element={<ContactForm />} />
+                <Route path="crm/contacts/:id" element={<ContactDetail />} />
+                <Route path="crm/contacts/:id/edit" element={<ContactForm />} />
+                <Route path="crm/opportunities" element={<OpportunityList />} />
+                <Route path="crm/opportunities/new" element={<OpportunityForm />} />
+                <Route path="crm/opportunities/:id" element={<OpportunityDetail />} />
+                <Route path="crm/opportunities/:id/edit" element={<OpportunityForm />} />
+                <Route path="crm/opportunity-dashboard" element={<OpportunityDashboard />} />
+                <Route path="crm/pipeline" element={<PipelineKanban />} />
+                <Route path="crm/forecast" element={<SalesForecast />} />
+                <Route path="crm/campaigns" element={<CampaignList />} />
+                <Route path="crm/campaigns/new" element={<CampaignForm />} />
+                <Route path="crm/campaigns/:id/edit" element={<CampaignForm />} />
+                <Route path="crm/campaign-dashboard" element={<CampaignDashboard />} />
+                <Route path="crm/tasks" element={<TaskManager />} />
+                <Route path="crm/calendar" element={<CalendarView />} />
+                <Route path="crm/email-templates" element={<EmailTemplateManager />} />
+                <Route path="crm/cases" element={<CaseList />} />
+                <Route path="crm/cases/new" element={<CaseForm />} />
+                <Route path="crm/cases/:id" element={<CaseDetail />} />
+                <Route path="crm/cases/:id/edit" element={<CaseForm />} />
+                <Route path="crm/support" element={<CaseDashboard />} />
+                <Route path="crm/knowledge-base" element={<KnowledgeBaseList />} />
+                <Route path="crm/knowledge-base/new" element={<KnowledgeBaseForm />} />
+                <Route path="crm/knowledge-base/:id/edit" element={<KnowledgeBaseForm />} />
+                <Route path="crm/analytics" element={<CrmReports />} />
                 
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />

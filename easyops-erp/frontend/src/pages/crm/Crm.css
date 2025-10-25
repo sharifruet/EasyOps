@@ -1,0 +1,390 @@
+.crm-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.page-header p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+/* Summary Cards */
+.crm-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.crm-summary-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.crm-summary-card h3 {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.crm-card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 0.25rem;
+}
+
+.crm-summary-card small {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Tables */
+.crm-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.crm-table thead {
+  background: #f8f9fa;
+}
+
+.crm-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.crm-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.crm-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-new {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-contacted {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-qualified {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.status-converted {
+  background: #e1f5fe;
+  color: #0277bd;
+}
+
+.status-lost, .status-unqualified {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.rating-hot {
+  background: #ffebee;
+  color: #c62828;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rating-warm {
+  background: #fff3e0;
+  color: #f57c00;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rating-cold {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn-primary {
+  background: #667eea;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Modal */
+.crm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.crm-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.crm-modal h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+/* Forms */
+.form-row {
+  margin-bottom: 1rem;
+}
+
+.form-row label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-row textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+/* Filters */
+.filters {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Loading and Error States */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+/* Activity Timeline */
+.activity-timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.activity-item {
+  position: relative;
+  padding: 1rem 0;
+  border-left: 2px solid #e9ecef;
+  padding-left: 2rem;
+  margin-bottom: 1rem;
+}
+
+.activity-item::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 1.5rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #667eea;
+  border: 2px solid white;
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.activity-type {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.activity-date {
+  color: #999;
+  font-size: 0.875rem;
+}
+
+/* Lead Score Badge */
+.lead-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.lead-score-high {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.lead-score-medium {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.lead-score-low {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-buttons button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-convert {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-convert:hover {
+  background: #45a049;
+}
+
+.btn-qualify {
+  background: #2196f3;
+  color: white;
+}
+
+.btn-qualify:hover {
+  background: #0b7dda;
+}
+
+.btn-disqualify {
+  background: #f44336;
+  color: white;
+}
+
+.btn-disqualify:hover {
+  background: #da190b;
+}
+
+

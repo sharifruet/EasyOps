@@ -34,6 +34,26 @@
     <include file="schema/026-purchase-triggers-views.sql" relativeToChangelogFile="true"/>
     <include file="schema/027-purchase-matching-logic.sql" relativeToChangelogFile="true"/>
     
+    <!-- Phase 5: HR Module -->
+    <include file="schema/028-hr-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/029-hr-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/030-hr-time-attendance-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/031-hr-time-attendance-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/032-hr-payroll-benefits-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/033-hr-payroll-benefits-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/034-hr-performance-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/035-hr-performance-views.sql" relativeToChangelogFile="true"/>
+    
+    <!-- CRM Module - Phase 6 -->
+    <include file="schema/036-crm-leads-accounts-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/037-crm-leads-accounts-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/038-crm-opportunities-pipeline-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/039-crm-opportunities-pipeline-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/040-crm-activities-campaigns-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/041-crm-activities-campaigns-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/042-crm-support-analytics-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/043-crm-support-analytics-views.sql" relativeToChangelogFile="true"/>
+    
            <!-- Reference Data -->
            <include file="data/001-default-roles.sql" relativeToChangelogFile="true"/>
            <include file="data/002-default-permissions.sql" relativeToChangelogFile="true"/>

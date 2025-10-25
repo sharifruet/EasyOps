@@ -75,6 +75,8 @@ spring:
           uri: lb://CRM-SERVICE
           predicates:
             - Path=/api/crm/**
+          filters:
+            - RewritePath=/api/crm/(?<segment>.*), /${segment}
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_LAST
       globalcors:

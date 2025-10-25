@@ -32,6 +32,8 @@ import {
   AccountTree as CoAIcon,
   Receipt as JournalIcon,
   Assessment as ReportIcon,
+  Notifications as NotificationIcon,
+  Campaign as CampaignIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@contexts/AuthContext';
 
@@ -170,6 +172,20 @@ const menuItems: MenuItemType[] = [
       { text: 'Leads', icon: <PeopleIcon />, path: '/crm/leads' },
       { text: 'Accounts', icon: <BusinessIcon />, path: '/crm/accounts' },
       { text: 'Contacts', icon: <PeopleIcon />, path: '/crm/contacts' },
+      { text: '---crm-div2' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Opportunities', icon: <ReportIcon />, path: '/crm/opportunities' },
+      { text: 'Pipeline', icon: <DashboardIcon />, path: '/crm/pipeline' },
+      { text: 'Forecast', icon: <ReportIcon />, path: '/crm/forecast' },
+      { text: '---crm-div3' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Campaigns', icon: <CampaignIcon />, path: '/crm/campaigns' },
+      { text: 'Tasks', icon: <ReportIcon />, path: '/crm/tasks' },
+      { text: 'Calendar', icon: <DashboardIcon />, path: '/crm/calendar' },
+      { text: '---crm-div4' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Support', icon: <ReportIcon />, path: '/crm/support' },
+      { text: 'Cases', icon: <ReportIcon />, path: '/crm/cases' },
+      { text: 'Knowledge Base', icon: <ReportIcon />, path: '/crm/knowledge-base' },
+      { text: '---crm-div5' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Analytics', icon: <ReportIcon />, path: '/crm/analytics' },
     ]
   },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },

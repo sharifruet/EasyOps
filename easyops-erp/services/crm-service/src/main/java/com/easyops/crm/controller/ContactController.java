@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/crm/contacts")
+@RequestMapping("/contacts")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

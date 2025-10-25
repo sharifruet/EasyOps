@@ -15,9 +15,7 @@ interface Campaign {
 
 const CampaignList: React.FC = () => {
   const navigate = useNavigate();
-  const [campaigns, setcamp
-
-aigns] = useState<Campaign[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   

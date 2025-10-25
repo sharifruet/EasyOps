@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/crm/leads")
+@RequestMapping("/leads")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

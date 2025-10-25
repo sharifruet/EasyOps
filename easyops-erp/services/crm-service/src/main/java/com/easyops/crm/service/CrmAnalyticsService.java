@@ -103,8 +103,9 @@ public class CrmAnalyticsService {
     public Map<String, Object> getLeadAnalytics(UUID organizationId) {
         Map<String, Object> analytics = new HashMap<>();
         
-        List<Object[]> statusCounts = leadRepository.count();
         // Add lead-specific analytics
+        long totalLeads = leadRepository.count();
+        analytics.put("totalLeads", totalLeads);
         
         return analytics;
     }

@@ -699,6 +699,38 @@ services:
       timeout: 5s
       retries: 5
 
+  manufacturing-service:
+    build:
+      context: .
+      dockerfile: services/manufacturing-service/Dockerfile
+    container_name: easyops-manufacturing-service
+    ports:
+      - "8098:8098"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
+      - SPRING_DATASOURCE_USERNAME=easyops
+      - SPRING_DATASOURCE_PASSWORD=easyops123
+      - DB_HOST=postgres
+      - DB_NAME=easyops
+      - DB_USER=easyops
+      - DB_PASSWORD=easyops123
+    depends_on:
+      eureka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      liquibase:
+        condition: service_completed_successfully
+    networks:
+      - easyops-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8098/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Frontend Development
   frontend:
     build:

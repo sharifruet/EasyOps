@@ -59,6 +59,7 @@
         <module>services/purchase-service</module>
         <module>services/hr-service</module>
         <module>services/crm-service</module>
+        <module>services/manufacturing-service</module>
     </modules>
 
     <dependencyManagement>

@@ -54,6 +54,15 @@
     <include file="schema/042-crm-support-analytics-schema.sql" relativeToChangelogFile="true"/>
     <include file="schema/043-crm-support-analytics-views.sql" relativeToChangelogFile="true"/>
     
+    <!-- Manufacturing Module - Phase 7 -->
+    <include file="schema/044-manufacturing-bom-routing-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/045-manufacturing-bom-routing-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/046-manufacturing-work-orders-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/047-manufacturing-work-orders-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/048-manufacturing-quality-equipment-schema.sql" relativeToChangelogFile="true"/>
+    <include file="schema/049-manufacturing-quality-equipment-views.sql" relativeToChangelogFile="true"/>
+    <include file="schema/050-manufacturing-analytics-views.sql" relativeToChangelogFile="true"/>
+    
            <!-- Reference Data -->
            <include file="data/001-default-roles.sql" relativeToChangelogFile="true"/>
            <include file="data/002-default-permissions.sql" relativeToChangelogFile="true"/>

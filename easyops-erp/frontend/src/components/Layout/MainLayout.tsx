@@ -34,6 +34,12 @@ import {
   Assessment as ReportIcon,
   Notifications as NotificationIcon,
   Campaign as CampaignIcon,
+  Precision as ManufacturingIcon,
+  Work as WorkOrderIcon,
+  Build as BomIcon,
+  FactCheck as QualityIcon,
+  Engineering as WorkCenterIcon,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@contexts/AuthContext';
 
@@ -186,6 +192,29 @@ const menuItems: MenuItemType[] = [
       { text: 'Knowledge Base', icon: <ReportIcon />, path: '/crm/knowledge-base' },
       { text: '---crm-div5' as any, icon: <></>, path: '' }, // Divider
       { text: 'Analytics', icon: <ReportIcon />, path: '/crm/analytics' },
+    ]
+  },
+  { 
+    text: 'Manufacturing', 
+    icon: <ManufacturingIcon />, 
+    path: '/manufacturing',
+    children: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/manufacturing/dashboard' },
+      { text: '---mfg-div1' as any, icon: <></>, path: '' }, // Divider
+      { text: 'BOMs', icon: <BomIcon />, path: '/manufacturing/boms' },
+      { text: 'Routings', icon: <WorkCenterIcon />, path: '/manufacturing/routings' },
+      { text: '---mfg-div2' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Work Orders', icon: <WorkOrderIcon />, path: '/manufacturing/work-orders' },
+      { text: 'Shop Floor', icon: <DashboardIcon />, path: '/manufacturing/shop-floor' },
+      { text: 'Production Tracking', icon: <ReportIcon />, path: '/manufacturing/production-tracking' },
+      { text: '---mfg-div3' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Quality Inspections', icon: <QualityIcon />, path: '/manufacturing/quality/inspections' },
+      { text: 'Non-Conformances', icon: <NotificationIcon />, path: '/manufacturing/quality/non-conformances' },
+      { text: '---mfg-div4' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Work Centers', icon: <WorkCenterIcon />, path: '/manufacturing/work-centers' },
+      { text: 'Maintenance', icon: <WorkOrderIcon />, path: '/manufacturing/maintenance' },
+      { text: '---mfg-div5' as any, icon: <></>, path: '' }, // Divider
+      { text: 'Analytics', icon: <AnalyticsIcon />, path: '/manufacturing/analytics' },
     ]
   },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },

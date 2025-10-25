@@ -103,6 +103,25 @@ import KnowledgeBaseList from '@pages/crm/KnowledgeBaseList';
 import KnowledgeBaseForm from '@pages/crm/KnowledgeBaseForm';
 import CrmReports from '@pages/crm/CrmReports';
 
+// Manufacturing Module
+import ManufacturingDashboard from '@pages/manufacturing/ManufacturingDashboard';
+import BomList from '@pages/manufacturing/BomList';
+import BomTreeView from '@pages/manufacturing/BomTreeView';
+import WorkOrderList from '@pages/manufacturing/WorkOrderList';
+import WorkOrderWizard from '@pages/manufacturing/WorkOrderWizard';
+import WorkOrderDetail from '@pages/manufacturing/WorkOrderDetail';
+import ShopFloorDashboard from '@pages/manufacturing/ShopFloorDashboard';
+import QualityInspectionList from '@pages/manufacturing/quality/QualityInspectionList';
+import QualityInspectionForm from '@pages/manufacturing/quality/QualityInspectionForm';
+import NonConformanceList from '@pages/manufacturing/quality/NonConformanceList';
+import NonConformanceForm from '@pages/manufacturing/quality/NonConformanceForm';
+import WorkCenterList from '@pages/manufacturing/WorkCenterList';
+import WorkCenterForm from '@pages/manufacturing/WorkCenterForm';
+import MaintenanceList from '@pages/manufacturing/MaintenanceList';
+import MaintenanceCalendar from '@pages/manufacturing/MaintenanceCalendar';
+import ManufacturingAnalytics from '@pages/manufacturing/ManufacturingAnalytics';
+import AnalyticsDashboard from '@pages/manufacturing/AnalyticsDashboard';
+
 // Create MUI theme
 const theme = createTheme({
   palette: {
@@ -281,6 +300,39 @@ const App: React.FC = () => {
                 <Route path="crm/knowledge-base/new" element={<KnowledgeBaseForm />} />
                 <Route path="crm/knowledge-base/:id/edit" element={<KnowledgeBaseForm />} />
                 <Route path="crm/analytics" element={<CrmReports />} />
+                
+                {/* Manufacturing Module Routes */}
+                <Route path="manufacturing" element={<ManufacturingDashboard />} />
+                <Route path="manufacturing/dashboard" element={<ManufacturingDashboard />} />
+                
+                {/* BOM Routes */}
+                <Route path="manufacturing/boms" element={<BomList />} />
+                <Route path="manufacturing/boms/:bomId" element={<BomTreeView />} />
+                <Route path="manufacturing/routings" element={<BomList />} />
+                
+                {/* Work Order Routes */}
+                <Route path="manufacturing/work-orders" element={<WorkOrderList />} />
+                <Route path="manufacturing/work-orders/new" element={<WorkOrderWizard />} />
+                <Route path="manufacturing/work-orders/:workOrderId" element={<WorkOrderDetail />} />
+                <Route path="manufacturing/shop-floor" element={<ShopFloorDashboard />} />
+                <Route path="manufacturing/production-tracking" element={<ShopFloorDashboard />} />
+                
+                {/* Quality Routes */}
+                <Route path="manufacturing/quality/inspections" element={<QualityInspectionList />} />
+                <Route path="manufacturing/quality/inspections/new" element={<QualityInspectionForm />} />
+                <Route path="manufacturing/quality/inspections/:inspectionId" element={<QualityInspectionForm />} />
+                <Route path="manufacturing/quality/non-conformances" element={<NonConformanceList />} />
+                <Route path="manufacturing/quality/non-conformances/new" element={<NonConformanceForm />} />
+                <Route path="manufacturing/quality/non-conformances/:ncId" element={<NonConformanceForm />} />
+                
+                {/* Work Center & Maintenance Routes */}
+                <Route path="manufacturing/work-centers" element={<WorkCenterList />} />
+                <Route path="manufacturing/work-centers/new" element={<WorkCenterForm />} />
+                <Route path="manufacturing/work-centers/:workCenterId" element={<WorkCenterForm />} />
+                <Route path="manufacturing/maintenance" element={<MaintenanceCalendar />} />
+                
+                {/* Analytics Routes */}
+                <Route path="manufacturing/analytics" element={<AnalyticsDashboard />} />
                 
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />

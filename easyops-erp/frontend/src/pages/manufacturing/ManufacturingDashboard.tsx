@@ -11,6 +11,9 @@ const ManufacturingDashboard: React.FC = () => {
   useEffect(() => {
     if (user?.organizationId) {
       loadDashboard();
+    } else {
+      // If no user, stop loading after a short delay
+      setTimeout(() => setLoading(false), 1000);
     }
   }, [user?.organizationId]);
 
@@ -20,12 +23,18 @@ const ManufacturingDashboard: React.FC = () => {
       setDashboardData(response.data);
     } catch (error) {
       console.error('Failed to load dashboard:', error);
+      // Set empty data on error so dashboard still displays
+      setDashboardData({});
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <Typography>Loading...</Typography>;
+  if (loading) return (
+    <Box sx={{ p: 3 }}>
+      <Typography>Loading Manufacturing Dashboard...</Typography>
+    </Box>
+  );
 
   return (
     <Box sx={{ p: 3 }}>

@@ -34,7 +34,7 @@ import {
   Assessment as ReportIcon,
   Notifications as NotificationIcon,
   Campaign as CampaignIcon,
-  Precision as ManufacturingIcon,
+  Factory as ManufacturingIcon,
   Work as WorkOrderIcon,
   Build as BomIcon,
   FactCheck as QualityIcon,
@@ -97,7 +97,6 @@ const menuItems: MenuItemType[] = [
     children: [
       { text: 'Dashboard', icon: <DashboardIcon />, path: '/sales/dashboard' },
       { text: '---sales-div1' as any, icon: <></>, path: '' }, // Divider
-      { text: 'Products', icon: <BusinessIcon />, path: '/sales/products' },
       { text: 'Customers', icon: <PeopleIcon />, path: '/sales/customers' },
       { text: '---sales-div2' as any, icon: <></>, path: '' }, // Divider
       { text: 'Quotations', icon: <ReportIcon />, path: '/sales/quotations' },

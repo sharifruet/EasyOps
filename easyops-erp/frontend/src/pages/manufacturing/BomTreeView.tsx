@@ -32,7 +32,7 @@ import {
   Calculate,
 } from '@mui/icons-material';
 import { TreeView, TreeItem } from '@mui/x-tree-view';
-import { bomApi, bomLineApi, BomHeader, BomLine } from '@services/manufacturingService';
+import { bomApi, bomLineApi, bomExplosionApi, BomHeader, BomLine } from '@services/manufacturingService';
 import { useAuth } from '@contexts/AuthContext';
 
 const BomTreeView: React.FC = () => {

@@ -106,8 +106,12 @@ import CrmReports from '@pages/crm/CrmReports';
 // Manufacturing Module
 import ManufacturingDashboard from '@pages/manufacturing/ManufacturingDashboard';
 import BomList from '@pages/manufacturing/BomList';
+import BomForm from '@pages/manufacturing/BomForm';
 import BomTreeView from '@pages/manufacturing/BomTreeView';
+import ProductRoutingList from '@pages/manufacturing/ProductRoutingList';
+import ProductRoutingForm from '@pages/manufacturing/ProductRoutingForm';
 import WorkOrderList from '@pages/manufacturing/WorkOrderList';
+import ProductionTracking from '@pages/manufacturing/ProductionTracking';
 import WorkOrderWizard from '@pages/manufacturing/WorkOrderWizard';
 import WorkOrderDetail from '@pages/manufacturing/WorkOrderDetail';
 import ShopFloorDashboard from '@pages/manufacturing/ShopFloorDashboard';
@@ -307,15 +311,22 @@ const App: React.FC = () => {
                 
                 {/* BOM Routes */}
                 <Route path="manufacturing/boms" element={<BomList />} />
+                <Route path="manufacturing/boms/new" element={<BomForm />} />
                 <Route path="manufacturing/boms/:bomId" element={<BomTreeView />} />
-                <Route path="manufacturing/routings" element={<BomList />} />
+                <Route path="manufacturing/boms/:bomId/edit" element={<BomForm />} />
+                
+                {/* Routing Routes */}
+                <Route path="manufacturing/routings" element={<ProductRoutingList />} />
+                <Route path="manufacturing/routings/new" element={<ProductRoutingForm />} />
+                <Route path="manufacturing/routings/:routingId" element={<ProductRoutingForm />} />
+                <Route path="manufacturing/routings/:routingId/edit" element={<ProductRoutingForm />} />
                 
                 {/* Work Order Routes */}
                 <Route path="manufacturing/work-orders" element={<WorkOrderList />} />
                 <Route path="manufacturing/work-orders/new" element={<WorkOrderWizard />} />
                 <Route path="manufacturing/work-orders/:workOrderId" element={<WorkOrderDetail />} />
                 <Route path="manufacturing/shop-floor" element={<ShopFloorDashboard />} />
-                <Route path="manufacturing/production-tracking" element={<ShopFloorDashboard />} />
+                <Route path="manufacturing/production-tracking" element={<ProductionTracking />} />
                 
                 {/* Quality Routes */}
                 <Route path="manufacturing/quality/inspections" element={<QualityInspectionList />} />

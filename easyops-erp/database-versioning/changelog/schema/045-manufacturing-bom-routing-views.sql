@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:045-create-manufacturing-bom-routing-views splitStatements:false endDelimiter:GO
+--changeset easyops:045-create-manufacturing-bom-routing-views splitStatements:false
 
 -- =====================================================
 -- View: BOM Explosion (Multi-Level BOM)
@@ -16,13 +16,13 @@ WITH RECURSIVE bom_explosion AS (
         bl.component_id,
         bl.component_code,
         bl.component_name,
-        bl.quantity_per_unit,
+        bl.quantity_per_unit::NUMERIC,
         bl.uom,
         bl.level_number,
         bl.component_type,
         bl.scrap_percentage,
-        bl.unit_cost,
-        bl.extended_cost,
+        bl.unit_cost::NUMERIC,
+        COALESCE(bl.extended_cost, 0)::NUMERIC,
         bl.sequence_number,
         ARRAY[bl.component_id] AS path,
         1 AS bom_level
@@ -41,13 +41,13 @@ WITH RECURSIVE bom_explosion AS (
         bl.component_id,
         bl.component_code,
         bl.component_name,
-        be.quantity_per_unit * bl.quantity_per_unit AS quantity_per_unit,
+        (be.quantity_per_unit * bl.quantity_per_unit)::NUMERIC AS quantity_per_unit,
         bl.uom,
         bl.level_number,
         bl.component_type,
         bl.scrap_percentage,
-        bl.unit_cost,
-        be.quantity_per_unit * bl.quantity_per_unit * COALESCE(bl.unit_cost, 0) AS extended_cost,
+        COALESCE(bl.unit_cost, 0)::NUMERIC AS unit_cost,
+        (be.quantity_per_unit * bl.quantity_per_unit * COALESCE(bl.unit_cost, 0))::NUMERIC AS extended_cost,
         bl.sequence_number,
         be.path || bl.component_id,
         be.bom_level + 1
@@ -112,6 +112,4 @@ SELECT
 FROM manufacturing.product_routings pr
 WHERE pr.is_active = true
 GROUP BY pr.product_id, pr.organization_id;
-
-GO
 

@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:041-create-crm-activities-campaigns-views splitStatements:false endDelimiter:GO
+--changeset easyops:041-create-crm-activities-campaigns-views splitStatements:false
 
 -- =====================================================
 -- View: Campaign Summary with Performance Metrics
@@ -372,5 +372,4 @@ SELECT
 FROM crm.campaigns c
 WHERE c.status IN ('ACTIVE', 'COMPLETED');
 
-GO
 

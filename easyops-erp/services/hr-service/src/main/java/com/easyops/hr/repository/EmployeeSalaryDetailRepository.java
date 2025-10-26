@@ -10,6 +10,8 @@ import java.util.UUID;
 @Repository
 public interface EmployeeSalaryDetailRepository extends JpaRepository<EmployeeSalaryDetail, UUID> {
     
+    List<EmployeeSalaryDetail> findByOrganizationId(UUID organizationId);
+    
     List<EmployeeSalaryDetail> findByEmployeeIdAndOrganizationId(UUID employeeId, UUID organizationId);
     
     List<EmployeeSalaryDetail> findByEmployeeIdAndIsActive(UUID employeeId, Boolean isActive);

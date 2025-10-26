@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:048-create-manufacturing-quality-equipment-schema splitStatements:false endDelimiter:GO
+--changeset easyops:048-create-manufacturing-quality-equipment-schema splitStatements:false
 
 -- =====================================================
 -- Quality Inspections Table
@@ -414,5 +414,4 @@ COMMENT ON TABLE manufacturing.non_conformances IS 'Non-conformance and defect t
 COMMENT ON TABLE manufacturing.work_centers IS 'Manufacturing work center master data';
 COMMENT ON TABLE manufacturing.equipment_maintenance IS 'Equipment maintenance records';
 
-GO
 

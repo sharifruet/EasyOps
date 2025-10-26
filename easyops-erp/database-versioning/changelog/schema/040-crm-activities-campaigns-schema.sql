@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:040-create-crm-activities-campaigns-schema splitStatements:false endDelimiter:GO
+--changeset easyops:040-create-crm-activities-campaigns-schema splitStatements:false
 
 -- =====================================================
 -- Email Templates Table
@@ -336,5 +336,4 @@ COMMENT ON TABLE crm.campaign_members IS 'Campaign participants and their respon
 COMMENT ON TABLE crm.tasks IS 'Tasks, to-dos, and follow-ups';
 COMMENT ON TABLE crm.events IS 'Events, meetings, calls, and calendar items';
 
-GO
 

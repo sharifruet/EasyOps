@@ -1,23 +1,27 @@
-FROM maven:3.9-eclipse-temurin-21-alpine AS build
+# Build stage
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy parent pom first
-COPY pom.xml ./
-COPY services/manufacturing-service/pom.xml services/manufacturing-service/
+# Copy parent pom and settings
+COPY pom.xml .
+COPY maven-settings.xml /root/.m2/settings.xml
 
-# Copy source code
-COPY services/manufacturing-service/src services/manufacturing-service/src
+# Copy entire project for multi-module build
+COPY . .
 
-# Build the application
-RUN mvn -f services/manufacturing-service/pom.xml clean package -DskipTests
+# Build the Manufacturing service module
+RUN mvn clean package -pl services/manufacturing-service -am -DskipTests spring-boot:repackage
 
-FROM eclipse-temurin:21-jre-alpine
+# Runtime stage
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# Copy the jar from build stage
-COPY --from=build /app/services/manufacturing-service/target/*.jar app.jar
+# Copy the built jar
+COPY --from=build /app/services/manufacturing-service/target/manufacturing-service-1.0.0.jar app.jar
 
+# Expose port
 EXPOSE 8098
 
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
 

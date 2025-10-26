@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:043-create-crm-support-analytics-views splitStatements:false endDelimiter:GO
+--changeset easyops:043-create-crm-support-analytics-views splitStatements:false
 
 -- =====================================================
 -- View: Case Summary with SLA Status
@@ -361,5 +361,4 @@ FROM crm.cases c
 JOIN crm.sla_policies sla ON c.sla_id = sla.sla_id
 GROUP BY c.organization_id, c.sla_id, sla.policy_name, sla.priority, sla.first_response_time, sla.resolution_time;
 
-GO
 

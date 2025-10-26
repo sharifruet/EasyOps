@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:050-create-manufacturing-analytics-views splitStatements:false endDelimiter:GO
+--changeset easyops:050-create-manufacturing-analytics-views splitStatements:false
 
 -- =====================================================
 -- View: Manufacturing Dashboard KPIs
@@ -313,5 +313,4 @@ SELECT
 FROM manufacturing.work_orders wo
 GROUP BY wo.organization_id;
 
-GO
 

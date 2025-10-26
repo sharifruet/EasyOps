@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:049-create-manufacturing-quality-equipment-views splitStatements:false endDelimiter:GO
+--changeset easyops:049-create-manufacturing-quality-equipment-views splitStatements:false
 
 -- =====================================================
 -- View: Quality Inspection Summary
@@ -317,5 +317,4 @@ SELECT
 FROM manufacturing.quality_inspections qi
 GROUP BY qi.organization_id;
 
-GO
 

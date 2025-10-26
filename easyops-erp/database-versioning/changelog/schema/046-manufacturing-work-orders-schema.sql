@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:046-create-manufacturing-work-orders-schema splitStatements:false endDelimiter:GO
+--changeset easyops:046-create-manufacturing-work-orders-schema splitStatements:false
 
 -- =====================================================
 -- Work Orders Table
@@ -280,5 +280,4 @@ COMMENT ON TABLE manufacturing.work_orders IS 'Production work orders for manufa
 COMMENT ON TABLE manufacturing.work_order_operations IS 'Operations/steps in work orders';
 COMMENT ON TABLE manufacturing.work_order_materials IS 'Material requirements and issuance for work orders';
 
-GO
 

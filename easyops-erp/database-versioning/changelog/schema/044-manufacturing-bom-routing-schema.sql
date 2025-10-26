@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:044-create-manufacturing-bom-routing-schema splitStatements:false endDelimiter:GO
+--changeset easyops:044-create-manufacturing-bom-routing-schema splitStatements:false
 
 -- Create Manufacturing schema
 CREATE SCHEMA IF NOT EXISTS manufacturing;
@@ -261,5 +261,4 @@ COMMENT ON TABLE manufacturing.bom_lines IS 'BOM component lines with hierarchy'
 COMMENT ON TABLE manufacturing.bom_versions IS 'BOM version history and change tracking';
 COMMENT ON TABLE manufacturing.product_routings IS 'Manufacturing operations/routing for products';
 
-GO
 

@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:042-create-crm-support-analytics-schema splitStatements:false endDelimiter:GO
+--changeset easyops:042-create-crm-support-analytics-schema splitStatements:false
 
 -- =====================================================
 -- SLA Policies Table
@@ -278,5 +278,4 @@ COMMENT ON TABLE crm.cases IS 'Customer support cases/tickets';
 COMMENT ON TABLE crm.case_comments IS 'Comments and interactions on cases';
 COMMENT ON TABLE crm.knowledge_base IS 'Knowledge base articles for self-service';
 
-GO
 

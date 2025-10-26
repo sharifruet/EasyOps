@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset easyops:047-create-manufacturing-work-orders-views splitStatements:false endDelimiter:GO
+--changeset easyops:047-create-manufacturing-work-orders-views splitStatements:false
 
 -- =====================================================
 -- View: Work Order Summary
@@ -324,5 +324,4 @@ FROM manufacturing.work_orders wo
 WHERE wo.status IN ('RELEASED', 'IN_PROGRESS', 'PAUSED')
 ORDER BY wo.priority DESC, wo.planned_end_date ASC;
 
-GO
 

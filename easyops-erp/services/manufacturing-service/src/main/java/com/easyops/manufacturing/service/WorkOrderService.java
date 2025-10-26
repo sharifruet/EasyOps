@@ -22,6 +22,12 @@ public class WorkOrderService {
     private final WorkOrderMaterialRepository workOrderMaterialRepository;
     private final BomService bomService;
     private final ProductRoutingService routingService;
+    
+    // Integration Services
+    private final com.easyops.manufacturing.integration.InventoryIntegrationService inventoryIntegration;
+    private final com.easyops.manufacturing.integration.AccountingIntegrationService accountingIntegration;
+    private final com.easyops.manufacturing.integration.SalesIntegrationService salesIntegration;
+    private final com.easyops.manufacturing.integration.PurchaseIntegrationService purchaseIntegration;
 
     // ==================== Work Order CRUD ====================
 
@@ -168,13 +174,68 @@ public class WorkOrderService {
         // Calculate final costs
         recalculateWorkOrderCosts(workOrderId);
         
+        // Reload to get updated costs
+        wo = workOrderRepository.findById(workOrderId)
+                .orElseThrow(() -> new RuntimeException("Work Order not found: " + workOrderId));
+        
+        // Integration: Receive finished goods to inventory
+        if (wo.getQuantityCompleted() != null && wo.getQuantityCompleted().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal unitCost = wo.getQuantityCompleted().compareTo(BigDecimal.ZERO) > 0
+                    ? wo.getTotalCost().divide(wo.getQuantityCompleted(), 2, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+            
+            inventoryIntegration.receiveFinishedGoods(
+                wo.getProductId(),
+                wo.getQuantityCompleted(),
+                wo.getTargetWarehouseId(),
+                wo.getWorkOrderNumber(),
+                unitCost,
+                completedBy
+            );
+            
+            log.info("Received {} units of finished goods to inventory", wo.getQuantityCompleted());
+        }
+        
+        // Integration: Post finished goods completion to accounting
+        accountingIntegration.postFinishedGoodsCompletion(
+            wo.getWorkOrderNumber(),
+            wo.getProductId(),
+            wo.getQuantityCompleted() != null ? wo.getQuantityCompleted() : BigDecimal.ZERO,
+            wo.getTotalCost() != null ? wo.getTotalCost() : BigDecimal.ZERO,
+            wo.getOrganizationId()
+        );
+        
+        // Integration: Post scrap cost if any
+        if (wo.getQuantityScrapped() != null && wo.getQuantityScrapped().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal scrapCost = wo.getTotalCost()
+                    .multiply(wo.getQuantityScrapped())
+                    .divide(wo.getQuantityPlanned(), 2, RoundingMode.HALF_UP);
+            
+            accountingIntegration.postScrapCost(
+                wo.getWorkOrderNumber(),
+                wo.getProductId(),
+                wo.getQuantityScrapped(),
+                scrapCost,
+                wo.getOrganizationId()
+            );
+        }
+        
+        // Integration: Notify sales if this was a make-to-order
+        if ("SALES_ORDER".equals(wo.getSourceType()) && wo.getSourceReference() != null) {
+            salesIntegration.notifyProductionComplete(
+                wo.getWorkOrderNumber(),
+                wo.getProductId(),
+                wo.getQuantityCompleted() != null ? wo.getQuantityCompleted().doubleValue() : 0
+            );
+        }
+        
         wo.setStatus("COMPLETED");
         wo.setActualEndDate(LocalDateTime.now());
         wo.setCompletedBy(completedBy);
         wo.setCompletionPercentage(BigDecimal.valueOf(100));
         
         WorkOrder completed = workOrderRepository.save(wo);
-        log.info("Completed work order: {}", completed.getWorkOrderNumber());
+        log.info("Completed work order: {} with full integration", completed.getWorkOrderNumber());
         return completed;
     }
 
@@ -214,13 +275,50 @@ public class WorkOrderService {
 
     @Transactional
     public void reserveMaterials(UUID workOrderId) {
+        WorkOrder wo = workOrderRepository.findById(workOrderId)
+                .orElseThrow(() -> new RuntimeException("Work Order not found: " + workOrderId));
+        
         List<WorkOrderMaterial> materials = workOrderMaterialRepository.findByWorkOrderId(workOrderId);
         
         for (WorkOrderMaterial material : materials) {
             if ("PLANNED".equals(material.getStatus())) {
-                material.setQuantityReserved(material.getQuantityRequired());
-                material.setReservedDate(LocalDateTime.now());
-                material.setStatus("RESERVED");
+                // Integration: Check material availability in inventory
+                boolean available = inventoryIntegration.checkMaterialAvailability(
+                    material.getComponentId(),
+                    material.getQuantityRequired(),
+                    wo.getSourceWarehouseId()
+                );
+                
+                if (available) {
+                    // Integration: Reserve material in inventory
+                    inventoryIntegration.reserveMaterial(
+                        material.getComponentId(),
+                        material.getQuantityRequired(),
+                        wo.getSourceWarehouseId(),
+                        "WORK_ORDER",
+                        wo.getWorkOrderNumber()
+                    );
+                    
+                    material.setQuantityReserved(material.getQuantityRequired());
+                    material.setReservedDate(LocalDateTime.now());
+                    material.setStatus("RESERVED");
+                } else {
+                    // Integration: Create purchase requisition for shortage (MRP)
+                    log.warn("Material {} not available - creating purchase requisition", material.getComponentCode());
+                    purchaseIntegration.createPurchaseRequisition(
+                        material.getComponentId(),
+                        material.getComponentCode(),
+                        material.getQuantityRequired(),
+                        material.getUom(),
+                        wo.getPlannedStartDate(),
+                        wo.getWorkOrderNumber(),
+                        wo.getOrganizationId(),
+                        wo.getCreatedBy()
+                    );
+                    
+                    material.setStatus("SHORTAGE");
+                }
+                
                 workOrderMaterialRepository.save(material);
             }
         }
@@ -251,13 +349,36 @@ public class WorkOrderService {
             throw new RuntimeException("Only RESERVED materials can be issued");
         }
         
+        WorkOrder wo = material.getWorkOrder();
+        
+        // Integration: Issue material from inventory (reduce stock)
+        inventoryIntegration.issueMaterial(
+            material.getComponentId(),
+            quantity,
+            wo.getSourceWarehouseId(),
+            "WORK_ORDER",
+            wo.getWorkOrderNumber(),
+            issuedBy
+        );
+        
+        // Integration: Post material issuance to accounting
+        if (material.getUnitCost() != null) {
+            accountingIntegration.postMaterialIssuance(
+                wo.getWorkOrderNumber(),
+                material.getComponentId(),
+                quantity,
+                material.getUnitCost(),
+                wo.getOrganizationId()
+            );
+        }
+        
         material.setQuantityIssued(material.getQuantityIssued().add(quantity));
         material.setIssuedDate(LocalDateTime.now());
         material.setIssuedBy(issuedBy);
         material.setStatus("ISSUED");
         
         WorkOrderMaterial issued = workOrderMaterialRepository.save(material);
-        log.info("Issued material: {} quantity: {}", issued.getComponentCode(), quantity);
+        log.info("Issued material: {} quantity: {} with inventory integration", issued.getComponentCode(), quantity);
         return issued;
     }
 

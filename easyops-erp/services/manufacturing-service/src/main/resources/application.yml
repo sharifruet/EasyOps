@@ -47,3 +47,14 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
+# Integration with other services
+integration:
+  inventory-service:
+    url: http://INVENTORY-SERVICE
+  sales-service:
+    url: http://SALES-SERVICE
+  accounting-service:
+    url: http://ACCOUNTING-SERVICE
+  purchase-service:
+    url: http://PURCHASE-SERVICE
+

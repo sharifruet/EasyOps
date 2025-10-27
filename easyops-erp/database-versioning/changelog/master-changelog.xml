@@ -74,6 +74,7 @@
            <include file="data/006-accounting-test-data.sql" relativeToChangelogFile="true"/>
            <include file="data/007-inventory-test-data.sql" relativeToChangelogFile="true"/>
            <include file="data/008-expanded-product-test-data.sql" relativeToChangelogFile="true"/>
+           <include file="data/009-crm-customer-test-data.sql" relativeToChangelogFile="true"/>
            <include file="data/010-purchase-test-data.sql" relativeToChangelogFile="true"/>
     
 </databaseChangeLog>

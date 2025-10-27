@@ -9,67 +9,70 @@ import {
 } from '../types/sales';
 
 const salesService = {
-  // Customer APIs
+  // Customer APIs - Now using CRM Service
+  // Customers are managed in CRM Service as Accounts, not in Sales Service
   async getCustomers(organizationId: string, activeOnly: boolean = false): Promise<Customer[]> {
-    const response = await api.get('/api/sales/customers', {
+    const response = await api.get('/api/crm/accounts', {
       params: { organizationId, activeOnly }
     });
     return response.data;
   },
 
   async getCustomerById(id: string): Promise<Customer> {
-    const response = await api.get(`/api/sales/customers/${id}`);
+    const response = await api.get(`/api/crm/accounts/${id}`);
     return response.data;
   },
 
   async createCustomer(data: any): Promise<Customer> {
-    const response = await api.post('/api/sales/customers', data);
+    const response = await api.post('/api/crm/accounts', data);
     return response.data;
   },
 
   async updateCustomer(id: string, data: any): Promise<Customer> {
-    const response = await api.put(`/api/sales/customers/${id}`, data);
+    const response = await api.put(`/api/crm/accounts/${id}`, data);
     return response.data;
   },
 
   async deleteCustomer(id: string): Promise<void> {
-    await api.delete(`/api/sales/customers/${id}`);
+    await api.delete(`/api/crm/accounts/${id}`);
   },
 
   async deactivateCustomer(id: string): Promise<Customer> {
-    const response = await api.post(`/api/sales/customers/${id}/deactivate`);
+    // CRM uses different status update endpoint
+    const response = await api.put(`/api/crm/accounts/${id}`, { isActive: false });
     return response.data;
   },
 
-  // Product APIs
+  // Product APIs - Now using Inventory Service
+  // Products are managed in Inventory Service, not Sales Service
   async getProducts(organizationId: string, activeOnly: boolean = false): Promise<Product[]> {
-    const response = await api.get('/api/sales/products', {
+    const response = await api.get('/api/inventory/products', {
       params: { organizationId, activeOnly }
     });
     return response.data;
   },
 
   async getProductById(id: string): Promise<Product> {
-    const response = await api.get(`/api/sales/products/${id}`);
+    const response = await api.get(`/api/inventory/products/${id}`);
     return response.data;
   },
 
   async createProduct(data: any): Promise<Product> {
-    const response = await api.post('/api/sales/products', data);
+    const response = await api.post('/api/inventory/products', data);
     return response.data;
   },
 
   async updateProduct(id: string, data: any): Promise<Product> {
-    const response = await api.put(`/api/sales/products/${id}`, data);
+    const response = await api.put(`/api/inventory/products/${id}`, data);
     return response.data;
   },
 
   async deleteProduct(id: string): Promise<void> {
-    await api.delete(`/api/sales/products/${id}`);
+    await api.delete(`/api/inventory/products/${id}`);
   },
 
   async deactivateProduct(id: string): Promise<Product> {
-    const response = await api.post(`/api/sales/products/${id}/deactivate`);
+    const response = await api.post(`/api/inventory/products/${id}/deactivate`);
     return response.data;
   },
 

@@ -156,12 +156,16 @@ const SalesOrders = () => {
     const newLines = [...formData.lines];
     newLines[index] = { ...newLines[index], [field]: value };
     
+    // Auto-populate product details when product is selected
+    // Handle both Sales Product and Inventory Product property names
     if (field === "productId" && value) {
       const product = products.find(p => p.id === value);
       if (product) {
-        newLines[index].productName = product.productName;
-        newLines[index].unitPrice = product.unitPrice;
-        newLines[index].taxPercent = product.taxRate;
+        newLines[index].productName = (product as any).productName || (product as any).name || "";
+        newLines[index].productCode = (product as any).productCode || (product as any).sku || "";
+        newLines[index].unitPrice = (product as any).unitPrice || (product as any).sellingPrice || 0;
+        newLines[index].unitOfMeasure = (product as any).unitOfMeasure || (product as any).uom || "";
+        newLines[index].taxPercent = (product as any).taxRate || 0;
       }
     }
     
@@ -449,9 +453,10 @@ const SalesOrders = () => {
                       <Autocomplete
                         fullWidth
                         options={products}
-                        getOptionLabel={(option) => option.productName}
+                        getOptionLabel={(option) => option.productName || option.name || ''}
                         value={products.find(p => p.id === line.productId) || null}
                         onChange={(event, newValue) => {
+                          // handleLineChange will auto-populate product details
                           handleLineChange(index, "productId", newValue?.id || "");
                         }}
                         renderInput={(params) => (
@@ -460,9 +465,9 @@ const SalesOrders = () => {
                         renderOption={(props, option) => (
                           <li {...props} key={option.id}>
                             <Box>
-                              <Typography variant="body2">{option.productName}</Typography>
+                              <Typography variant="body2">{option.productName || option.name}</Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {option.productCode} - ${option.unitPrice}
+                                {option.productCode || option.sku} - ${option.unitPrice || option.sellingPrice || 0}
                               </Typography>
                             </Box>
                           </li>

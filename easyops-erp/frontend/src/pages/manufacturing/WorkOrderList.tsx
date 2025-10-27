@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Add as AddIcon } from '@mui/icons-material';
 import { workOrderApi, WorkOrder } from '@services/manufacturingService';
 import { useAuth } from '@contexts/AuthContext';
+import './Manufacturing.css';
 
 const WorkOrderList: React.FC = () => {
   const navigate = useNavigate();

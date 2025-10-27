@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography, Grid, Paper, Card, CardContent } from '@mui/material';
 import { analyticsApi } from '@services/manufacturingService';
 import { useAuth } from '@contexts/AuthContext';
+import './Manufacturing.css';
 
 const ManufacturingDashboard: React.FC = () => {
   const { user } = useAuth();

@@ -1,10 +1,8 @@
 package com.easyops.sales.service;
 
 import com.easyops.sales.client.ARClient;
-import com.easyops.sales.entity.Customer;
 import com.easyops.sales.entity.SalesOrder;
 import com.easyops.sales.entity.SalesOrderLine;
-import com.easyops.sales.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ import java.util.*;
 public class SalesIntegrationService {
     
     private final SalesOrderService salesOrderService;
-    private final CustomerRepository customerRepository;
     private final ARClient arClient;
     
     @Transactional
@@ -100,59 +97,22 @@ public class SalesIntegrationService {
     }
     
     /**
-     * Find AR customer ID by matching customer code, or create if not found
+     * Find AR customer ID by matching customer ID
+     * Note: Customer master data is maintained in CRM service
+     * Sales orders reference CRM account IDs which should map to AR customer IDs
      */
-    private UUID findOrCreateARCustomer(UUID salesCustomerId, UUID organizationId) {
-        // Get the sales customer
-        Customer salesCustomer = customerRepository.findById(salesCustomerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found in sales: " + salesCustomerId));
-        
+    private UUID findOrCreateARCustomer(UUID customerId, UUID organizationId) {
         try {
-            // First, try to get customer from AR service by original ID
-            arClient.getCustomer(salesCustomerId);
-            log.debug("Customer {} already exists in AR service with same ID", salesCustomerId);
-            return salesCustomerId;
+            // Try to get customer from AR service
+            arClient.getCustomer(customerId);
+            log.debug("Customer {} already exists in AR service", customerId);
+            return customerId;
         } catch (Exception e) {
-            // Not found by ID, try to find by customer code
-            log.info("Customer {} not found by ID in AR service, searching by code: {}", 
-                    salesCustomerId, salesCustomer.getCustomerCode());
-            
-            try {
-                List<Map<String, Object>> arCustomers = arClient.getCustomers(organizationId);
-                
-                // Find customer by code
-                for (Map<String, Object> arCustomer : arCustomers) {
-                    String customerCode = (String) arCustomer.get("customerCode");
-                    if (salesCustomer.getCustomerCode().equals(customerCode)) {
-                        UUID arCustomerId = UUID.fromString((String) arCustomer.get("id"));
-                        log.info("Found existing AR customer {} with code {}", arCustomerId, customerCode);
-                        return arCustomerId;
-                    }
-                }
-                
-                // Customer not found by code either, create new one
-                log.info("Creating new customer in AR service with code {}", salesCustomer.getCustomerCode());
-                Map<String, Object> customerRequest = new HashMap<>();
-                customerRequest.put("id", salesCustomerId.toString()); // Use same ID
-                customerRequest.put("organizationId", organizationId.toString());
-                customerRequest.put("customerCode", salesCustomer.getCustomerCode() + "-SALES");
-                customerRequest.put("customerName", salesCustomer.getCustomerName());
-                customerRequest.put("email", salesCustomer.getEmail());
-                customerRequest.put("phone", salesCustomer.getPhone());
-                customerRequest.put("creditLimit", salesCustomer.getCreditLimit());
-                customerRequest.put("paymentTerms", salesCustomer.getPaymentTerms() != null ? 
-                        Integer.parseInt(salesCustomer.getPaymentTerms().replaceAll("\\D+", "")) : 30);
-                customerRequest.put("isActive", salesCustomer.getIsActive());
-                
-                Map<String, Object> createdCustomer = arClient.createCustomer(customerRequest);
-                UUID newArCustomerId = UUID.fromString((String) createdCustomer.get("id"));
-                log.info("Successfully created customer {} in AR service", newArCustomerId);
-                return newArCustomerId;
-                
-            } catch (Exception findEx) {
-                log.error("Failed to find or create customer in AR service", findEx);
-                throw new RuntimeException("Cannot create invoice: Customer sync failed - " + findEx.getMessage());
-            }
+            // Customer not found in AR, should sync from CRM
+            log.warn("Customer {} not found in AR service. Customer should be synced from CRM to AR.", customerId);
+            // For now, return the customerId and let AR service handle the error
+            // TODO: Implement CRM-to-AR customer sync
+            return customerId;
         }
     }
 }

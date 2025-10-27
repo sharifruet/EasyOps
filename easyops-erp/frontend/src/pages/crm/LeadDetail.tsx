@@ -259,3 +259,4 @@ const LeadDetail: React.FC = () => {
 export default LeadDetail;
 
 
+

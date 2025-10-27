@@ -1,6 +1,5 @@
 package com.easyops.hr.service;
 
-import com.easyops.hr.repository.DepartmentRepository;
 import com.easyops.hr.repository.EmployeeRepository;
 import com.easyops.hr.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ import java.util.*;
 public class HrDashboardService {
     
     private final EmployeeRepository employeeRepository;
-    private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final JdbcTemplate jdbcTemplate;
     
@@ -39,12 +37,12 @@ public class HrDashboardService {
             // Fallback to manual calculation
             long totalEmployees = employeeRepository.findByOrganizationId(organizationId).size();
             long activeEmployees = employeeRepository.countByOrganizationIdAndEmploymentStatus(organizationId, "ACTIVE");
-            long departmentCount = departmentRepository.findByOrganizationId(organizationId).size();
             long positionCount = positionRepository.findByOrganizationId(organizationId).size();
             
             stats.put("total_employees", totalEmployees);
             stats.put("active_employees", activeEmployees);
-            stats.put("department_count", departmentCount);
+            // Note: department_count should be fetched from Organization Service API
+            stats.put("department_count", 0); // TODO: Call Organization Service API
             stats.put("position_count", positionCount);
             stats.put("full_time_employees", 0);
             stats.put("part_time_employees", 0);

@@ -301,7 +301,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       eureka:
         condition: service_healthy
@@ -331,7 +332,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       eureka:
         condition: service_healthy
@@ -421,7 +423,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       eureka:
         condition: service_healthy
@@ -451,7 +454,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       eureka:
         condition: service_healthy
@@ -481,7 +485,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       eureka:
         condition: service_healthy
@@ -511,7 +516,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       eureka:
         condition: service_healthy
@@ -540,7 +546,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
       - ACCOUNTING_SERVICE_URL=http://accounting-service:8080
       - AR_SERVICE_URL=http://ar-service:8090
       - NOTIFICATION_SERVICE_URL=http://notification-service:8095
@@ -578,7 +585,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       eureka:
         condition: service_healthy
@@ -608,12 +616,12 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
-      - SPRING_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
       - DB_HOST=postgres
       - DB_NAME=easyops
       - DB_USER=easyops
       - DB_PASSWORD=easyops123
-      - REDIS_HOST=redis
     depends_on:
       eureka:
         condition: service_healthy

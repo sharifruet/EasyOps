@@ -65,3 +65,4 @@ const ContactDetail: React.FC = () => {
 export default ContactDetail;
 
 
+

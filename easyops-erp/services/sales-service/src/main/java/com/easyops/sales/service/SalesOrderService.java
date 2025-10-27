@@ -3,7 +3,6 @@ package com.easyops.sales.service;
 import com.easyops.sales.client.InventoryClient;
 import com.easyops.sales.dto.SalesOrderRequest;
 import com.easyops.sales.entity.*;
-import com.easyops.sales.repository.CustomerRepository;
 import com.easyops.sales.repository.QuotationRepository;
 import com.easyops.sales.repository.SalesOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ import java.util.UUID;
 public class SalesOrderService {
     
     private final SalesOrderRepository salesOrderRepository;
-    private final CustomerRepository customerRepository;
     private final QuotationRepository quotationRepository;
     private final InventoryClient inventoryClient;
     
@@ -69,9 +67,11 @@ public class SalesOrderService {
     public SalesOrder createOrder(SalesOrderRequest request) {
         log.info("Creating sales order for organization: {}", request.getOrganizationId());
         
-        // Get customer details
-        Customer customer = customerRepository.findById(request.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        // Customer details should be provided in the request
+        // Customer master data is managed in CRM service, not in Sales service
+        if (request.getCustomerId() == null) {
+            throw new RuntimeException("Customer ID is required");
+        }
         
         // Create sales order
         SalesOrder order = new SalesOrder();
@@ -80,12 +80,12 @@ public class SalesOrderService {
         order.setOrderDate(request.getOrderDate() != null ? request.getOrderDate() : LocalDate.now());
         order.setExpectedDeliveryDate(request.getExpectedDeliveryDate());
         
-        order.setCustomerId(customer.getId());
-        order.setCustomerName(customer.getCustomerName());
-        order.setCustomerEmail(customer.getEmail());
-        order.setContactPerson(request.getContactPerson() != null ? request.getContactPerson() : customer.getContactPerson());
-        order.setBillingAddress(request.getBillingAddress() != null ? request.getBillingAddress() : customer.getBillingAddress());
-        order.setShippingAddress(request.getShippingAddress() != null ? request.getShippingAddress() : customer.getShippingAddress());
+        order.setCustomerId(request.getCustomerId());
+        order.setCustomerName(request.getCustomerName()); // From request
+        order.setCustomerEmail(request.getCustomerEmail()); // From request
+        order.setContactPerson(request.getContactPerson());
+        order.setBillingAddress(request.getBillingAddress());
+        order.setShippingAddress(request.getShippingAddress());
         
         order.setDiscountPercent(request.getDiscountPercent());
         order.setDiscountAmount(request.getDiscountAmount());

@@ -1,10 +1,8 @@
 package com.easyops.sales.service;
 
 import com.easyops.sales.dto.QuotationRequest;
-import com.easyops.sales.entity.Customer;
 import com.easyops.sales.entity.Quotation;
 import com.easyops.sales.entity.QuotationLine;
-import com.easyops.sales.repository.CustomerRepository;
 import com.easyops.sales.repository.QuotationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +21,6 @@ import java.util.UUID;
 public class QuotationService {
     
     private final QuotationRepository quotationRepository;
-    private final CustomerRepository customerRepository;
     
     @Value("${sales.quotation.auto-number-prefix:QT}")
     private String quotationPrefix;
@@ -56,9 +53,11 @@ public class QuotationService {
     public Quotation createQuotation(QuotationRequest request) {
         log.info("Creating quotation for organization: {}", request.getOrganizationId());
         
-        // Get customer details
-        Customer customer = customerRepository.findById(request.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        // Customer details should be provided in the request
+        // Customer master data is managed in CRM service, not in Sales service
+        if (request.getCustomerId() == null) {
+            throw new RuntimeException("Customer ID is required");
+        }
         
         // Create quotation
         Quotation quotation = new Quotation();
@@ -67,12 +66,12 @@ public class QuotationService {
         quotation.setQuotationDate(request.getQuotationDate() != null ? request.getQuotationDate() : LocalDate.now());
         quotation.setValidUntil(request.getValidUntil() != null ? request.getValidUntil() : LocalDate.now().plusDays(validityDays));
         
-        quotation.setCustomerId(customer.getId());
-        quotation.setCustomerName(customer.getCustomerName());
-        quotation.setCustomerEmail(customer.getEmail());
-        quotation.setContactPerson(request.getContactPerson() != null ? request.getContactPerson() : customer.getContactPerson());
-        quotation.setBillingAddress(request.getBillingAddress() != null ? request.getBillingAddress() : customer.getBillingAddress());
-        quotation.setShippingAddress(request.getShippingAddress() != null ? request.getShippingAddress() : customer.getShippingAddress());
+        quotation.setCustomerId(request.getCustomerId());
+        quotation.setCustomerName(request.getCustomerName()); // From request
+        quotation.setCustomerEmail(request.getCustomerEmail()); // From request
+        quotation.setContactPerson(request.getContactPerson());
+        quotation.setBillingAddress(request.getBillingAddress());
+        quotation.setShippingAddress(request.getShippingAddress());
         
         quotation.setDiscountPercent(request.getDiscountPercent());
         quotation.setDiscountAmount(request.getDiscountAmount());

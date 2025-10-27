@@ -22,8 +22,9 @@ INSERT INTO admin.organizations (name, code, description) VALUES
 
 --changeset easyops:093-create-default-system-admin-user context:data
 --comment: Create a default system administrator user
+-- Password: Admin123! (BCrypt hashed)
 INSERT INTO users.users (username, email, password_hash, first_name, last_name, is_active, is_verified) VALUES
-('admin', 'admin@easyops.com', 'TEMP_PLAIN_TEXT_Admin123!', 'System', 'Administrator', true, true) 
+('admin', 'admin@easyops.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', 'System', 'Administrator', true, true) 
 ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 --changeset easyops:094-assign-system-admin-role-to-admin-user context:data

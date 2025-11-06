@@ -263,7 +263,7 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -548,9 +548,9 @@ services:
       - SPRING_DATASOURCE_PASSWORD=easyops123
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      - ACCOUNTING_SERVICE_URL=http://accounting-service:8080
+      - ACCOUNTING_SERVICE_URL=http://accounting-service:8088
       - AR_SERVICE_URL=http://ar-service:8090
-      - NOTIFICATION_SERVICE_URL=http://notification-service:8095
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8086
       - INVENTORY_SERVICE_URL=http://inventory-service:8094
     depends_on:
       eureka:

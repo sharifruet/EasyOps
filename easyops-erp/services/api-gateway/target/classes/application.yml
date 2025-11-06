@@ -59,6 +59,30 @@ spring:
           uri: lb://sales-service
           predicates:
             - Path=/api/sales/**
+        - id: inventory-service
+          uri: lb://inventory-service
+          predicates:
+            - Path=/api/inventory/**
+        - id: purchase-service
+          uri: lb://purchase-service
+          predicates:
+            - Path=/api/purchase/**
+        - id: hr-service
+          uri: lb://HR-SERVICE
+          predicates:
+            - Path=/api/hr/**
+        - id: crm-service
+          uri: lb://CRM-SERVICE
+          predicates:
+            - Path=/api/crm/**
+          filters:
+            - RewritePath=/api/crm/(?<segment>.*), /${segment}
+        - id: manufacturing-service
+          uri: lb://MANUFACTURING-SERVICE
+          predicates:
+            - Path=/api/manufacturing/**
+          filters:
+            - RewritePath=/api/manufacturing/(?<segment>.*), /${segment}
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_LAST
       globalcors:

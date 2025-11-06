@@ -24,20 +24,25 @@ if ! docker info > /dev/null 2>&1; then
 fi
 echo -e "${GREEN}✅ Docker is running${NC}"
 
-# Check if Docker Compose is available
+# Determine Docker Compose command
 echo "🔍 Checking Docker Compose..."
-if ! command -v docker-compose &> /dev/null; then
+if docker compose version > /dev/null 2>&1; then
+    COMPOSE_CMD=(docker compose)
+    echo -e "${GREEN}✅ Docker Compose v2 detected${NC}"
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD=(docker-compose)
+    echo -e "${YELLOW}ℹ️  Docker Compose standalone detected${NC}"
+else
     echo -e "${RED}❌ Docker Compose is not installed.${NC}"
     exit 1
 fi
-echo -e "${GREEN}✅ Docker Compose is available${NC}"
 
 echo ""
 echo "🐳 Starting EasyOps ERP services..."
 echo ""
 
 # Start services
-docker-compose up -d
+"${COMPOSE_CMD[@]}" up -d
 
 echo ""
 echo "⏳ Waiting for services to initialize..."
@@ -47,7 +52,7 @@ echo ""
 echo "📊 Service Status:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-docker-compose ps
+"${COMPOSE_CMD[@]}" ps
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -60,21 +65,7 @@ echo ""
 # Wait for PostgreSQL
 echo -n "Checking PostgreSQL..."
 RETRIES=30
-until docker-compose exec -T postgres pg_isready -U easyops > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
-  echo -n "."
-  sleep 2
-  RETRIES=$((RETRIES-1))
-done
-if [ $RETRIES -eq 0 ]; then
-  echo -e " ${RED}❌ Timeout${NC}"
-else
-  echo -e " ${GREEN}✅ Ready${NC}"
-fi
-
-# Wait for MongoDB
-echo -n "Checking MongoDB..."
-RETRIES=30
-until docker-compose exec -T mongodb mongosh --quiet --eval "db.runCommand('ping')" > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+until "${COMPOSE_CMD[@]}" exec -T postgres pg_isready -U easyops > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
   echo -n "."
   sleep 2
   RETRIES=$((RETRIES-1))
@@ -88,7 +79,7 @@ fi
 # Wait for Redis
 echo -n "Checking Redis..."
 RETRIES=30
-until docker-compose exec -T redis redis-cli ping > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+until "${COMPOSE_CMD[@]}" exec -T redis redis-cli ping > /dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
   echo -n "."
   sleep 2
   RETRIES=$((RETRIES-1))
@@ -166,7 +157,7 @@ echo -e "${GREEN}Frontend:${NC}        http://localhost:3000"
 echo -e "${GREEN}API Gateway:${NC}     http://localhost:8081"
 echo -e "${GREEN}Eureka:${NC}          http://localhost:8761"
 echo -e "${GREEN}Adminer:${NC}         http://localhost:8080"
-echo -e "${GREEN}RabbitMQ:${NC}        http://localhost:15672"
+echo -e "${GREEN}Grafana:${NC}         http://localhost:3001"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "🔐 Login Credentials:"
@@ -177,10 +168,10 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "🛠️  Useful Commands:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "View logs:         docker-compose logs -f"
-echo "Stop services:     docker-compose stop"
-echo "Restart services:  docker-compose restart"
-echo "Remove services:   docker-compose down"
+echo "View logs:         ${COMPOSE_CMD[*]} logs -f"
+echo "Stop services:     ${COMPOSE_CMD[*]} stop"
+echo "Restart services:  ${COMPOSE_CMD[*]} restart"
+echo "Remove services:   ${COMPOSE_CMD[*]} down"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo -e "${GREEN}Happy coding! 🚀${NC}"

@@ -16,7 +16,20 @@ echo.
 REM Start all services
 echo 🐳 Starting EasyOps ERP services...
 echo.
-docker-compose up -d
+
+docker compose version >nul 2>&1
+if errorlevel 1 (
+    where docker-compose >nul 2>&1
+    if errorlevel 1 (
+        echo ❌ Docker Compose is not installed.
+        exit /b 1
+    )
+    set "COMPOSE_CMD=docker-compose"
+) else (
+    set "COMPOSE_CMD=docker compose"
+)
+
+%COMPOSE_CMD% up -d
 
 echo.
 echo ⏳ Waiting for services to initialize...
@@ -25,7 +38,7 @@ timeout /t 30 /nobreak >nul
 echo.
 echo 📊 Service Status:
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-docker-compose ps
+%COMPOSE_CMD% ps
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo.
 
@@ -39,7 +52,7 @@ echo Frontend:        http://localhost:3000
 echo API Gateway:     http://localhost:8081
 echo Eureka:          http://localhost:8761
 echo Adminer:         http://localhost:8080
-echo RabbitMQ:        http://localhost:15672
+echo Grafana:         http://localhost:3001
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo.
 echo 🔐 Login Credentials:
@@ -50,14 +63,14 @@ echo ━━━━━━━━━━━━━━━━━━━━━━━━━
 echo.
 echo 🛠️  Useful Commands:
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo View logs:         docker-compose logs -f
+echo View logs:         %COMPOSE_CMD% logs -f
 echo Stop services:     stop-docker.bat
-echo Restart services:  docker-compose restart
-echo Remove services:   docker-compose down
+echo Restart services:  %COMPOSE_CMD% restart
+echo Remove services:   %COMPOSE_CMD% down
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo.
 echo ⏳ Note: Frontend may take 1-2 more minutes to fully start.
-echo    Watch logs with: docker-compose logs -f frontend
+echo    Watch logs with: %COMPOSE_CMD% logs -f frontend
 echo.
 echo Happy coding! 🚀
 echo.

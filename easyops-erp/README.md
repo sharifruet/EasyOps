@@ -53,17 +53,20 @@ easyops-erp/
 
 2. **Start core platform components in Docker**
    ```bash
-   # From the repository root
+   ./start-core-services.sh
+   ```
+   This script brings up the lightweight stack (Postgres, Redis, Liquibase migrations, Adminer, Eureka, API Gateway) and waits for health checks so the Spring services can attach immediately.
+
+   Prefer to run the containers manually? Use Docker Compose directly:
+   ```bash
    docker compose up -d postgres redis liquibase adminer eureka api-gateway
    ```
-   This brings up the shared infrastructure (database, cache, Liquibase migrations, Adminer UI, Eureka, API gateway) that the microservices rely on. Use `docker compose ps` to verify container health or `docker compose logs -f <service>` to tail logs.
 
-   💡 Prefer automation? Run the helper script instead:
+   Or launch the full developer stack (all compose services) with the helper scripts:
    ```bash
-   ./scripts/dev-start.sh        # Starts the full Docker stack + health checks
-   # Stop / restart later with:
-   ./scripts/dev-stop.sh         # Gracefully stops containers
-   ./scripts/dev-restart.sh      # Restarts the Docker stack
+   ./scripts/dev-start.sh   # start everything, with health checks
+   ./scripts/dev-stop.sh    # stop containers
+   ./scripts/dev-restart.sh # restart the stack
    ```
 
 3. **Run Spring Boot microservices locally**

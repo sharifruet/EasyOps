@@ -1,145 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOpportunityStages, getOpportunities } from '../../services/crmService';
+import { useAuth } from '../../contexts/AuthContext';
+import { getOpportunityStages, getOpportunities, OpportunityStage, Opportunity } from '../../services/crmService';
 import './Crm.css';
 
-interface Stage {
-  stageId: string;
-  stageName: string;
-  stageOrder: number;
-  probability: number;
-}
-
-interface Opportunity {
-  opportunityId: string;
-  opportunityName: string;
-  opportunityNumber: string;
-  amount: number;
-  expectedRevenue: number;
-  stageId: string;
-  priority?: string;
-}
+type StageWithTotals = OpportunityStage & {
+  totalExpected: number;
+  opportunities: Opportunity[];
+};
 
 const PipelineKanban: React.FC = () => {
   const navigate = useNavigate();
-  const [stages, setStages] = useState<Stage[]>([]);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  const organizationId = '123e4567-e89b-12d3-a456-426614174000'; // Replace with actual org ID
+  const { currentOrganizationId } = useAuth();
+
+  const [stages, setStages] = useState<StageWithTotals[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPipelineData();
-  }, []);
+    if (!currentOrganizationId) {
+      setStages([]);
+      setError('No organization selected');
+      return;
+    }
 
-  const loadPipelineData = async () => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [stageResponse, opportunitiesResponse] = await Promise.all([
+          getOpportunityStages(currentOrganizationId),
+          getOpportunities(currentOrganizationId, 'OPEN'),
+        ]);
+        const stageMap = (stageResponse ?? []).map((stage) => ({
+          ...stage,
+          totalExpected: 0,
+          opportunities: [],
+        }));
+        const stageTotals = stageMap.reduce<Record<string, StageWithTotals>>((acc, stage) => {
+          acc[stage.stageId] = stage;
+          return acc;
+        }, {});
+
+        (Array.isArray(opportunitiesResponse) ? opportunitiesResponse : []).forEach((opportunity) => {
+          if (!opportunity.stageId || !stageTotals[opportunity.stageId]) return;
+          stageTotals[opportunity.stageId].opportunities.push(opportunity);
+          stageTotals[opportunity.stageId].totalExpected += opportunity.expectedRevenue ?? 0;
+        });
+
+        const orderedStages = Object.values(stageTotals).sort(
+          (a, b) => (a.stageOrder ?? 0) - (b.stageOrder ?? 0),
+        );
+        setStages(orderedStages);
+      } catch (err) {
+        console.error('Failed to load pipeline data:', err);
+        setError('Failed to load pipeline data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [currentOrganizationId]);
+
+  const totalExpectedRevenue = useMemo(
+    () => stages.reduce((sum, stage) => sum + stage.totalExpected, 0),
+    [stages],
+  );
+
+  const formatCurrency = (amount?: number, currency?: string) => {
+    if (amount === undefined || amount === null) return '-';
+    const code = currency || 'BDT';
     try {
-      setLoading(true);
-      const [stagesData, oppsData] = await Promise.all([
-        getOpportunityStages(organizationId),
-        getOpportunities(organizationId, 'OPEN')
-      ]);
-      setStages(stagesData.sort((a, b) => a.stageOrder - b.stageOrder));
-      setOpportunities(oppsData);
-    } catch (error) {
-      console.error('Error loading pipeline data:', error);
-    } finally {
-      setLoading(false);
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    } catch {
+      return `${code} ${amount.toLocaleString()}`;
     }
   };
 
-  const getOpportunitiesByStage = (stageId: string) => {
-    return opportunities.filter(opp => opp.stageId === stageId);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const calculateStageTotal = (stageId: string) => {
-    const stageOpps = getOpportunitiesByStage(stageId);
-    return stageOpps.reduce((sum, opp) => sum + (opp.expectedRevenue || 0), 0);
-  };
-
-  if (loading) {
-    return <div className="crm-loading">Loading pipeline...</div>;
-  }
-
   return (
-    <div className="crm-container">
-      <div className="crm-header">
-        <h1>Sales Pipeline</h1>
-        <button 
-          className="crm-btn-primary"
-          onClick={() => navigate('/crm/opportunities/new')}
-        >
-          + New Opportunity
-        </button>
-      </div>
-
-      <div className="crm-pipeline-kanban">
-        {stages.map(stage => {
-          const stageOpps = getOpportunitiesByStage(stage.stageId);
-          const stageTotal = calculateStageTotal(stage.stageId);
-
-          return (
-            <div key={stage.stageId} className="crm-kanban-column">
-              <div className="crm-kanban-header">
-                <h3>{stage.stageName}</h3>
-                <div className="crm-kanban-meta">
-                  <span className="crm-kanban-count">{stageOpps.length} deals</span>
-                  <span className="crm-kanban-total">{formatCurrency(stageTotal)}</span>
-                  <span className="crm-kanban-probability">{stage.probability}%</span>
-                </div>
-              </div>
-              
-              <div className="crm-kanban-cards">
-                {stageOpps.length === 0 ? (
-                  <div className="crm-kanban-empty">No opportunities</div>
-                ) : (
-                  stageOpps.map(opp => (
-                    <div 
-                      key={opp.opportunityId}
-                      className="crm-kanban-card"
-                      onClick={() => navigate(`/crm/opportunities/${opp.opportunityId}`)}
-                    >
-                      <div className="crm-kanban-card-header">
-                        <h4>{opp.opportunityName}</h4>
-                        {opp.priority && (
-                          <span className={`crm-badge crm-badge-${opp.priority.toLowerCase()}`}>
-                            {opp.priority}
-                          </span>
-                        )}
-                      </div>
-                      <p className="crm-kanban-card-number">{opp.opportunityNumber}</p>
-                      <div className="crm-kanban-card-footer">
-                        <strong>{formatCurrency(opp.amount)}</strong>
-                        <span className="crm-kanban-card-expected">
-                          Expected: {formatCurrency(opp.expectedRevenue)}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {stages.length === 0 && (
-        <div className="crm-empty-state">
-          <p>No pipeline stages configured</p>
-          <p className="crm-help-text">Contact your administrator to set up sales stages</p>
+    <div className="crm-page">
+      <div className="page-header">
+        <div>
+          <h1>Sales Pipeline</h1>
+          <p>Visualise opportunities by stage and identify revenue risk early</p>
         </div>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => navigate('/crm/opportunities/new')}>
+            + New Opportunity
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="alert error">{error}</div>}
+
+      {loading ? (
+        <div className="table-loading" style={{ background: 'white', borderRadius: 16 }}>
+          <span className="spinner" /> Loading pipeline...
+        </div>
+      ) : stages.length === 0 ? (
+        <div className="crm-empty-state">
+          <p>No pipeline stages configured.</p>
+          <p className="crm-help-text">
+            Define opportunity stages to unlock the pipeline view.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="crm-summary-cards" style={{ marginBottom: 24 }}>
+            <div className="crm-summary-card">
+              <h3>Stages</h3>
+              <div className="crm-card-value">{stages.length}</div>
+              <small>Active pipeline stages</small>
+            </div>
+            <div className="crm-summary-card">
+              <h3>Open Opportunities</h3>
+              <div className="crm-card-value">
+                {stages.reduce((sum, stage) => sum + stage.opportunities.length, 0)}
+              </div>
+              <small>Total deals in the pipeline</small>
+            </div>
+            <div className="crm-summary-card">
+              <h3>Expected Revenue</h3>
+              <div className="crm-card-value">{formatCurrency(totalExpectedRevenue)}</div>
+              <small>Weighted pipeline value</small>
+            </div>
+          </div>
+
+          <div className="crm-pipeline-board">
+            {stages.map((stage) => (
+              <section key={stage.stageId} className="crm-pipeline-column">
+                <header className="crm-pipeline-column-header">
+                  <div>
+                    <h2>{stage.stageName}</h2>
+                    <p>{stage.probability}% probability</p>
+                  </div>
+                  <div className="crm-pipeline-column-meta">
+                    <span>{stage.opportunities.length} deals</span>
+                    <strong>{formatCurrency(stage.totalExpected)}</strong>
+                  </div>
+                </header>
+
+                <div className="crm-pipeline-cards">
+                  {stage.opportunities.length === 0 ? (
+                    <div className="crm-pipeline-empty">No opportunities</div>
+                  ) : (
+                    stage.opportunities.map((opportunity) => (
+                      <article
+                        key={opportunity.opportunityId}
+                        className="crm-pipeline-card"
+                        onClick={() => navigate(`/crm/opportunities/${opportunity.opportunityId}`)}
+                      >
+                        <div className="crm-pipeline-card-title">
+                          <strong>{opportunity.opportunityName}</strong>
+                          <small>{opportunity.opportunityNumber || '--'}</small>
+                        </div>
+                        <div className="crm-pipeline-card-values">
+                          <span>{formatCurrency(opportunity.amount, opportunity.currency)}</span>
+                          <span className="expected">
+                            Expected {formatCurrency(opportunity.expectedRevenue, opportunity.currency)}
+                          </span>
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </section>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 };
 
 export default PipelineKanban;
-

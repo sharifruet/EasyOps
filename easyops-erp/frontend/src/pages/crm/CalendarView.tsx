@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { getEvents, createEvent, updateEvent, deleteEvent } from '../../services/crmService';
 import './Crm.css';
 
-interface Event {
+type EventRecord = {
   eventId?: string;
   organizationId: string;
   subject: string;
@@ -11,109 +12,226 @@ interface Event {
   startDatetime: string;
   endDatetime: string;
   location?: string;
-  status: string;
-}
+  status?: string;
+  organizerId?: string;
+};
+
+type EventFormState = Partial<EventRecord> & {
+  organizationId: string;
+};
+
+const defaultEventValues = (organizationId: string, organizerId?: string): EventFormState => ({
+  organizationId,
+  subject: '',
+  description: '',
+  eventType: 'MEETING',
+  startDatetime: '',
+  endDatetime: '',
+  location: '',
+  status: 'PLANNED',
+  organizerId,
+});
+
+const statusClassName = (status?: string) => {
+  if (!status) return 'planned';
+  return status.toLowerCase().replace(/_/g, '-');
+};
 
 const CalendarView: React.FC = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  
-  const organizationId = '123e4567-e89b-12d3-a456-426614174000';
-  const userId = '123e4567-e89b-12d3-a456-426614174001';
+  const { currentOrganizationId, user } = useAuth();
 
-  const [formData, setFormData] = useState<Event>({
-    organizationId,
-    subject: '',
-    description: '',
-    eventType: 'MEETING',
-    startDatetime: '',
-    endDatetime: '',
-    location: '',
-    status: 'PLANNED'
-  });
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [formData, setFormData] = useState<EventFormState | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadEvents();
-  }, []);
+    if (!currentOrganizationId) {
+      setEvents([]);
+      setFormData(null);
+      setError('No organization selected');
+      return;
+    }
 
-  const loadEvents = async () => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getEvents(
+          currentOrganizationId,
+          user?.id,
+          statusFilter || undefined,
+        );
+        setEvents(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to load events:', err);
+        setError('Failed to load events');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [currentOrganizationId, user?.id, statusFilter]);
+
+  useEffect(() => {
+    if (!formData && currentOrganizationId) {
+      setFormData(defaultEventValues(currentOrganizationId, user?.id));
+    }
+  }, [currentOrganizationId, user?.id, formData]);
+
+  const openForm = (eventRecord?: EventRecord) => {
+    if (!currentOrganizationId) return;
+    setIsEditing(Boolean(eventRecord));
+    setFormData(
+      eventRecord
+        ? { ...eventRecord, organizationId: currentOrganizationId }
+        : defaultEventValues(currentOrganizationId, user?.id),
+    );
+  };
+
+  const closeForm = () => {
+    if (!currentOrganizationId) {
+      setFormData(null);
+      return;
+    }
+    setIsEditing(false);
+    setFormData(defaultEventValues(currentOrganizationId, user?.id));
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!formData || !currentOrganizationId) return;
+
     try {
       setLoading(true);
-      const data = await getEvents(organizationId, userId);
-      setEvents(data);
-    } catch (error) {
-      console.error('Error loading events:', error);
+      setError(null);
+      const payload: EventRecord = {
+        ...formData,
+        organizationId: currentOrganizationId,
+        organizerId: formData.organizerId || user?.id,
+      } as EventRecord;
+
+      if (formData.eventId) {
+        await updateEvent(formData.eventId, payload);
+      } else {
+        await createEvent(payload);
+      }
+      closeForm();
+      const data = await getEvents(currentOrganizationId, user?.id, statusFilter || undefined);
+      setEvents(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to save event:', err);
+      setError('Failed to save event');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (formData.eventId) {
-        await updateEvent(formData.eventId, formData);
-      } else {
-        await createEvent(formData);
-      }
-      setShowForm(false);
-      resetForm();
-      loadEvents();
-    } catch (error) {
-      console.error('Error saving event:', error);
-    }
-  };
-
   const handleDelete = async (eventId: string) => {
-    if (window.confirm('Delete this event?')) {
-      try {
-        await deleteEvent(eventId);
-        loadEvents();
-      } catch (error) {
-        console.error('Error deleting event:', error);
-      }
+    if (!confirm('Delete this event?')) return;
+    if (!currentOrganizationId) return;
+    try {
+      setLoading(true);
+      await deleteEvent(eventId);
+      const data = await getEvents(currentOrganizationId, user?.id, statusFilter || undefined);
+      setEvents(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to delete event:', err);
+      setError('Failed to delete event');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      organizationId,
-      subject: '',
-      description: '',
-      eventType: 'MEETING',
-      startDatetime: '',
-      endDatetime: '',
-      location: '',
-      status: 'PLANNED'
-    });
-  };
+  const totals = useMemo(
+    () => ({
+      total: events.length,
+      upcoming: events.filter((event) => new Date(event.startDatetime) > new Date()).length,
+    }),
+    [events],
+  );
 
-  if (loading) {
-    return <div className="crm-loading">Loading calendar...</div>;
-  }
+  const formatDateTime = (value?: string) => {
+    if (!value) return '--';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '--';
+    return parsed.toLocaleString();
+  };
 
   return (
-    <div className="crm-container">
-      <div className="crm-header">
-        <h1>Calendar</h1>
-        <button className="crm-btn-primary" onClick={() => setShowForm(true)}>
-          + New Event
-        </button>
+    <div className="crm-page">
+      <div className="page-header">
+        <div>
+          <h1>Calendar</h1>
+          <p>Schedule demos, meetings, and client activities</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => openForm()}>
+            + New Event
+          </button>
+        </div>
       </div>
 
-      {showForm && (
-        <div className="crm-modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="crm-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{formData.eventId ? 'Edit Event' : 'New Event'}</h2>
-            <form onSubmit={handleSubmit} className="crm-form">
-              <div className="crm-form-group">
-                <label>Subject *</label>
-                <input type="text" value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} required />
+      {error && <div className="alert error">{error}</div>}
+
+      <div className="crm-summary-cards" style={{ marginBottom: 24 }}>
+        <div className="crm-summary-card">
+          <h3>Total Events</h3>
+          <div className="crm-card-value">{totals.total}</div>
+          <small>Managed for this organization</small>
+        </div>
+        <div className="crm-summary-card">
+          <h3>Upcoming</h3>
+          <div className="crm-card-value">{totals.upcoming}</div>
+          <small>Scheduled after today</small>
+        </div>
+      </div>
+
+      <div className="filters-section">
+        <div className="filters-grid">
+          <div className="form-row">
+            <label htmlFor="event-status">Status</label>
+            <select
+              id="event-status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option value="">All Statuses</option>
+              <option value="PLANNED">Planned</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {formData && (
+        <div className="crm-form" style={{ marginBottom: 32 }}>
+          <h2>{isEditing ? 'Edit Event' : 'Create Event'}</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="event-subject">Subject *</label>
+                <input
+                  id="event-subject"
+                  name="subject"
+                  value={formData.subject || ''}
+                  onChange={(event) => setFormData({ ...formData, subject: event.target.value })}
+                  required
+                />
               </div>
-              <div className="crm-form-group">
-                <label>Event Type</label>
-                <select value={formData.eventType} onChange={(e) => setFormData({...formData, eventType: e.target.value})}>
+              <div className="form-group">
+                <label htmlFor="event-type">Event Type</label>
+                <select
+                  id="event-type"
+                  name="eventType"
+                  value={formData.eventType || 'MEETING'}
+                  onChange={(event) => setFormData({ ...formData, eventType: event.target.value })}
+                >
                   <option value="MEETING">Meeting</option>
                   <option value="CALL">Call</option>
                   <option value="WEBINAR">Webinar</option>
@@ -121,53 +239,141 @@ const CalendarView: React.FC = () => {
                   <option value="DEMO">Demo</option>
                 </select>
               </div>
-              <div className="crm-form-group">
-                <label>Start *</label>
-                <input type="datetime-local" value={formData.startDatetime} onChange={(e) => setFormData({...formData, startDatetime: e.target.value})} required />
+              <div className="form-group">
+                <label htmlFor="event-status-input">Status</label>
+                <select
+                  id="event-status-input"
+                  name="status"
+                  value={formData.status || 'PLANNED'}
+                  onChange={(event) => setFormData({ ...formData, status: event.target.value })}
+                >
+                  <option value="PLANNED">Planned</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
               </div>
-              <div className="crm-form-group">
-                <label>End *</label>
-                <input type="datetime-local" value={formData.endDatetime} onChange={(e) => setFormData({...formData, endDatetime: e.target.value})} required />
+              <div className="form-group">
+                <label htmlFor="event-start">Start *</label>
+                <input
+                  id="event-start"
+                  name="startDatetime"
+                  type="datetime-local"
+                  value={formData.startDatetime?.slice(0, 16) || ''}
+                  onChange={(event) =>
+                    setFormData({ ...formData, startDatetime: event.target.value })
+                  }
+                  required
+                />
               </div>
-              <div className="crm-form-group crm-form-group-full">
-                <label>Location</label>
-                <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+              <div className="form-group">
+                <label htmlFor="event-end">End *</label>
+                <input
+                  id="event-end"
+                  name="endDatetime"
+                  type="datetime-local"
+                  value={formData.endDatetime?.slice(0, 16) || ''}
+                  onChange={(event) =>
+                    setFormData({ ...formData, endDatetime: event.target.value })
+                  }
+                  required
+                />
               </div>
-              <div className="crm-form-group crm-form-group-full">
-                <label>Description</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} />
+              <div className="form-group">
+                <label htmlFor="event-location">Location</label>
+                <input
+                  id="event-location"
+                  name="location"
+                  value={formData.location || ''}
+                  onChange={(event) => setFormData({ ...formData, location: event.target.value })}
+                />
               </div>
-              <div className="crm-form-actions">
-                <button type="button" className="crm-btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-                <button type="submit" className="crm-btn-primary">Save Event</button>
+              <div className="form-group form-group-full">
+                <label htmlFor="event-description">Description</label>
+                <textarea
+                  id="event-description"
+                  name="description"
+                  rows={3}
+                  value={formData.description || ''}
+                  onChange={(event) =>
+                    setFormData({ ...formData, description: event.target.value })
+                  }
+                />
               </div>
-            </form>
-          </div>
+            </div>
+            <div className="form-actions">
+              <button type="button" className="btn-secondary" onClick={closeForm}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Saving...' : isEditing ? 'Update Event' : 'Create Event'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      <div className="crm-event-list">
-        {events.length === 0 ? (
-          <p className="crm-empty-state">No events scheduled</p>
-        ) : (
-          events.map((event) => (
-            <div key={event.eventId} className="crm-event-item">
-              <div className="crm-event-header">
-                <h4>{event.subject}</h4>
-                <span className="crm-badge">{event.eventType}</span>
-              </div>
-              <p className="crm-event-time">
-                {new Date(event.startDatetime).toLocaleString()} - {new Date(event.endDatetime).toLocaleString()}
-              </p>
-              {event.location && <p className="crm-event-location">📍 {event.location}</p>}
-              {event.description && <p>{event.description}</p>}
-              <div className="crm-event-actions">
-                <button className="crm-btn-link" onClick={() => event.eventId && handleDelete(event.eventId)}>
-                  Delete
-                </button>
-              </div>
+      <div className="table-wrapper">
+        {loading ? (
+          <div className="table-loading">
+            <span className="spinner" /> Loading events...
+          </div>
+        ) : events.length === 0 ? (
+          <div className="crm-empty-state">
+            <p>No events match your filters.</p>
+            <div className="empty-actions">
+              <button className="btn-primary" onClick={() => openForm()}>
+                Schedule Event
+              </button>
             </div>
-          ))
+          </div>
+        ) : (
+          <table className="crm-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Location</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((record) => (
+                <tr key={record.eventId}>
+                  <td>
+                    <div className="crm-opportunity-cell">
+                      <strong>{record.subject}</strong>
+                      {record.description && <small>{record.description}</small>}
+                    </div>
+                  </td>
+                  <td>{record.eventType || '--'}</td>
+                  <td>
+                    <span className={`status-badge status-${statusClassName(record.status)}`}>
+                      {record.status || 'Planned'}
+                    </span>
+                  </td>
+                  <td>{formatDateTime(record.startDatetime)}</td>
+                  <td>{formatDateTime(record.endDatetime)}</td>
+                  <td>{record.location || '--'}</td>
+                  <td>
+                    <div className="action-buttons">
+                      <button className="btn-sm btn-secondary" onClick={() => openForm(record)}>
+                        Edit
+                      </button>
+                      {record.eventId && (
+                        <button className="btn-sm btn-disqualify" onClick={() => handleDelete(record.eventId!)}>
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

@@ -18,6 +18,12 @@ PROFILE="${SPRING_PROFILE:-local}"
 LOG_DIR="${LOG_DIR:-$ROOT_DIR/logs/local-services}" 
 PID_DIR="${PID_DIR:-$LOG_DIR/pids}"
 
+# Ensure Eureka clients register with a host reachable from Docker containers.
+: "${EUREKA_INSTANCE_HOSTNAME:=host.docker.internal}"
+: "${EUREKA_INSTANCE_PREFER_IP_ADDRESS:=false}"
+export EUREKA_INSTANCE_HOSTNAME
+export EUREKA_INSTANCE_PREFER_IP_ADDRESS
+
 # Update this list to match the services you want to boot locally.
 # Order matters when services depend on one another.
 DEFAULT_SERVICES=(
@@ -89,6 +95,8 @@ start_service() {
     SPRING_PROFILES_ACTIVE="$PROFILE" "$MAVEN_CMD" spring-boot:run \
       -Dspring-boot.run.profiles="$PROFILE" \
       -DskipTests=true \
+      -Deureka.instance.hostname="$EUREKA_INSTANCE_HOSTNAME" \
+      -Deureka.instance.preferIpAddress="$EUREKA_INSTANCE_PREFER_IP_ADDRESS" \
       ${SPRING_BOOT_EXTRAS:-} \
       >"$log_file" 2>&1
   ) &

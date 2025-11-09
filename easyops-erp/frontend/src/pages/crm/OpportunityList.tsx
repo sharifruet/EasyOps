@@ -1,195 +1,260 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { getOpportunities, deleteOpportunity } from '../../services/crmService';
 import './Crm.css';
 
-interface Opportunity {
+type Opportunity = {
   opportunityId: string;
-  opportunityNumber: string;
+  opportunityNumber?: string;
   opportunityName: string;
-  amount: number;
-  expectedRevenue: number;
-  expectedCloseDate: string;
-  status: string;
-  priority?: string;
   stageName?: string;
-}
+  status?: string;
+  priority?: string;
+  amount?: number;
+  expectedRevenue?: number;
+  expectedCloseDate?: string;
+  currency?: string;
+};
+
+const statusLabel = (status?: string) => {
+  if (!status) return 'Unknown';
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
+const statusClassName = (status?: string) => {
+  const value = status?.toLowerCase();
+  switch (value) {
+    case 'open':
+    case 'active':
+      return 'status-in-progress';
+    case 'won':
+      return 'status-converted';
+    case 'lost':
+      return 'status-lost';
+    case 'abandoned':
+      return 'status-unqualified';
+    default:
+      return 'status-planned';
+  }
+};
+
+const priorityClassName = (priority?: string) => {
+  const value = priority?.toLowerCase();
+  switch (value) {
+    case 'urgent':
+      return 'priority-urgent';
+    case 'high':
+      return 'priority-high';
+    case 'medium':
+      return 'priority-medium';
+    default:
+      return 'priority-low';
+  }
+};
+
+const formatCurrency = (amount?: number, currency?: string) => {
+  if (amount === undefined || amount === null) return '-';
+  const code = currency || 'BDT';
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${code} ${amount.toLocaleString()}`;
+  }
+};
+
+const formatDate = (value?: string) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString();
+};
 
 const OpportunityList: React.FC = () => {
   const navigate = useNavigate();
+  const { currentOrganizationId } = useAuth();
+
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [loading, setLoading] = useState(true);
-  
-  const organizationId = '123e4567-e89b-12d3-a456-426614174000'; // Replace with actual org ID
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadOpportunities();
-  }, []);
-
-  useEffect(() => {
-    filterOpportunities();
-  }, [searchTerm, statusFilter, opportunities]);
-
-  const loadOpportunities = async () => {
-    try {
-      setLoading(true);
-      const data = await getOpportunities(organizationId);
-      setOpportunities(data);
-      setFilteredOpportunities(data);
-    } catch (error) {
-      console.error('Error loading opportunities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterOpportunities = () => {
-    let filtered = opportunities;
-
-    if (searchTerm) {
-      filtered = filtered.filter(opp =>
-        opp.opportunityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        opp.opportunityNumber.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    if (!currentOrganizationId) {
+      setError('No organization selected');
+      setOpportunities([]);
+      return;
     }
 
-    if (statusFilter) {
-      filtered = filtered.filter(opp => opp.status === statusFilter);
-    }
-
-    setFilteredOpportunities(filtered);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this opportunity?')) {
+    const load = async () => {
       try {
-        await deleteOpportunity(id);
-        loadOpportunities();
-      } catch (error) {
-        console.error('Error deleting opportunity:', error);
-        alert('Failed to delete opportunity');
+        setLoading(true);
+        setError(null);
+        const data = await getOpportunities(currentOrganizationId, statusFilter || undefined);
+        setOpportunities(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to load opportunities:', err);
+        setError('Failed to load opportunities');
+      } finally {
+        setLoading(false);
       }
+    };
+
+    load();
+  }, [currentOrganizationId, statusFilter]);
+
+  const filteredOpportunities = useMemo(() => {
+    if (!searchTerm) return opportunities;
+    const term = searchTerm.toLowerCase();
+    return opportunities.filter((opp) => {
+      return (
+        (opp.opportunityName && opp.opportunityName.toLowerCase().includes(term)) ||
+        (opp.opportunityNumber && opp.opportunityNumber.toLowerCase().includes(term)) ||
+        (opp.stageName && opp.stageName.toLowerCase().includes(term))
+      );
+    });
+  }, [opportunities, searchTerm]);
+
+  const handleDelete = async (opportunityId: string) => {
+    if (!confirm('Delete this opportunity?')) return;
+    try {
+      await deleteOpportunity(opportunityId);
+      if (currentOrganizationId) {
+        const data = await getOpportunities(currentOrganizationId, statusFilter || undefined);
+        setOpportunities(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to delete opportunity:', err);
+      alert('Failed to delete opportunity');
     }
   };
-
-  const getStatusBadge = (status: string) => {
-    const statusClass = status.toLowerCase();
-    return <span className={`crm-badge crm-badge-${statusClass}`}>{status}</span>;
-  };
-
-  const getPriorityBadge = (priority?: string) => {
-    if (!priority) return null;
-    const priorityClass = priority.toLowerCase();
-    return <span className={`crm-badge crm-badge-${priorityClass}`}>{priority}</span>;
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  if (loading) {
-    return <div className="crm-loading">Loading opportunities...</div>;
-  }
 
   return (
-    <div className="crm-container">
-      <div className="crm-header">
-        <h1>Opportunities</h1>
-        <button 
-          className="crm-btn-primary"
-          onClick={() => navigate('/crm/opportunities/new')}
-        >
-          + New Opportunity
-        </button>
+    <div className="crm-page">
+      <div className="page-header">
+        <div>
+          <h1>Opportunities</h1>
+          <p>Monitor deals across every pipeline stage</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => navigate('/crm/opportunities/new')}>
+            + New Opportunity
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="crm-filters">
-        <input
-          type="text"
-          className="crm-search"
-          placeholder="Search opportunities..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <select
-          className="crm-filter-select"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="">All Statuses</option>
-          <option value="OPEN">Open</option>
-          <option value="WON">Won</option>
-          <option value="LOST">Lost</option>
-          <option value="ABANDONED">Abandoned</option>
-        </select>
-      </div>
-
-      {/* Opportunities Table */}
-      <div className="crm-table-container">
-        {filteredOpportunities.length === 0 ? (
-          <div className="crm-empty-state">
-            <p>No opportunities found</p>
-            <button 
-              className="crm-btn-primary"
-              onClick={() => navigate('/crm/opportunities/new')}
+      <div className="filters-section">
+        <div className="filters-grid">
+          <div className="form-row">
+            <label htmlFor="opportunity-search">Search</label>
+            <input
+              id="opportunity-search"
+              type="text"
+              placeholder="Search by name, number or stage"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+          </div>
+          <div className="form-row">
+            <label htmlFor="opportunity-status">Status</label>
+            <select
+              id="opportunity-status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
             >
-              Create Your First Opportunity
-            </button>
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="WON">Won</option>
+              <option value="LOST">Lost</option>
+              <option value="ABANDONED">Abandoned</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {error && <div className="alert error">{error}</div>}
+
+      <div className="table-wrapper">
+        {loading ? (
+          <div className="table-loading">
+            <span className="spinner" /> Loading opportunities...
+          </div>
+        ) : filteredOpportunities.length === 0 ? (
+          <div className="crm-empty-state">
+            <p>No opportunities match your filters.</p>
+            <div className="empty-actions">
+              <button className="btn-secondary" onClick={() => setSearchTerm('')}>
+                Clear Search
+              </button>
+              <button className="btn-primary" onClick={() => navigate('/crm/opportunities/new')}>
+                Create Opportunity
+              </button>
+            </div>
           </div>
         ) : (
           <table className="crm-table">
             <thead>
               <tr>
-                <th>Opportunity Number</th>
-                <th>Name</th>
+                <th>Opportunity</th>
+                <th>Stage</th>
+                <th>Status</th>
                 <th>Amount</th>
                 <th>Expected Revenue</th>
                 <th>Expected Close</th>
-                <th>Status</th>
                 <th>Priority</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredOpportunities.map((opp) => (
-                <tr key={opp.opportunityId}>
-                  <td>{opp.opportunityNumber}</td>
+              {filteredOpportunities.map((opportunity) => (
+                <tr key={opportunity.opportunityId}>
                   <td>
-                    <strong>{opp.opportunityName}</strong>
+                    <div className="crm-opportunity-cell">
+                      <strong>{opportunity.opportunityName}</strong>
+                      <small>{opportunity.opportunityNumber || '--'}</small>
+                    </div>
                   </td>
-                  <td>{formatCurrency(opp.amount)}</td>
-                  <td>{formatCurrency(opp.expectedRevenue)}</td>
-                  <td>{opp.expectedCloseDate ? formatDate(opp.expectedCloseDate) : '-'}</td>
-                  <td>{getStatusBadge(opp.status)}</td>
-                  <td>{getPriorityBadge(opp.priority)}</td>
+                  <td>{opportunity.stageName || '--'}</td>
                   <td>
-                    <div className="crm-action-buttons">
+                    <span className={`status-badge ${statusClassName(opportunity.status)}`}>
+                      {statusLabel(opportunity.status)}
+                    </span>
+                  </td>
+                  <td>{formatCurrency(opportunity.amount, opportunity.currency)}</td>
+                  <td>{formatCurrency(opportunity.expectedRevenue, opportunity.currency)}</td>
+                  <td>{formatDate(opportunity.expectedCloseDate)}</td>
+                  <td>
+                    {opportunity.priority ? (
+                      <span className={`priority-badge ${priorityClassName(opportunity.priority)}`}>
+                        {opportunity.priority}
+                      </span>
+                    ) : (
+                      '--'
+                    )}
+                  </td>
+                  <td>
+                    <div className="action-buttons">
                       <button
-                        className="crm-btn-link"
-                        onClick={() => navigate(`/crm/opportunities/${opp.opportunityId}`)}
+                        className="btn-sm btn-primary"
+                        onClick={() => navigate(`/crm/opportunities/${opportunity.opportunityId}`)}
                       >
                         View
                       </button>
                       <button
-                        className="crm-btn-link"
-                        onClick={() => navigate(`/crm/opportunities/${opp.opportunityId}/edit`)}
+                        className="btn-sm btn-secondary"
+                        onClick={() => navigate(`/crm/opportunities/${opportunity.opportunityId}/edit`)}
                       >
                         Edit
                       </button>
                       <button
-                        className="crm-btn-link crm-btn-danger"
-                        onClick={() => handleDelete(opp.opportunityId)}
+                        className="btn-sm btn-disqualify"
+                        onClick={() => handleDelete(opportunity.opportunityId)}
                       >
                         Delete
                       </button>
@@ -206,4 +271,3 @@ const OpportunityList: React.FC = () => {
 };
 
 export default OpportunityList;
-

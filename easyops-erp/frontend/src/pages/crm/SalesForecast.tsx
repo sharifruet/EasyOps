@@ -1,227 +1,213 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { getOpportunities, getPipelineStats } from '../../services/crmService';
 import './Crm.css';
 
-interface ForecastData {
+type ForecastRow = {
   month: string;
   openCount: number;
   openAmount: number;
   wonCount: number;
   wonAmount: number;
   expectedRevenue: number;
-}
+};
+
+const formatCurrency = (amount?: number, currency: string = 'BDT') => {
+  if (amount === undefined || amount === null) return '-';
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount.toLocaleString()}`;
+  }
+};
+
+const formatMonth = (monthKey: string) => {
+  const [year, month] = monthKey.split('-');
+  const date = new Date(Number(year), Number(month) - 1);
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+};
 
 const SalesForecast: React.FC = () => {
   const navigate = useNavigate();
-  const [forecastData, setForecastData] = useState<ForecastData[]>([]);
+  const { currentOrganizationId } = useAuth();
+
+  const [rows, setRows] = useState<ForecastRow[]>([]);
   const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState('quarterly');
-  
-  const organizationId = '123e4567-e89b-12d3-a456-426614174000'; // Replace with actual org ID
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadForecastData();
-  }, []);
-
-  const loadForecastData = async () => {
-    try {
-      setLoading(true);
-      const [opportunities, pipelineStats] = await Promise.all([
-        getOpportunities(organizationId),
-        getPipelineStats(organizationId)
-      ]);
-      
-      setStats(pipelineStats);
-      
-      // Group opportunities by month
-      const grouped = groupOpportunitiesByMonth(opportunities);
-      setForecastData(grouped);
-    } catch (error) {
-      console.error('Error loading forecast data:', error);
-    } finally {
-      setLoading(false);
+    if (!currentOrganizationId) {
+      setRows([]);
+      setStats(null);
+      setError('No organization selected');
+      return;
     }
-  };
 
-  const groupOpportunitiesByMonth = (opportunities: any[]): ForecastData[] => {
-    const monthMap = new Map<string, ForecastData>();
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [opportunities, statsResponse] = await Promise.all([
+          getOpportunities(currentOrganizationId),
+          getPipelineStats(currentOrganizationId),
+        ]);
 
-    opportunities.forEach(opp => {
-      if (!opp.expectedCloseDate) return;
+        setStats(statsResponse ?? null);
 
-      const date = new Date(opp.expectedCloseDate);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-
-      if (!monthMap.has(monthKey)) {
-        monthMap.set(monthKey, {
-          month: monthKey,
-          openCount: 0,
-          openAmount: 0,
-          wonCount: 0,
-          wonAmount: 0,
-          expectedRevenue: 0
+        const grouped = new Map<string, ForecastRow>();
+        (Array.isArray(opportunities) ? opportunities : []).forEach((opportunity) => {
+          if (!opportunity.expectedCloseDate) return;
+          const date = new Date(opportunity.expectedCloseDate);
+          if (Number.isNaN(date.getTime())) return;
+          const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          if (!grouped.has(key)) {
+            grouped.set(key, {
+              month: key,
+              openCount: 0,
+              openAmount: 0,
+              wonCount: 0,
+              wonAmount: 0,
+              expectedRevenue: 0,
+            });
+          }
+          const row = grouped.get(key)!;
+          if (opportunity.status === 'WON') {
+            row.wonCount += 1;
+            row.wonAmount += opportunity.amount ?? 0;
+          } else {
+            row.openCount += 1;
+            row.openAmount += opportunity.amount ?? 0;
+            row.expectedRevenue += opportunity.expectedRevenue ?? 0;
+          }
         });
+
+        setRows(Array.from(grouped.values()).sort((a, b) => a.month.localeCompare(b.month)));
+      } catch (err) {
+        console.error('Failed to load sales forecast:', err);
+        setError('Failed to load sales forecast');
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const monthData = monthMap.get(monthKey)!;
+    load();
+  }, [currentOrganizationId]);
 
-      if (opp.status === 'OPEN') {
-        monthData.openCount++;
-        monthData.openAmount += opp.amount || 0;
-        monthData.expectedRevenue += opp.expectedRevenue || 0;
-      } else if (opp.status === 'WON') {
-        monthData.wonCount++;
-        monthData.wonAmount += opp.amount || 0;
-      }
-    });
-
-    return Array.from(monthMap.values()).sort((a, b) => a.month.localeCompare(b.month));
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const formatMonth = (monthKey: string) => {
-    const [year, month] = monthKey.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-  };
-
-  if (loading) {
-    return <div className="crm-loading">Loading forecast...</div>;
-  }
+  const totals = useMemo(() => ({
+    openCount: rows.reduce((sum, row) => sum + row.openCount, 0),
+    openAmount: rows.reduce((sum, row) => sum + row.openAmount, 0),
+    expectedRevenue: rows.reduce((sum, row) => sum + row.expectedRevenue, 0),
+    wonCount: rows.reduce((sum, row) => sum + row.wonCount, 0),
+    wonAmount: rows.reduce((sum, row) => sum + row.wonAmount, 0),
+  }), [rows]);
 
   return (
-    <div className="crm-container">
-      <div className="crm-header">
-        <h1>Sales Forecast</h1>
-        <div className="crm-period-selector">
-          <button
-            className={`crm-btn-${selectedPeriod === 'monthly' ? 'primary' : 'secondary'}`}
-            onClick={() => setSelectedPeriod('monthly')}
-          >
-            Monthly
-          </button>
-          <button
-            className={`crm-btn-${selectedPeriod === 'quarterly' ? 'primary' : 'secondary'}`}
-            onClick={() => setSelectedPeriod('quarterly')}
-          >
-            Quarterly
-          </button>
-          <button
-            className={`crm-btn-${selectedPeriod === 'yearly' ? 'primary' : 'secondary'}`}
-            onClick={() => setSelectedPeriod('yearly')}
-          >
-            Yearly
+    <div className="crm-page">
+      <div className="page-header">
+        <div>
+          <h1>Sales Forecast</h1>
+          <p>Forecast pipeline performance across monthly periods</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => navigate('/crm/opportunities/new')}>
+            + New Opportunity
           </button>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      {stats && (
-        <div className="crm-stats-grid">
-          <div className="crm-stat-card">
-            <h3>Total Open Pipeline</h3>
-            <p className="crm-stat-value">{stats.totalOpen || 0}</p>
-            <span className="crm-stat-label">Opportunities</span>
-          </div>
-          <div className="crm-stat-card success">
-            <h3>Total Won</h3>
-            <p className="crm-stat-value">{stats.totalWon || 0}</p>
-            <span className="crm-stat-label">Closed Deals</span>
-          </div>
-          <div className="crm-stat-card info">
-            <h3>Win Rate</h3>
-            <p className="crm-stat-value">{stats.winRate || 0}%</p>
-            <span className="crm-stat-label">Success Rate</span>
-          </div>
-        </div>
-      )}
+      {error && <div className="alert error">{error}</div>}
 
-      {/* Forecast Table */}
-      <div className="crm-section">
-        <h2>Forecast by Month</h2>
-        <div className="crm-table-container">
-          {forecastData.length === 0 ? (
-            <div className="crm-empty-state">
-              <p>No forecast data available</p>
-              <button 
-                className="crm-btn-primary"
-                onClick={() => navigate('/crm/opportunities/new')}
-              >
-                Create Opportunities
-              </button>
+      {loading ? (
+        <div className="table-loading" style={{ background: 'white', borderRadius: 16 }}>
+          <span className="spinner" /> Loading forecast...
+        </div>
+      ) : (
+        <>
+          {stats && (
+            <div className="crm-summary-cards" style={{ marginBottom: 24 }}>
+              <div className="crm-summary-card">
+                <h3>Open Pipeline</h3>
+                <div className="crm-card-value">{stats.totalOpen ?? 0}</div>
+                <small>Active opportunities</small>
+              </div>
+              <div className="crm-summary-card">
+                <h3>Won Opportunities</h3>
+                <div className="crm-card-value">{stats.totalWon ?? 0}</div>
+                <small>Closed in the selected period</small>
+              </div>
+              <div className="crm-summary-card">
+                <h3>Win Rate</h3>
+                <div className="crm-card-value">{stats.winRate ?? 0}%</div>
+                <small>Conversion rate for all deals</small>
+              </div>
             </div>
-          ) : (
-            <table className="crm-table">
-              <thead>
-                <tr>
-                  <th>Period</th>
-                  <th>Open Count</th>
-                  <th>Open Amount</th>
-                  <th>Expected Revenue</th>
-                  <th>Won Count</th>
-                  <th>Won Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {forecastData.map(data => (
-                  <tr key={data.month}>
-                    <td><strong>{formatMonth(data.month)}</strong></td>
-                    <td>{data.openCount}</td>
-                    <td>{formatCurrency(data.openAmount)}</td>
-                    <td className="crm-forecast-expected">
-                      {formatCurrency(data.expectedRevenue)}
-                    </td>
-                    <td>{data.wonCount}</td>
-                    <td className="crm-forecast-won">
-                      {formatCurrency(data.wonAmount)}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="crm-table-total">
-                  <td><strong>Total</strong></td>
-                  <td>
-                    <strong>
-                      {forecastData.reduce((sum, d) => sum + d.openCount, 0)}
-                    </strong>
-                  </td>
-                  <td>
-                    <strong>
-                      {formatCurrency(forecastData.reduce((sum, d) => sum + d.openAmount, 0))}
-                    </strong>
-                  </td>
-                  <td>
-                    <strong>
-                      {formatCurrency(forecastData.reduce((sum, d) => sum + d.expectedRevenue, 0))}
-                    </strong>
-                  </td>
-                  <td>
-                    <strong>
-                      {forecastData.reduce((sum, d) => sum + d.wonCount, 0)}
-                    </strong>
-                  </td>
-                  <td>
-                    <strong>
-                      {formatCurrency(forecastData.reduce((sum, d) => sum + d.wonAmount, 0))}
-                    </strong>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           )}
-        </div>
-      </div>
+
+          <div className="crm-section">
+            <div className="crm-section-header">
+              <div>
+                <h2>Forecast by Month</h2>
+                <p className="section-subtitle">Weighted values consider expected revenue for open deals.</p>
+              </div>
+            </div>
+
+            <div className="table-wrapper" style={{ boxShadow: 'none', marginTop: 0 }}>
+              {rows.length === 0 ? (
+                <div className="crm-empty-state">
+                  <p>No forecast data available for the selected organization.</p>
+                  <div className="empty-actions">
+                    <button className="btn-primary" onClick={() => navigate('/crm/opportunities/new')}>
+                      Create Opportunity
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <table className="crm-table">
+                  <thead>
+                    <tr>
+                      <th>Period</th>
+                      <th>Open Count</th>
+                      <th>Open Amount</th>
+                      <th>Expected Revenue</th>
+                      <th>Won Count</th>
+                      <th>Won Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row) => (
+                      <tr key={row.month}>
+                        <td><strong>{formatMonth(row.month)}</strong></td>
+                        <td>{row.openCount}</td>
+                        <td>{formatCurrency(row.openAmount)}</td>
+                        <td>{formatCurrency(row.expectedRevenue)}</td>
+                        <td>{row.wonCount}</td>
+                        <td>{formatCurrency(row.wonAmount)}</td>
+                      </tr>
+                    ))}
+                    <tr className="crm-table-total">
+                      <td><strong>Total</strong></td>
+                      <td><strong>{totals.openCount}</strong></td>
+                      <td><strong>{formatCurrency(totals.openAmount)}</strong></td>
+                      <td><strong>{formatCurrency(totals.expectedRevenue)}</strong></td>
+                      <td><strong>{totals.wonCount}</strong></td>
+                      <td><strong>{formatCurrency(totals.wonAmount)}</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 export default SalesForecast;
-

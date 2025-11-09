@@ -1,115 +1,211 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { getCases, getCaseStats } from '../../services/crmService';
 import './Crm.css';
 
-interface CaseStats {
+type CaseRecord = {
+  caseId: string;
+  caseNumber?: string;
+  subject: string;
+  status?: string;
+  priority?: string;
+  createdAt?: string;
+};
+
+type CaseStats = {
   totalCases: number;
   newCases: number;
   openCases: number;
   activeCases: number;
   resolvedCases: number;
   closedCases: number;
-}
+};
+
+const statusBadge = (status?: string) => {
+  const normalized = status?.toLowerCase() ?? 'planned';
+  if (normalized === 'resolved') return 'status-converted';
+  if (normalized === 'closed') return 'status-unqualified';
+  if (normalized === 'active') return 'status-in-progress';
+  if (normalized === 'open') return 'status-planned';
+  return 'status-planned';
+};
+
+const priorityBadge = (priority?: string) => {
+  const normalized = priority?.toLowerCase();
+  switch (normalized) {
+    case 'urgent':
+      return 'priority-urgent';
+    case 'high':
+      return 'priority-high';
+    case 'medium':
+      return 'priority-medium';
+    default:
+      return 'priority-low';
+  }
+};
 
 const CaseDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { currentOrganizationId } = useAuth();
+
   const [stats, setStats] = useState<CaseStats | null>(null);
-  const [recentCases, setRecentCases] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  const organizationId = '123e4567-e89b-12d3-a456-426614174000';
+  const [recentCases, setRecentCases] = useState<CaseRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [statsData, casesData] = await Promise.all([
-        getCaseStats(organizationId),
-        getCases(organizationId)
-      ]);
-      setStats(statsData);
-      setRecentCases(casesData.slice(0, 10));
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-    } finally {
-      setLoading(false);
+    if (!currentOrganizationId) {
+      setStats(null);
+      setRecentCases([]);
+      setError('No organization selected');
+      return;
     }
-  };
 
-  if (loading) {
-    return <div className="crm-loading">Loading support dashboard...</div>;
-  }
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [statsResponse, casesResponse] = await Promise.all([
+          getCaseStats(currentOrganizationId),
+          getCases(currentOrganizationId, undefined, undefined, undefined, undefined),
+        ]);
+        setStats(statsResponse ?? null);
+        setRecentCases(Array.isArray(casesResponse) ? casesResponse.slice(0, 10) : []);
+      } catch (err) {
+        console.error('Failed to load support dashboard:', err);
+        setError('Failed to load support dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [currentOrganizationId]);
 
   return (
-    <div className="crm-container">
-      <div className="crm-header">
-        <h1>Support Dashboard</h1>
-        <button className="crm-btn-primary" onClick={() => navigate('/crm/cases/new')}>
-          + New Case
-        </button>
-      </div>
-
-      <div className="crm-stats-grid">
-        <div className="crm-stat-card">
-          <h3>Active Cases</h3>
-          <p className="crm-stat-value">{stats?.activeCases || 0}</p>
+    <div className="crm-page">
+      <div className="page-header">
+        <div>
+          <h1>Support Dashboard</h1>
+          <p>Track incoming cases and resolution performance</p>
         </div>
-        <div className="crm-stat-card">
-          <h3>New Cases</h3>
-          <p className="crm-stat-value">{stats?.newCases || 0}</p>
-        </div>
-        <div className="crm-stat-card success">
-          <h3>Resolved</h3>
-          <p className="crm-stat-value">{stats?.resolvedCases || 0}</p>
-        </div>
-        <div className="crm-stat-card info">
-          <h3>Closed</h3>
-          <p className="crm-stat-value">{stats?.closedCases || 0}</p>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => navigate('/crm/cases/new')}>
+            + New Case
+          </button>
         </div>
       </div>
 
-      <div className="crm-section">
-        <h2>Recent Cases</h2>
-        {recentCases.length === 0 ? (
-          <p className="crm-empty-state">No cases found</p>
-        ) : (
-          <div className="crm-table-container">
-            <table className="crm-table">
-              <thead>
-                <tr>
-                  <th>Case Number</th>
-                  <th>Subject</th>
-                  <th>Status</th>
-                  <th>Priority</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentCases.map((caseItem) => (
-                  <tr key={caseItem.caseId}>
-                    <td>{caseItem.caseNumber}</td>
-                    <td><strong>{caseItem.subject}</strong></td>
-                    <td><span className={`crm-badge crm-badge-${caseItem.status.toLowerCase()}`}>{caseItem.status}</span></td>
-                    <td><span className={`crm-badge crm-badge-${caseItem.priority.toLowerCase()}`}>{caseItem.priority}</span></td>
-                    <td>
-                      <button className="crm-btn-link" onClick={() => navigate(`/crm/cases/${caseItem.caseId}`)}>
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {error && <div className="alert error">{error}</div>}
+
+      {loading ? (
+        <div className="table-loading" style={{ background: 'white', borderRadius: 16 }}>
+          <span className="spinner" /> Loading support metrics...
+        </div>
+      ) : (
+        <>
+          <div className="crm-summary-cards" style={{ marginBottom: 24 }}>
+            <div className="crm-summary-card">
+              <h3>Active Cases</h3>
+              <div className="crm-card-value">{stats?.activeCases ?? 0}</div>
+              <small>Currently assigned</small>
+            </div>
+            <div className="crm-summary-card">
+              <h3>New This Week</h3>
+              <div className="crm-card-value">{stats?.newCases ?? 0}</div>
+              <small>Inbound requests</small>
+            </div>
+            <div className="crm-summary-card">
+              <h3>Resolved</h3>
+              <div className="crm-card-value">{stats?.resolvedCases ?? 0}</div>
+              <small>Marked resolved</small>
+            </div>
+            <div className="crm-summary-card">
+              <h3>Closed</h3>
+              <div className="crm-card-value">{stats?.closedCases ?? 0}</div>
+              <small>Completed and closed</small>
+            </div>
           </div>
-        )}
-      </div>
+
+          <div className="crm-section">
+            <div className="crm-section-header">
+              <div>
+                <h2>Recent Cases</h2>
+                <p className="section-subtitle">Latest 10 cases sorted by creation date.</p>
+              </div>
+              <div className="section-actions">
+                <button className="btn-secondary" onClick={() => navigate('/crm/cases')}>
+                  View All Cases
+                </button>
+              </div>
+            </div>
+            <div className="table-wrapper" style={{ boxShadow: 'none', marginTop: 0 }}>
+              {recentCases.length === 0 ? (
+                <div className="crm-empty-state">
+                  <p>No recent cases found.</p>
+                  <div className="empty-actions">
+                    <button className="btn-primary" onClick={() => navigate('/crm/cases/new')}>
+                      Create Support Case
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <table className="crm-table">
+                  <thead>
+                    <tr>
+                      <th>Case</th>
+                      <th>Status</th>
+                      <th>Priority</th>
+                      <th>Created</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentCases.map((caseItem) => (
+                      <tr key={caseItem.caseId}>
+                        <td>
+                          <div className="crm-opportunity-cell">
+                            <strong>{caseItem.subject}</strong>
+                            <small>{caseItem.caseNumber || '--'}</small>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${statusBadge(caseItem.status)}`}>
+                            {caseItem.status || 'Open'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`priority-badge ${priorityBadge(caseItem.priority)}`}>
+                            {caseItem.priority || 'LOW'}
+                          </span>
+                        </td>
+                        <td>
+                          {caseItem.createdAt
+                            ? new Date(caseItem.createdAt).toLocaleDateString()
+                            : '--'}
+                        </td>
+                        <td>
+                          <div className="action-buttons">
+                            <button
+                              className="btn-sm btn-primary"
+                              onClick={() => navigate(`/crm/cases/${caseItem.caseId}`)}
+                            >
+                              View
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 export default CaseDashboard;
-

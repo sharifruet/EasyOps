@@ -45,56 +45,46 @@ easyops-erp/
 
 ### Development Environment Setup
 
+**Option 1 – Script-driven setup (recommended)**
 1. **Clone the repository**
    ```bash
    git clone https://github.com/easyops/erp-system.git
    cd easyops-erp
    ```
-
-2. **Start core platform components in Docker**
+2. **Start core platform services (Docker)**
    ```bash
    ./start-core-services.sh
    ```
-   This script brings up the lightweight stack (Postgres, Redis, Liquibase migrations, Adminer, Eureka, API Gateway) and waits for health checks so the Spring services can attach immediately.
-
-   Prefer to run the containers manually? Use Docker Compose directly:
-   ```bash
-   docker compose up -d postgres redis liquibase adminer eureka api-gateway
-   ```
-
-   Or launch the full developer stack (all compose services) with the helper scripts:
-   ```bash
-   ./scripts/dev-start.sh   # start everything, with health checks
-   ./scripts/dev-stop.sh    # stop containers
-   ./scripts/dev-restart.sh # restart the stack
-   ```
-
-3. **Run Spring Boot microservices locally**
+   Boots Postgres, Redis, Liquibase migrations, Adminer, Eureka, and the API Gateway; waits for health checks.
+3. **Launch Spring Boot microservices locally**
    ```bash
    ./scripts/start-spring-services.sh
    ```
-   The script launches all Spring services with the `local` profile, wiring them to the Docker infrastructure above. Logs are streamed to `logs/local-services/`. To start a subset, set `SERVICES_OVERRIDE="hr-service,accounting-service"` before running the script.
-
-4. **Start the frontend in Docker**
+   Runs all Spring apps with the `local` profile (logs under `logs/local-services/`). Scope to specific apps via `SERVICES_OVERRIDE="hr-service,accounting-service"`.
+4. **Run the frontend in Docker**
    ```bash
    docker compose up -d frontend
    ```
-   The container exposes the React dev server on http://localhost:3000 and watches the local `frontend/` directory. Use `docker compose logs -f frontend` to inspect UI logs.
+   React dev server mounts `frontend/` and serves http://localhost:3000.
 
-5. **(Optional) Start the combined dev helper scripts**
+**Option 2 – Manual Docker Compose + scripts**
+1. Clone the repo (same as above).
+2. Start infrastructure manually:
    ```bash
-   # Simple startup (recommended)
-   ./scripts/start-dev-simple.sh
-
-   # Or use Docker Compose directly
-   docker-compose up -d
+   docker compose up -d postgres redis liquibase adminer eureka api-gateway
    ```
+3. Launch Spring microservices with `./scripts/start-spring-services.sh`.
+4. Start the frontend container (`docker compose up -d frontend`).
 
-6. **Access the application**
-   - Frontend: http://localhost:3000
-   - API Gateway: http://localhost:8081
-   - Adminer: http://localhost:8080
-   - Eureka: http://localhost:8761
+**Option 3 – Full Docker stack helpers**
+1. Clone the repo (same as above).
+2. Run the dev helper scripts for the entire compose stack:
+   ```bash
+   ./scripts/dev-start.sh   # start everything (includes health checks)
+   ./scripts/dev-stop.sh    # stop containers
+   ./scripts/dev-restart.sh # restart the stack
+   ```
+3. When you need local control, stop individual services as desired and fall back to Option 1/2 for Spring/React.
 
 ## 📚 Development Phases
 

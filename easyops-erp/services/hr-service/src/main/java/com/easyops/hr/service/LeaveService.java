@@ -28,7 +28,11 @@ public class LeaveService {
     
     // Leave Type Methods
     public List<LeaveType> getAllLeaveTypes(UUID organizationId) {
-        return leaveTypeRepository.findByOrganizationId(organizationId);
+        List<LeaveType> types = leaveTypeRepository.findByOrganizationId(organizationId);
+        if (types.isEmpty()) {
+            types = seedDefaultLeaveTypes(organizationId);
+        }
+        return types;
     }
     
     public LeaveType createLeaveType(LeaveType leaveType) {
@@ -118,6 +122,38 @@ public class LeaveService {
         
         balance.setUsedDays(balance.getUsedDays().add(days));
         leaveBalanceRepository.save(balance);
+    }
+
+    private List<LeaveType> seedDefaultLeaveTypes(UUID organizationId) {
+        log.info("Seeding default leave types for organization {}", organizationId);
+        List<LeaveType> defaults = List.of(
+                buildLeaveType(organizationId, "Annual Leave", "Paid time off for planned vacations and personal days.", true, 20, true, true),
+                buildLeaveType(organizationId, "Sick Leave", "Paid leave for illness or medical appointments.", true, 12, true, false),
+                buildLeaveType(organizationId, "Casual Leave", "Short notice leave for personal errands and emergencies.", true, 7, true, false),
+                buildLeaveType(organizationId, "Unpaid Leave", "Unpaid leave for special circumstances.", false, 30, true, false)
+        );
+        return leaveTypeRepository.saveAll(defaults);
+    }
+
+    private LeaveType buildLeaveType(UUID organizationId,
+                                     String name,
+                                     String description,
+                                     boolean isPaid,
+                                     Integer maxDays,
+                                     boolean requiresApproval,
+                                     boolean carryForward) {
+        LeaveType leaveType = new LeaveType();
+        leaveType.setOrganizationId(organizationId);
+        leaveType.setTypeName(name);
+        leaveType.setDescription(description);
+        leaveType.setIsPaid(isPaid);
+        leaveType.setMaxDaysPerYear(maxDays);
+        leaveType.setRequiresApproval(requiresApproval);
+        leaveType.setCarryForward(carryForward);
+        leaveType.setIsActive(true);
+        leaveType.setCreatedBy("system-bootstrap");
+        leaveType.setUpdatedBy("system-bootstrap");
+        return leaveType;
     }
 }
 

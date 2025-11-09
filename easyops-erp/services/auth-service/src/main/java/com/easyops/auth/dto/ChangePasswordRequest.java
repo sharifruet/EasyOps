@@ -2,9 +2,6 @@ package com.easyops.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Change Password Request DTO
@@ -14,9 +11,6 @@ import lombok.NoArgsConstructor;
  * @author EasyOps Team
  * @version 1.0.0
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ChangePasswordRequest {
 
     @NotBlank(message = "Current password is required")
@@ -25,5 +19,29 @@ public class ChangePasswordRequest {
     @NotBlank(message = "New password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String newPassword;
+
+    public ChangePasswordRequest() {
+    }
+
+    public ChangePasswordRequest(String currentPassword, String newPassword) {
+        this.currentPassword = currentPassword;
+        this.newPassword = newPassword;
+    }
+
+    public String getCurrentPassword() {
+        return currentPassword;
+    }
+
+    public void setCurrentPassword(String currentPassword) {
+        this.currentPassword = currentPassword;
+    }
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
 }
 

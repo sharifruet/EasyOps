@@ -122,7 +122,7 @@ const DepartmentManagement: React.FC = () => {
     }
 
     try {
-      await deleteDepartment(id);
+      await deleteDepartment(id, currentOrganizationId);
       loadData();
     } catch (err: any) {
       console.error('Failed to delete department:', err);

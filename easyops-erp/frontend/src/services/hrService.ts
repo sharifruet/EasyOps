@@ -52,6 +52,8 @@ export interface Department {
   managerId?: string;
   parentDepartmentId?: string;
   isActive?: boolean;
+  code?: string;
+  status?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -126,30 +128,46 @@ export const getDepartments = (organizationId: string, params?: {
   parentDepartmentId?: string;
 }) => {
   return hrApi.get<Department[]>('/departments', {
-    params: { organizationId, ...params }
+    params: { organizationId, ...params },
   });
 };
 
 export const getRootDepartments = (organizationId: string) => {
   return hrApi.get<Department[]>('/departments/root', {
-    params: { organizationId }
+    params: { organizationId },
   });
 };
 
-export const getDepartmentById = (id: string) => {
-  return hrApi.get<Department>(`/departments/${id}`);
+export const getDepartmentById = (organizationId: string, id: string) => {
+  return hrApi.get<Department>(`/departments/${id}`, {
+    params: { organizationId },
+  });
 };
 
 export const createDepartment = (department: Department) => {
-  return hrApi.post<Department>('/departments', department);
+  return hrApi.post<Department>(
+    '/departments',
+    department,
+    {
+      params: { organizationId: department.organizationId },
+    }
+  );
 };
 
 export const updateDepartment = (id: string, department: Department) => {
-  return hrApi.put<Department>(`/departments/${id}`, department);
+  return hrApi.put<Department>(
+    `/departments/${id}`,
+    department,
+    {
+      params: { organizationId: department.organizationId },
+    }
+  );
 };
 
-export const deleteDepartment = (id: string) => {
-  return hrApi.delete(`/departments/${id}`);
+export const deleteDepartment = (id: string, organizationId: string) => {
+  return hrApi.delete(`/departments/${id}`, {
+    params: { organizationId },
+  });
 };
 
 // Position API

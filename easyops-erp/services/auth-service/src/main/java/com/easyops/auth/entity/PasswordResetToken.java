@@ -1,9 +1,6 @@
 package com.easyops.auth.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -19,9 +16,6 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "password_reset_tokens", schema = "auth")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class PasswordResetToken {
 
     @Id
@@ -46,5 +40,76 @@ public class PasswordResetToken {
 
     @Column(name = "used_at")
     private LocalDateTime usedAt;
+
+    public PasswordResetToken() {
+        this.isUsed = Boolean.FALSE;
+    }
+
+    public PasswordResetToken(UUID id, UUID userId, String token, Boolean isUsed,
+                              LocalDateTime createdAt, LocalDateTime expiresAt, LocalDateTime usedAt) {
+        this.id = id;
+        this.userId = userId;
+        this.token = token;
+        this.isUsed = isUsed;
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
+        this.usedAt = usedAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public Boolean getIsUsed() {
+        return isUsed;
+    }
+
+    public void setIsUsed(Boolean used) {
+        isUsed = used;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public LocalDateTime getUsedAt() {
+        return usedAt;
+    }
+
+    public void setUsedAt(LocalDateTime usedAt) {
+        this.usedAt = usedAt;
+    }
 }
 

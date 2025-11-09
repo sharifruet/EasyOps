@@ -27,7 +27,7 @@ const PositionManagement: React.FC = () => {
     level: '',
     salaryRangeMin: '',
     salaryRangeMax: '',
-    currency: 'USD',
+    currency: 'BDT',
   });
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const PositionManagement: React.FC = () => {
       level: '',
       salaryRangeMin: '',
       salaryRangeMax: '',
-      currency: 'USD',
+      currency: 'BDT',
     });
     setShowModal(true);
   };
@@ -81,7 +81,7 @@ const PositionManagement: React.FC = () => {
       level: position.level || '',
       salaryRangeMin: position.salaryRangeMin?.toString() || '',
       salaryRangeMax: position.salaryRangeMax?.toString() || '',
-      currency: position.currency || 'USD',
+      currency: position.currency || 'BDT',
     });
     setShowModal(true);
   };
@@ -105,7 +105,7 @@ const PositionManagement: React.FC = () => {
         level: formData.level || undefined,
         salaryRangeMin: formData.salaryRangeMin ? parseFloat(formData.salaryRangeMin) : undefined,
         salaryRangeMax: formData.salaryRangeMax ? parseFloat(formData.salaryRangeMax) : undefined,
-        currency: formData.currency || 'USD',
+        currency: formData.currency || 'BDT',
       };
 
       if (editingPosition) {
@@ -144,14 +144,25 @@ const PositionManagement: React.FC = () => {
 
   const formatSalaryRange = (min?: number, max?: number, currency?: string) => {
     if (!min && !max) return '-';
-    const curr = currency || 'USD';
+    const curr = currency || 'BDT';
+    const formatter = (() => {
+      try {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr });
+      } catch {
+        return null;
+      }
+    })();
+    const format = (value?: number) => {
+      if (typeof value !== 'number' || Number.isNaN(value)) return '0';
+      return formatter ? formatter.format(value) : `${curr} ${value.toLocaleString()}`;
+    };
     if (min && max) {
-      return `${curr} ${min.toLocaleString()} - ${max.toLocaleString()}`;
+      return `${format(min)} - ${format(max)}`;
     }
     if (min) {
-      return `${curr} ${min.toLocaleString()}+`;
+      return `${format(min)}+`;
     }
-    return `Up to ${curr} ${max?.toLocaleString()}`;
+    return `Up to ${format(max)}`;
   };
 
   if (loading) {
@@ -325,7 +336,8 @@ const PositionManagement: React.FC = () => {
                     value={formData.currency}
                     onChange={(e) => setFormData({...formData, currency: e.target.value})}
                   >
-                    <option value="USD">USD</option>
+                  <option value="BDT">BDT</option>
+                  <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
                     <option value="CAD">CAD</option>

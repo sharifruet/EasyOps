@@ -61,7 +61,7 @@ public class TrainingCertification {
     private BigDecimal cost;
     
     @Column(name = "currency", length = 3)
-    private String currency = "USD";
+    private String currency = "BDT";
     
     @Column(name = "hours_spent", precision = 6, scale = 2)
     private BigDecimal hoursSpent;

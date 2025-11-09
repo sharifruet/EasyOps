@@ -40,7 +40,7 @@ public class Bonus {
     private BigDecimal amount;
     
     @Column(name = "currency", length = 3)
-    private String currency = "USD";
+    private String currency = "BDT";
     
     @Column(name = "bonus_period", length = 100)
     private String bonusPeriod;

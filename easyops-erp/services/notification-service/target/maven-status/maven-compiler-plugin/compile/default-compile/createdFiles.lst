@@ -1,9 +1,0 @@
-com\easyops\notification\entity\EmailTemplate.class
-com\easyops\notification\repository\NotificationRepository.class
-com\easyops\notification\entity\Notification.class
-com\easyops\notification\repository\EmailLogRepository.class
-com\easyops\notification\entity\WebhookDelivery.class
-com\easyops\notification\repository\EmailTemplateRepository.class
-com\easyops\notification\entity\EmailLog.class
-com\easyops\notification\NotificationServiceApplication.class
-com\easyops\notification\entity\Webhook.class

@@ -51,21 +51,43 @@ easyops-erp/
    cd easyops-erp
    ```
 
-2. **Start development environment**
+2. **Start core platform components in Docker**
    ```bash
-   ./scripts/dev-start.sh
+   # From the repository root
+   docker compose up -d postgres redis liquibase adminer eureka api-gateway
+   ```
+   This brings up the shared infrastructure (database, cache, Liquibase migrations, Adminer UI, Eureka, API gateway) that the microservices rely on. Use `docker compose ps` to verify container health or `docker compose logs -f <service>` to tail logs.
+
+   💡 Prefer automation? Run the helper script instead:
+   ```bash
+   ./scripts/dev-start.sh        # Starts the full Docker stack + health checks
+   # Stop / restart later with:
+   ./scripts/dev-stop.sh         # Gracefully stops containers
+   ./scripts/dev-restart.sh      # Restarts the Docker stack
    ```
 
-3. **Start the complete development environment**
+3. **Run Spring Boot microservices locally**
+   ```bash
+   ./scripts/start-spring-services.sh
+   ```
+   The script launches all Spring services with the `local` profile, wiring them to the Docker infrastructure above. Logs are streamed to `logs/local-services/`. To start a subset, set `SERVICES_OVERRIDE="hr-service,accounting-service"` before running the script.
+
+4. **Start the frontend in Docker**
+   ```bash
+   docker compose up -d frontend
+   ```
+   The container exposes the React dev server on http://localhost:3000 and watches the local `frontend/` directory. Use `docker compose logs -f frontend` to inspect UI logs.
+
+5. **(Optional) Start the combined dev helper scripts**
    ```bash
    # Simple startup (recommended)
    ./scripts/start-dev-simple.sh
-   
+
    # Or use Docker Compose directly
    docker-compose up -d
    ```
 
-4. **Access the application**
+6. **Access the application**
    - Frontend: http://localhost:3000
    - API Gateway: http://localhost:8081
    - Adminer: http://localhost:8080

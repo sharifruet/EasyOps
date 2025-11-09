@@ -1,9 +1,6 @@
 package com.easyops.auth.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -19,9 +16,6 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "user_sessions", schema = "auth")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserSession {
 
     @Id
@@ -55,5 +49,102 @@ public class UserSession {
 
     @Column(name = "last_activity_at")
     private LocalDateTime lastActivityAt;
+
+    public UserSession() {
+        this.isActive = Boolean.TRUE;
+    }
+
+    public UserSession(UUID userId, String token, String refreshToken, String ipAddress,
+                       String userAgent, Boolean isActive, LocalDateTime expiresAt,
+                       LocalDateTime lastActivityAt) {
+        this.userId = userId;
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
+        this.isActive = isActive != null ? isActive : Boolean.TRUE;
+        this.expiresAt = expiresAt;
+        this.lastActivityAt = lastActivityAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public LocalDateTime getLastActivityAt() {
+        return lastActivityAt;
+    }
+
+    public void setLastActivityAt(LocalDateTime lastActivityAt) {
+        this.lastActivityAt = lastActivityAt;
+    }
 }
 

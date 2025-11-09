@@ -10,10 +10,12 @@ const ReimbursementManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    category: '',
+    reimbursementType: '',
     amount: '',
     description: '',
     expenseDate: '',
+    receiptNumber: '',
+    currency: 'BDT'
   });
 
   useEffect(() => {
@@ -51,7 +53,7 @@ const ReimbursementManagement: React.FC = () => {
         organizationId: currentOrganizationId,
       } as any);
       setShowForm(false);
-      setFormData({ category: '', amount: '', description: '', expenseDate: '' });
+      setFormData({ reimbursementType: '', amount: '', description: '', expenseDate: '', receiptNumber: '', currency: 'BDT' });
       loadReimbursements();
       alert('Reimbursement request submitted successfully!');
     } catch (err) {
@@ -63,8 +65,12 @@ const ReimbursementManagement: React.FC = () => {
   if (loading) return <div className="loading">Loading reimbursements...</div>;
   if (error) return <div className="error-message">{error}</div>;
 
-  const totalPending = reimbursements.filter(r => r.status === 'PENDING').reduce((sum, r) => sum + (r.amount || 0), 0);
-  const totalApproved = reimbursements.filter(r => r.status === 'APPROVED').reduce((sum, r) => sum + (r.amount || 0), 0);
+  const totalPending = reimbursements
+    .filter((r) => r.status?.toLowerCase() === 'pending')
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
+  const totalApproved = reimbursements
+    .filter((r) => r.status?.toLowerCase() === 'approved')
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
 
   return (
     <div className="hr-page">
@@ -97,8 +103,8 @@ const ReimbursementManagement: React.FC = () => {
               <div className="form-row">
                 <label>Category *</label>
                 <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  value={formData.reimbursementType}
+                  onChange={(e) => setFormData({ ...formData, reimbursementType: e.target.value })}
                   required
                 >
                   <option value="">Select category</option>
@@ -123,12 +129,34 @@ const ReimbursementManagement: React.FC = () => {
               </div>
 
               <div className="form-row">
+                <label>Currency</label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                >
+                  <option value="BDT">BDT (৳)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+
+              <div className="form-row">
                 <label>Expense Date *</label>
                 <input
                   type="date"
                   value={formData.expenseDate}
                   onChange={(e) => setFormData({ ...formData, expenseDate: e.target.value })}
                   required
+                />
+              </div>
+
+              <div className="form-row">
+                <label>Receipt Number (optional)</label>
+                <input
+                  type="text"
+                  value={formData.receiptNumber}
+                  onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
+                  placeholder="Receipt or reference number"
                 />
               </div>
 
@@ -179,17 +207,19 @@ const ReimbursementManagement: React.FC = () => {
             ) : (
               reimbursements.map((req) => (
                 <tr key={req.reimbursementId}>
-                  <td>{req.category}</td>
-                  <td>${req.amount?.toLocaleString() || '0'}</td>
+                  <td>{req.reimbursementType || req.category}</td>
+                  <td>
+                    {req.currency || 'BDT'} {Number(req.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
                   <td>{req.expenseDate ? new Date(req.expenseDate).toLocaleDateString() : '-'}</td>
                   <td>{req.description || '-'}</td>
                   <td>
-                    <span className={`status-badge status-${req.status?.toLowerCase()}`}>
-                      {req.status}
+                    <span className={`status-badge status-${(req.status || 'pending').toLowerCase()}`}>
+                      {req.status?.toUpperCase() || 'PENDING'}
                     </span>
                   </td>
-                  <td>{req.requestedAt ? new Date(req.requestedAt).toLocaleDateString() : '-'}</td>
-                  <td>{req.processedAt ? new Date(req.processedAt).toLocaleDateString() : '-'}</td>
+                  <td>{req.claimDate ? new Date(req.claimDate).toLocaleDateString() : '-'}</td>
+                  <td>{req.approvedAt ? new Date(req.approvedAt).toLocaleDateString() : '-'}</td>
                 </tr>
               ))
             )}

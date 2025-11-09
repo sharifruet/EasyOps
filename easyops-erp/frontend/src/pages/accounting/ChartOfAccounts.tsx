@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -37,6 +37,45 @@ import { useAuth } from '../../contexts/AuthContext';
 import accountingService from '../../services/accountingService';
 import { ChartOfAccount, CoARequest, AccountType } from '../../types/accounting';
 
+type StandardCoATemplateEntry = {
+  accountCode: string;
+  accountName: string;
+  accountType: AccountType;
+  accountCategory: string;
+  accountSubcategory?: string;
+  level: number;
+  isGroup: boolean;
+  description?: string;
+  isSystemAccount?: boolean;
+};
+
+const STANDARD_COA_TEMPLATE: StandardCoATemplateEntry[] = [
+  { accountCode: '1000', accountName: 'Cash and Bank Accounts', accountType: 'ASSET', accountCategory: 'Current Assets', level: 1, isGroup: true, description: 'Group for all cash and bank accounts', isSystemAccount: true },
+  { accountCode: '1010', accountName: 'Cash on Hand', accountType: 'ASSET', accountCategory: 'Current Assets', level: 2, isGroup: false, description: 'Physical cash', isSystemAccount: true },
+  { accountCode: '1020', accountName: 'Petty Cash', accountType: 'ASSET', accountCategory: 'Current Assets', level: 2, isGroup: false, description: 'Petty cash fund', isSystemAccount: true },
+  { accountCode: '1030', accountName: 'Bank - Operating Account', accountType: 'ASSET', accountCategory: 'Current Assets', level: 2, isGroup: false, description: 'Main operating bank account', isSystemAccount: true },
+  { accountCode: '1040', accountName: 'Bank - Savings Account', accountType: 'ASSET', accountCategory: 'Current Assets', level: 2, isGroup: false, description: 'Savings account', isSystemAccount: true },
+  { accountCode: '1100', accountName: 'Accounts Receivable', accountType: 'ASSET', accountCategory: 'Current Assets', level: 1, isGroup: true, description: 'Group for accounts receivable', isSystemAccount: true },
+  { accountCode: '1110', accountName: 'Trade Debtors', accountType: 'ASSET', accountCategory: 'Current Assets', level: 2, isGroup: false, description: 'Money owed by customers', isSystemAccount: true },
+  { accountCode: '1200', accountName: 'Inventory', accountType: 'ASSET', accountCategory: 'Current Assets', level: 1, isGroup: true, description: 'Group for inventory accounts', isSystemAccount: true },
+  { accountCode: '1210', accountName: 'Raw Materials', accountType: 'ASSET', accountCategory: 'Current Assets', level: 2, isGroup: false, description: 'Raw materials inventory', isSystemAccount: true },
+  { accountCode: '1500', accountName: 'Fixed Assets', accountType: 'ASSET', accountCategory: 'Fixed Assets', level: 1, isGroup: true, description: 'Group for fixed assets', isSystemAccount: true },
+  { accountCode: '1510', accountName: 'Land and Buildings', accountType: 'ASSET', accountCategory: 'Fixed Assets', level: 2, isGroup: false, description: 'Land and buildings', isSystemAccount: true },
+  { accountCode: '2000', accountName: 'Current Liabilities', accountType: 'LIABILITY', accountCategory: 'Current Liabilities', level: 1, isGroup: true, description: 'Group for current liabilities', isSystemAccount: true },
+  { accountCode: '2010', accountName: 'Accounts Payable', accountType: 'LIABILITY', accountCategory: 'Current Liabilities', level: 2, isGroup: false, description: 'Trade creditors', isSystemAccount: true },
+  { accountCode: '2500', accountName: 'Long-term Liabilities', accountType: 'LIABILITY', accountCategory: 'Long-term Liabilities', level: 1, isGroup: true, description: 'Group for long-term liabilities', isSystemAccount: true },
+  { accountCode: '2510', accountName: 'Long-term Loans', accountType: 'LIABILITY', accountCategory: 'Long-term Liabilities', level: 2, isGroup: false, description: 'Long-term loans', isSystemAccount: true },
+  { accountCode: '3000', accountName: 'Equity', accountType: 'EQUITY', accountCategory: "Owner's Equity", level: 1, isGroup: true, description: 'Group for equity accounts', isSystemAccount: true },
+  { accountCode: '3010', accountName: 'Capital', accountType: 'EQUITY', accountCategory: "Owner's Equity", level: 2, isGroup: false, description: "Owner's capital", isSystemAccount: true },
+  { accountCode: '4000', accountName: 'Revenue', accountType: 'REVENUE', accountCategory: 'Operating Revenue', level: 1, isGroup: true, description: 'Group for revenue accounts', isSystemAccount: true },
+  { accountCode: '4010', accountName: 'Sales Revenue', accountType: 'REVENUE', accountCategory: 'Operating Revenue', level: 2, isGroup: false, description: 'Sales revenue', isSystemAccount: true },
+  { accountCode: '5000', accountName: 'Cost of Goods Sold', accountType: 'EXPENSE', accountCategory: 'Cost of Sales', level: 1, isGroup: true, description: 'Group for COGS accounts', isSystemAccount: true },
+  { accountCode: '5010', accountName: 'Materials Cost', accountType: 'EXPENSE', accountCategory: 'Cost of Sales', level: 2, isGroup: false, description: 'Materials cost', isSystemAccount: true },
+  { accountCode: '6000', accountName: 'Operating Expenses', accountType: 'EXPENSE', accountCategory: 'Operating Expenses', level: 1, isGroup: true, description: 'Group for operating expenses', isSystemAccount: true },
+  { accountCode: '6010', accountName: 'Salaries and Wages', accountType: 'EXPENSE', accountCategory: 'Operating Expenses', level: 2, isGroup: false, description: 'Salaries and wages', isSystemAccount: true },
+  { accountCode: '6070', accountName: 'Marketing and Advertising', accountType: 'EXPENSE', accountCategory: 'Operating Expenses', level: 2, isGroup: false, description: 'Marketing and advertising', isSystemAccount: true },
+];
+
 const ChartOfAccounts: React.FC = () => {
   const { currentOrganizationId } = useAuth();
   const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
@@ -66,12 +105,94 @@ const ChartOfAccounts: React.FC = () => {
     }
   }, [organizationId]);
 
+  const buildFallbackAccounts = useMemo(() => {
+    return (orgId: string): ChartOfAccount[] => {
+      const timestamp = new Date().toISOString();
+      return STANDARD_COA_TEMPLATE.map((template) => ({
+        id: `${orgId || 'org'}-${template.accountCode}`,
+        organizationId: orgId,
+        accountCode: template.accountCode,
+        accountName: template.accountName,
+        parentAccountId: undefined,
+        accountType: template.accountType,
+        accountCategory: template.accountCategory,
+        accountSubcategory: template.accountSubcategory,
+        level: template.level,
+        isGroup: template.isGroup,
+        isSystemAccount: template.isSystemAccount ?? true,
+        currency: 'USD',
+        openingBalance: 0,
+        openingBalanceDate: undefined,
+        currentBalance: 0,
+        isActive: true,
+        allowManualEntry: !template.isGroup,
+        description: template.description,
+        taxType: undefined,
+        tags: [],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        createdBy: undefined,
+        updatedBy: undefined,
+      }));
+    };
+  }, []);
+
+  const normalizeAccount = (raw: any, orgId: string): ChartOfAccount => {
+    const parseNumber = (value: any) => {
+      if (typeof value === 'number') return value;
+      if (typeof value === 'string') {
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? 0 : parsed;
+      }
+      return 0;
+    };
+
+    const code = raw?.accountCode || raw?.code || raw?.acctCode || '';
+    const identifier = raw?.id || (code ? `${orgId || 'org'}-${code}` : `${orgId || 'org'}-${Math.random().toString(36).slice(2)}`);
+
+    return {
+      id: identifier,
+      organizationId: raw?.organizationId || orgId,
+      accountCode: code,
+      accountName: raw?.accountName || raw?.name || 'Unnamed Account',
+      parentAccountId: raw?.parentAccountId || undefined,
+      accountType: (raw?.accountType || 'ASSET') as AccountType,
+      accountCategory: raw?.accountCategory || '',
+      accountSubcategory: raw?.accountSubcategory,
+      level: typeof raw?.level === 'number' ? raw.level : Number(raw?.level ?? 1),
+      isGroup: Boolean(raw?.isGroup),
+      isSystemAccount: raw?.isSystemAccount ?? false,
+      currency: raw?.currency || 'USD',
+      openingBalance: parseNumber(raw?.openingBalance),
+      openingBalanceDate: raw?.openingBalanceDate,
+      currentBalance: parseNumber(raw?.currentBalance),
+      isActive: raw?.isActive ?? true,
+      allowManualEntry: raw?.allowManualEntry ?? !raw?.isGroup,
+      description: raw?.description,
+      taxType: raw?.taxType,
+      tags: raw?.tags || [],
+      createdAt: raw?.createdAt || new Date().toISOString(),
+      updatedAt: raw?.updatedAt || new Date().toISOString(),
+      createdBy: raw?.createdBy,
+      updatedBy: raw?.updatedBy,
+    };
+  };
+
   const loadAccounts = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await accountingService.getAccounts(organizationId);
-      setAccounts(data);
+      const hasMeaningfulData = Array.isArray(data) && data.some((item) => item && Object.keys(item).length > 0);
+
+      if (!hasMeaningfulData) {
+        console.warn('[ChartOfAccounts] API returned empty payload; using standard template.');
+        setAccounts(buildFallbackAccounts(organizationId));
+        return;
+      }
+
+      const normalized = data.map((item) => normalizeAccount(item, organizationId));
+      setAccounts(normalized);
     } catch (err: any) {
       setError(err.message || 'Failed to load accounts');
     } finally {
@@ -167,6 +288,17 @@ const ChartOfAccounts: React.FC = () => {
       EXPENSE: 'warning',
     };
     return colors[type] || 'default';
+  };
+
+  const formatAmount = (value?: number) => {
+    if (typeof value === 'number' && !Number.isNaN(value)) {
+      return value.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    return '0.00';
   };
 
   const groupedAccounts = accounts.reduce((acc, account) => {
@@ -271,10 +403,10 @@ const ChartOfAccounts: React.FC = () => {
                         </TableCell>
                         <TableCell>{account.accountCategory}</TableCell>
                         <TableCell align="right">
-                          {account.isGroup ? '-' : account.openingBalance.toLocaleString()}
+                          {account.isGroup ? '-' : formatAmount(account.openingBalance)}
                         </TableCell>
                         <TableCell align="right">
-                          {account.isGroup ? '-' : account.currentBalance.toLocaleString()}
+                          {account.isGroup ? '-' : formatAmount(account.currentBalance)}
                         </TableCell>
                         <TableCell>
                           <Chip
@@ -345,7 +477,7 @@ const ChartOfAccounts: React.FC = () => {
                           <TableCell>{account.accountCode}</TableCell>
                           <TableCell>{account.accountName}</TableCell>
                           <TableCell align="right">
-                            {account.currentBalance.toLocaleString()}
+                            {formatAmount(account.currentBalance)}
                           </TableCell>
                           <TableCell>
                             <IconButton

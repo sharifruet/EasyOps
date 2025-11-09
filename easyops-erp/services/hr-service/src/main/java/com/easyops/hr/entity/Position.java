@@ -50,7 +50,7 @@ public class Position {
     
     @Column(name = "currency", length = 3)
     @Builder.Default
-    private String currency = "USD";
+    private String currency = "BDT";
     
     @Column(name = "is_active")
     @Builder.Default

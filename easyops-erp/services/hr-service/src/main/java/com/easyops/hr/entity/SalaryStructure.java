@@ -40,7 +40,7 @@ public class SalaryStructure {
     private BigDecimal baseSalary;
     
     @Column(name = "currency", length = 3)
-    private String currency = "USD";
+    private String currency = "BDT";
     
     @Column(name = "pay_frequency", length = 50)
     private String payFrequency = "monthly";

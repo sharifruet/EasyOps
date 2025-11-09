@@ -4,12 +4,13 @@ import com.easyops.auth.dto.*;
 import com.easyops.auth.entity.*;
 import com.easyops.auth.repository.*;
 import com.easyops.auth.util.JwtUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -24,9 +25,9 @@ import java.util.*;
  */
 @Service
 @Transactional
-@Slf4j
-@RequiredArgsConstructor
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final UserSessionRepository sessionRepository;
@@ -46,6 +47,20 @@ public class AuthService {
 
     @Value("${password.reset.token-expiration}")
     private int passwordResetTokenExpiration;
+
+    public AuthService(UserRepository userRepository,
+                       UserSessionRepository sessionRepository,
+                       PasswordResetTokenRepository passwordResetTokenRepository,
+                       LoginAttemptRepository loginAttemptRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.loginAttemptRepository = loginAttemptRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
 
     /**
      * Authenticate user and generate JWT tokens
@@ -287,16 +302,18 @@ public class AuthService {
      */
     private UserSession createUserSession(UUID userId, String accessToken, String refreshToken, 
                                          String ipAddress, String userAgent) {
-        UserSession session = new UserSession();
-        session.setUserId(userId);
-        session.setToken(accessToken);
-        session.setRefreshToken(refreshToken);
-        session.setIpAddress(ipAddress);
-        session.setUserAgent(userAgent);
-        session.setIsActive(true);
-        session.setExpiresAt(LocalDateTime.now().plusSeconds(jwtUtil.getRefreshExpirationTime() / 1000));
-        session.setLastActivityAt(LocalDateTime.now());
-        
+        LocalDateTime now = LocalDateTime.now();
+        UserSession session = new UserSession(
+                userId,
+                accessToken,
+                refreshToken,
+                ipAddress,
+                userAgent,
+                Boolean.TRUE,
+                now.plusSeconds(jwtUtil.getRefreshExpirationTime() / 1000),
+                now
+        );
+
         return sessionRepository.save(session);
     }
 

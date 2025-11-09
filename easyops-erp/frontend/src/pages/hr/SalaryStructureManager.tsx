@@ -38,6 +38,23 @@ const SalaryStructureManager: React.FC = () => {
     }
   };
 
+  const formatCurrency = (amount?: number, currency?: string) => {
+    const curr = currency || 'BDT';
+    if (typeof amount !== 'number' || Number.isNaN(amount)) {
+      return curr === 'BDT' ? '৳0.00' : `${curr} 0.00`;
+    }
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: curr,
+        minimumFractionDigits: 2,
+      }).format(amount);
+    } catch (err) {
+      const symbol = curr === 'BDT' ? '৳' : `${curr} `;
+      return `${symbol}${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+  };
+
   if (loading) return <div className="loading">Loading salary data...</div>;
   if (error) return <div className="error-message">{error}</div>;
 
@@ -89,8 +106,8 @@ const SalaryStructureManager: React.FC = () => {
                   <tr key={structure.salaryStructureId}>
                     <td><strong>{structure.structureName}</strong></td>
                     <td>{structure.code}</td>
-                    <td>${structure.baseSalary?.toLocaleString() || '0'}</td>
-                    <td>{structure.currency || 'USD'}</td>
+                    <td>{formatCurrency(structure.baseSalary, structure.currency)}</td>
+                    <td>{structure.currency || 'BDT'}</td>
                     <td>{structure.salaryGrade || '-'}</td>
                     <td>
                       <span className={`status-badge status-${structure.isActive ? 'active' : 'inactive'}`}>
@@ -135,10 +152,10 @@ const SalaryStructureManager: React.FC = () => {
                     <td>{salary.employeeNumber || '-'}</td>
                     <td>{salary.positionTitle || '-'}</td>
                     <td>{salary.structureName || '-'}</td>
-                    <td>${salary.baseSalary?.toLocaleString() || '0'}</td>
-                    <td>${salary.totalAllowances?.toLocaleString() || '0'}</td>
+                    <td>{formatCurrency(salary.baseSalary, salary.currency)}</td>
+                    <td>{formatCurrency(salary.totalAllowances, salary.currency)}</td>
                     <td>
-                      <strong>${salary.grossSalary?.toLocaleString() || '0'}</strong>
+                      <strong>{formatCurrency(salary.grossSalary, salary.currency)}</strong>
                     </td>
                     <td>{salary.effectiveDate ? new Date(salary.effectiveDate).toLocaleDateString() : '-'}</td>
                   </tr>

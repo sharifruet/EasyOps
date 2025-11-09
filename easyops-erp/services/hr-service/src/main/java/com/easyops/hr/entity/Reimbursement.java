@@ -40,7 +40,7 @@ public class Reimbursement {
     private BigDecimal amount;
     
     @Column(name = "currency", length = 3)
-    private String currency = "USD";
+    private String currency = "BDT";
     
     @Column(name = "expense_date", nullable = false)
     private LocalDate expenseDate;

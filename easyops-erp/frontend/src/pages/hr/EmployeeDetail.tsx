@@ -30,8 +30,12 @@ const EmployeeDetail: React.FC = () => {
 
       // Load related data
       if (emp.departmentId) {
-        const deptRes = await getDepartmentById(emp.departmentId);
+        const deptRes = emp.departmentId
+          ? await getDepartmentById(emp.organizationId, emp.departmentId)
+          : null;
+      if (deptRes) {
         setDepartment(deptRes.data);
+      }
       }
 
       if (emp.positionId) {

@@ -236,8 +236,26 @@ export const getTodayAttendance = (organizationId: string, date?: string) => {
   return hrApi.get('/attendance/today', { params: { organizationId, date } });
 };
 
-export const clockIn = (employeeId: string, organizationId: string, workLocation: string) => {
-  return hrApi.post('/attendance/clock-in', { employeeId, organizationId, workLocation });
+export const clockIn = (params: {
+  organizationId: string;
+  workLocation: string;
+  employeeId?: string;
+  userId?: string;
+}) => {
+  const payload: Record<string, unknown> = {
+    organizationId: params.organizationId,
+    workLocation: params.workLocation,
+  };
+
+  if (params.employeeId) {
+    payload.employeeId = params.employeeId;
+  }
+
+  if (params.userId) {
+    payload.userId = params.userId;
+  }
+
+  return hrApi.post('/attendance/clock-in', payload);
 };
 
 export const clockOut = (employeeId: string) => {

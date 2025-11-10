@@ -76,6 +76,7 @@ public class EmployeeService {
         
         Employee existingEmployee = getEmployeeById(employeeId);
         
+        existingEmployee.setUserId(employeeData.getUserId());
         // Update fields
         existingEmployee.setFirstName(employeeData.getFirstName());
         existingEmployee.setLastName(employeeData.getLastName());

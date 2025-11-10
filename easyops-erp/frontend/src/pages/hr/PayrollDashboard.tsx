@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPayrollRuns, getPayrollStats } from '../../services/hrService';
 import './Hr.css';
 
 const PayrollDashboard: React.FC = () => {
   const { currentOrganizationId } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [recentRuns, setRecentRuns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +27,10 @@ const PayrollDashboard: React.FC = () => {
       setLoading(true);
       const [statsRes, runsRes] = await Promise.all([
         getPayrollStats(currentOrganizationId),
-        getPayrollRuns(currentOrganizationId, { limit: 5 }),
+        getPayrollRuns(currentOrganizationId),
       ]);
       setStats(statsRes.data);
-      setRecentRuns(runsRes.data);
+      setRecentRuns((runsRes.data || []).slice(0, 5));
     } catch (err) {
       console.error('Failed to load payroll data:', err);
       setError('Failed to load payroll data');
@@ -39,6 +41,10 @@ const PayrollDashboard: React.FC = () => {
 
   if (loading) return <div className="loading">Loading payroll dashboard...</div>;
   if (error) return <div className="error-message">{error}</div>;
+
+  const goToPayrollRuns = () => navigate('/hr/payroll-runs');
+  const goToSalaryManagement = () => navigate('/hr/salary-structures');
+  const goToPayrollReports = () => navigate('/hr/payroll-runs'); // placeholder route
 
   return (
     <div className="hr-page">
@@ -96,11 +102,22 @@ const PayrollDashboard: React.FC = () => {
                 <tr key={run.payrollRunId}>
                   <td>#{run.runNumber || run.payrollRunId?.substring(0, 8)}</td>
                   <td>
-                    {new Date(run.periodStart).toLocaleDateString()} - {new Date(run.periodEnd).toLocaleDateString()}
+                    {new Date(run.payPeriodStart || run.periodStart).toLocaleDateString()} -{' '}
+                    {new Date(run.payPeriodEnd || run.periodEnd).toLocaleDateString()}
                   </td>
                   <td>{run.employeeCount || 0}</td>
-                  <td>${run.totalGross?.toLocaleString() || '0'}</td>
-                  <td>${run.totalNet?.toLocaleString() || '0'}</td>
+                  <td>
+                    {Number(run.totalGrossPay ?? run.totalGross ?? 0).toLocaleString(undefined, {
+                      style: 'currency',
+                      currency: 'USD',
+                    })}
+                  </td>
+                  <td>
+                    {Number(run.totalNetPay ?? run.totalNet ?? 0).toLocaleString(undefined, {
+                      style: 'currency',
+                      currency: 'USD',
+                    })}
+                  </td>
                   <td>
                     <span className={`status-badge status-${run.status?.toLowerCase()}`}>
                       {run.status}
@@ -120,17 +137,23 @@ const PayrollDashboard: React.FC = () => {
           <div className="action-card">
             <h3>🔄 Process Payroll</h3>
             <p>Create and process new payroll run</p>
-            <button className="btn-primary">Go to Payroll Runs</button>
+          <button className="btn-primary" onClick={goToPayrollRuns}>
+            Go to Payroll Runs
+          </button>
           </div>
           <div className="action-card">
             <h3>💰 Manage Salaries</h3>
             <p>Update employee salary structures</p>
-            <button className="btn-primary">Salary Management</button>
+          <button className="btn-primary" onClick={goToSalaryManagement}>
+            Salary Management
+          </button>
           </div>
           <div className="action-card">
             <h3>📊 Reports</h3>
             <p>View payroll reports and analytics</p>
-            <button className="btn-primary">View Reports</button>
+          <button className="btn-primary" onClick={goToPayrollReports}>
+            View Reports
+          </button>
           </div>
         </div>
       </div>

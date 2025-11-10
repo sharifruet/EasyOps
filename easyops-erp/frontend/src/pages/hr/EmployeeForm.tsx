@@ -12,6 +12,8 @@ import {
   Department,
   Position
 } from '../../services/hrService';
+import userService from '../../services/userService';
+import { User } from '../../types';
 import './Hr.css';
 
 const EmployeeForm: React.FC = () => {
@@ -23,6 +25,7 @@ const EmployeeForm: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [managers, setManagers] = useState<Employee[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   
   const [formData, setFormData] = useState<Partial<Employee>>({
     organizationId: currentOrganizationId || '',
@@ -48,30 +51,81 @@ const EmployeeForm: React.FC = () => {
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelationship: '',
+    userId: '',
   });
 
   useEffect(() => {
-    if (currentOrganizationId) {
-      loadFormData();
-      if (id) {
-        loadEmployee(id);
-      }
+    if (!currentOrganizationId) {
+      return;
     }
+
+    const initialize = async () => {
+      try {
+        setLoading(true);
+        let selectedUserId: string | undefined;
+        if (id) {
+          selectedUserId = await loadEmployee(id);
+        }
+        await loadFormData(selectedUserId);
+      } catch (err: any) {
+        console.error('Failed to initialize employee form:', err);
+        setError(err.response?.data?.message || 'Failed to load employee data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void initialize();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentOrganizationId, id]);
 
-  const loadFormData = async () => {
+  const loadFormData = async (selectedUserId?: string) => {
     if (!currentOrganizationId) return;
 
     try {
-      const [departmentsRes, positionsRes, managersRes] = await Promise.all([
+      const [departmentsRes, positionsRes, employeesRes, usersPage] = await Promise.all([
         getDepartments(currentOrganizationId, { activeOnly: true }),
         getPositions(currentOrganizationId, { activeOnly: true }),
-        getEmployees(currentOrganizationId, { status: 'ACTIVE' })
+        getEmployees(currentOrganizationId, { status: 'ACTIVE' }),
+        userService.getAllUsers({ page: 0, size: 200 })
       ]);
 
       setDepartments(departmentsRes.data);
       setPositions(positionsRes.data);
-      setManagers(managersRes.data);
+      setManagers(employeesRes.data);
+
+      const linkedUserIds = new Set(
+        (employeesRes.data || [])
+          .filter(emp => !!emp.userId)
+          .map(emp => emp.userId as string)
+      );
+
+      if (selectedUserId) {
+        linkedUserIds.delete(selectedUserId);
+      }
+
+      let userOptions = (usersPage.content || []).filter(
+        user => !linkedUserIds.has(user.id)
+      );
+
+      if (selectedUserId && !userOptions.some(user => user.id === selectedUserId)) {
+        try {
+          const selectedUser = await userService.getUserById(selectedUserId);
+          userOptions = [...userOptions, selectedUser];
+        } catch (fetchErr) {
+          console.warn('Unable to fetch selected user for employee form', fetchErr);
+        }
+      }
+
+      userOptions.sort((a, b) => {
+        const left = (a.firstName || a.username || '').toLowerCase();
+        const right = (b.firstName || b.username || '').toLowerCase();
+        if (left < right) return -1;
+        if (left > right) return 1;
+        return 0;
+      });
+
+      setAvailableUsers(userOptions);
     } catch (err) {
       console.error('Failed to load form data:', err);
     }
@@ -79,7 +133,6 @@ const EmployeeForm: React.FC = () => {
 
   const loadEmployee = async (employeeId: string) => {
     try {
-      setLoading(true);
       const response = await getEmployeeById(employeeId);
       const employee = response.data;
       
@@ -88,13 +141,14 @@ const EmployeeForm: React.FC = () => {
         dateOfBirth: employee.dateOfBirth || '',
         hireDate: employee.hireDate || '',
         terminationDate: employee.terminationDate || '',
+        userId: employee.userId || '',
       });
+      return employee.userId || undefined;
     } catch (err: any) {
       console.error('Failed to load employee:', err);
       setError(err.response?.data?.message || 'Failed to load employee');
-    } finally {
-      setLoading(false);
     }
+    return undefined;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -116,6 +170,10 @@ const EmployeeForm: React.FC = () => {
 
       const employeeData: Employee = {
         ...formData,
+        userId: formData.userId ? formData.userId : undefined,
+        managerId: formData.managerId ? formData.managerId : undefined,
+        departmentId: formData.departmentId ? formData.departmentId : undefined,
+        positionId: formData.positionId ? formData.positionId : undefined,
         organizationId: currentOrganizationId,
       } as Employee;
 
@@ -195,6 +253,29 @@ const EmployeeForm: React.FC = () => {
                 required
                 placeholder="Doe"
               />
+            </div>
+
+            <div className="form-group">
+              <label>Linked User Account</label>
+              <select
+                name="userId"
+                value={formData.userId || ''}
+                onChange={handleChange}
+              >
+                <option value="">No linked user</option>
+                {availableUsers.map(user => {
+                  const displayName = [user.firstName, user.lastName]
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim();
+                  return (
+                    <option key={user.id} value={user.id}>
+                      {displayName || user.username}
+                      {user.email ? ` (${user.email})` : ''}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
             <div className="form-group">

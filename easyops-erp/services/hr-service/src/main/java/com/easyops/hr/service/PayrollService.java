@@ -4,10 +4,15 @@ import com.easyops.hr.entity.PayrollDetail;
 import com.easyops.hr.entity.PayrollRun;
 import com.easyops.hr.repository.PayrollDetailRepository;
 import com.easyops.hr.repository.PayrollRunRepository;
+import com.easyops.hr.repository.EmployeeRepository;
+import com.easyops.hr.entity.Employee;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +30,7 @@ public class PayrollService {
     
     private final PayrollRunRepository payrollRunRepository;
     private final PayrollDetailRepository payrollDetailRepository;
+    private final EmployeeRepository employeeRepository;
     
     public List<PayrollRun> getAllPayrollRuns(UUID organizationId) {
         return payrollRunRepository.findByOrganizationIdOrderByPayPeriodStartDesc(organizationId);
@@ -55,7 +62,30 @@ public class PayrollService {
     
     public PayrollRun createPayrollRun(PayrollRun payrollRun) {
         log.info("Creating payroll run: {}", payrollRun.getRunName());
-        payrollRun.setStatus("draft");
+        
+        if (payrollRun.getOrganizationId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "organizationId is required.");
+        }
+        if (payrollRun.getPayPeriodStart() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "payPeriodStart is required.");
+        }
+        if (payrollRun.getPayPeriodEnd() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "payPeriodEnd is required.");
+        }
+        if (payrollRun.getPaymentDate() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "paymentDate is required.");
+        }
+        if (payrollRun.getPayPeriodEnd().isBefore(payrollRun.getPayPeriodStart())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "payPeriodEnd cannot be before payPeriodStart.");
+        }
+
+        if (!StringUtils.hasText(payrollRun.getRunName())) {
+            payrollRun.setRunName(String.format("Payroll %s - %s",
+                    payrollRun.getPayPeriodStart(),
+                    payrollRun.getPayPeriodEnd()));
+        }
+
+        payrollRun.setStatus("DRAFT");
         payrollRun.setEmployeeCount(0);
         payrollRun.setTotalGrossPay(BigDecimal.ZERO);
         payrollRun.setTotalDeductions(BigDecimal.ZERO);
@@ -68,7 +98,7 @@ public class PayrollService {
         
         if (payrollRun.getRunName() != null) existing.setRunName(payrollRun.getRunName());
         if (payrollRun.getPaymentDate() != null) existing.setPaymentDate(payrollRun.getPaymentDate());
-        if (payrollRun.getStatus() != null) existing.setStatus(payrollRun.getStatus());
+        if (payrollRun.getStatus() != null) existing.setStatus(payrollRun.getStatus().toUpperCase());
         if (payrollRun.getNotes() != null) existing.setNotes(payrollRun.getNotes());
         
         return payrollRunRepository.save(existing);
@@ -76,6 +106,7 @@ public class PayrollService {
     
     public PayrollRun processPayrollRun(UUID payrollRunId, UUID processedBy) {
         PayrollRun payrollRun = getPayrollRunById(payrollRunId);
+        Employee processor = resolveProcessor(payrollRun.getOrganizationId(), processedBy);
         
         // Get all payroll details
         List<PayrollDetail> details = payrollDetailRepository.findByPayrollRunId(payrollRunId);
@@ -97,8 +128,8 @@ public class PayrollService {
         payrollRun.setTotalGrossPay(totalGross);
         payrollRun.setTotalDeductions(totalDeductions);
         payrollRun.setTotalNetPay(totalNet);
-        payrollRun.setStatus("processed");
-        payrollRun.setProcessedBy(processedBy);
+        payrollRun.setStatus("PROCESSED");
+        payrollRun.setProcessedBy(processor.getEmployeeId());
         payrollRun.setProcessedAt(LocalDateTime.now());
         
         return payrollRunRepository.save(payrollRun);
@@ -106,7 +137,7 @@ public class PayrollService {
     
     public PayrollRun approvePayrollRun(UUID payrollRunId, UUID approvedBy) {
         PayrollRun payrollRun = getPayrollRunById(payrollRunId);
-        payrollRun.setStatus("approved");
+        payrollRun.setStatus("APPROVED");
         payrollRun.setApprovedBy(approvedBy);
         payrollRun.setApprovedAt(LocalDateTime.now());
         return payrollRunRepository.save(payrollRun);
@@ -136,6 +167,29 @@ public class PayrollService {
         detail.setPaidAt(LocalDateTime.now());
         
         return payrollDetailRepository.save(detail);
+    }
+
+    private Employee resolveProcessor(UUID organizationId, UUID identifier) {
+        if (identifier == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "processedBy is required.");
+        }
+
+        Optional<Employee> byEmployeeId = employeeRepository.findById(identifier)
+                .filter(emp -> organizationId.equals(emp.getOrganizationId()));
+
+        if (byEmployeeId.isPresent()) {
+            return byEmployeeId.get();
+        }
+
+        Optional<Employee> byUserId = employeeRepository.findByOrganizationIdAndUserId(organizationId, identifier);
+        if (byUserId.isPresent()) {
+            return byUserId.get();
+        }
+
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Unable to process payroll. No employee record is linked to the provided identifier."
+        );
     }
 }
 

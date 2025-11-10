@@ -22,6 +22,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     Optional<Employee> findByOrganizationIdAndEmployeeNumber(UUID organizationId, String employeeNumber);
     
     Optional<Employee> findByOrganizationIdAndEmail(UUID organizationId, String email);
+
+    Optional<Employee> findByOrganizationIdAndUserId(UUID organizationId, UUID userId);
     
     @Query("SELECT e FROM Employee e WHERE e.organizationId = :organizationId " +
            "AND (LOWER(e.firstName) LIKE LOWER(CONCAT('%', :search, '%')) " +

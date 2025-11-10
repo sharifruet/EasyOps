@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getTodayAttendance, clockIn, clockOut } from '../../services/hrService';
+import { getTodayAttendance, clockIn, clockOut, getEmployees, Employee } from '../../services/hrService';
 import { useAuth } from '../../contexts/AuthContext';
 import '../hr/Hr.css';
 
@@ -7,8 +7,18 @@ const AttendanceDashboard: React.FC = () => {
   const { currentOrganizationId, user } = useAuth();
   const [todayAttendance, setTodayAttendance] = useState<any[]>([]);
   const [currentRecord, setCurrentRecord] = useState<any>(null);
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
+  const [employeeLoadError, setEmployeeLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [workLocation, setWorkLocation] = useState('Office');
+
+  useEffect(() => {
+    if (currentOrganizationId && user?.id) {
+      loadCurrentEmployee(currentOrganizationId, user.id);
+    } else {
+      setCurrentEmployee(null);
+    }
+  }, [currentOrganizationId, user?.id]);
 
   useEffect(() => {
     if (currentOrganizationId) {
@@ -21,20 +31,68 @@ const AttendanceDashboard: React.FC = () => {
     try {
       const response = await getTodayAttendance(currentOrganizationId);
       setTodayAttendance(response.data);
-      
-      // Find current user's record
-      const myRecord = response.data.find((r: any) => r.employeeId === user?.id);
-      setCurrentRecord(myRecord);
     } catch (error) {
       console.error('Failed to load attendance:', error);
     }
   };
 
+  useEffect(() => {
+    if (!todayAttendance || todayAttendance.length === 0) {
+      setCurrentRecord(null);
+      return;
+    }
+
+    if (currentEmployee?.employeeId) {
+      const myRecord = todayAttendance.find(
+        (record: any) => record.employeeId === currentEmployee.employeeId
+      );
+      setCurrentRecord(myRecord || null);
+      return;
+    }
+
+    if (user?.id) {
+      const fallbackRecord = todayAttendance.find(
+        (record: any) => record.employeeId === user.id
+      );
+      setCurrentRecord(fallbackRecord || null);
+      return;
+    }
+
+    setCurrentRecord(null);
+  }, [todayAttendance, currentEmployee, user?.id]);
+
+  const loadCurrentEmployee = async (organizationId: string, userId: string) => {
+    try {
+      const response = await getEmployees(organizationId, { status: 'ACTIVE' });
+      const employeeMatch = response.data.find((employee) => employee.userId === userId);
+      if (employeeMatch) {
+        setCurrentEmployee(employeeMatch);
+        setEmployeeLoadError(null);
+      } else {
+        setCurrentEmployee(null);
+        setEmployeeLoadError('No employee profile is linked to this user.');
+      }
+    } catch (error) {
+      console.error('Failed to load employee profile:', error);
+      setCurrentEmployee(null);
+      setEmployeeLoadError('Failed to load employee profile.');
+    }
+  };
+
   const handleClockIn = async () => {
     if (!user?.id || !currentOrganizationId) return;
+    if (!currentEmployee?.employeeId) {
+      alert('No employee profile is linked to your account. Please contact your administrator.');
+      return;
+    }
     setLoading(true);
     try {
-      await clockIn(user.id, currentOrganizationId, workLocation);
+      await clockIn({
+        organizationId: currentOrganizationId,
+        workLocation,
+        employeeId: currentEmployee.employeeId,
+        userId: user.id,
+      });
       loadTodayAttendance();
       alert('Clocked in successfully!');
     } catch (error) {
@@ -45,10 +103,13 @@ const AttendanceDashboard: React.FC = () => {
   };
 
   const handleClockOut = async () => {
-    if (!user?.id) return;
+    if (!currentEmployee?.employeeId) {
+      alert('No employee profile is linked to your account. Please contact your administrator.');
+      return;
+    }
     setLoading(true);
     try {
-      await clockOut(user.id);
+      await clockOut(currentEmployee.employeeId);
       loadTodayAttendance();
       alert('Clocked out successfully!');
     } catch (error) {
@@ -113,7 +174,11 @@ const AttendanceDashboard: React.FC = () => {
                   <option value="Client Site">Client Site</option>
                 </select>
               </div>
-              <button onClick={handleClockIn} disabled={loading} className="btn-primary">
+              <button
+                onClick={handleClockIn}
+                disabled={loading || !currentEmployee?.employeeId}
+                className="btn-primary"
+              >
                 🕐 Clock In
               </button>
             </div>
@@ -122,7 +187,11 @@ const AttendanceDashboard: React.FC = () => {
               <h3>You're Clocked In</h3>
               <p>Clock In: {formatTime(currentRecord.clockInTime)}</p>
               <p>Location: {currentRecord.workLocation}</p>
-              <button onClick={handleClockOut} disabled={loading} className="btn-danger">
+              <button
+                onClick={handleClockOut}
+                disabled={loading || !currentEmployee?.employeeId}
+                className="btn-danger"
+              >
                 🕐 Clock Out
               </button>
             </div>
@@ -140,6 +209,11 @@ const AttendanceDashboard: React.FC = () => {
       {/* Today's Attendance Table */}
       <div className="hr-section">
         <h2>Today's Attendance</h2>
+        {employeeLoadError && (
+          <div className="alert alert-warning" role="alert" style={{ marginBottom: '1rem' }}>
+            {employeeLoadError}
+          </div>
+        )}
         <table className="hr-table">
           <thead>
             <tr>

@@ -4,17 +4,19 @@ import { getPayrollRuns, createPayrollRun, processPayrollRun } from '../../servi
 import './Hr.css';
 
 const PayrollRunManager: React.FC = () => {
-  const { currentOrganizationId } = useAuth();
+  const { currentOrganizationId, user } = useAuth();
   const [payrollRuns, setPayrollRuns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    periodStart: '',
-    periodEnd: '',
+    runName: '',
+    payPeriodStart: '',
+    payPeriodEnd: '',
     paymentDate: '',
-    description: '',
+    notes: '',
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentOrganizationId) {
@@ -39,36 +41,84 @@ const PayrollRunManager: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentOrganizationId) return;
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!currentOrganizationId) {
+      setFormError('No organization selected.');
+      return;
+    }
+
+    if (!formData.payPeriodStart || !formData.payPeriodEnd || !formData.paymentDate) {
+      setFormError('Please provide pay period start, end, and payment date.');
+      return;
+    }
+
+    const start = new Date(formData.payPeriodStart);
+    const end = new Date(formData.payPeriodEnd);
+    if (end < start) {
+      setFormError('Pay period end cannot be earlier than the start date.');
+      return;
+    }
+
+    const runName =
+      formData.runName.trim() ||
+      `Payroll ${formData.payPeriodStart} - ${formData.payPeriodEnd}`;
+
+    const payload = {
+      organizationId: currentOrganizationId,
+      runName,
+      payPeriodStart: formData.payPeriodStart,
+      payPeriodEnd: formData.payPeriodEnd,
+      paymentDate: formData.paymentDate,
+      notes: formData.notes.trim() || undefined,
+    };
 
     try {
-      await createPayrollRun({
-        ...formData,
-        organizationId: currentOrganizationId,
-      } as any);
+      setFormError(null);
+      await createPayrollRun(payload as any);
       setShowForm(false);
-      setFormData({ periodStart: '', periodEnd: '', paymentDate: '', description: '' });
+      setFormData({
+        runName: '',
+        payPeriodStart: '',
+        payPeriodEnd: '',
+        paymentDate: '',
+        notes: '',
+      });
       loadPayrollRuns();
       alert('Payroll run created successfully!');
     } catch (err) {
       console.error('Failed to create payroll run:', err);
-      alert('Failed to create payroll run');
+      setFormError('Failed to create payroll run. Please verify the details and try again.');
     }
   };
 
   const handleProcess = async (runId: string) => {
     if (!confirm('Are you sure you want to process this payroll run?')) return;
+    if (!user?.id) {
+      alert('Unable to process payroll run: missing user context.');
+      return;
+    }
 
     try {
-      await processPayrollRun(runId);
+      await processPayrollRun(runId, user.id);
       loadPayrollRuns();
       alert('Payroll run processed successfully!');
     } catch (err) {
       console.error('Failed to process payroll run:', err);
       alert('Failed to process payroll run');
     }
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString();
+  };
+
+  const formatCurrency = (value?: number | string) => {
+    const amount = Number(value ?? 0);
+    if (Number.isNaN(amount)) return '$0';
+    return amount.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
   };
 
   if (loading) return <div className="loading">Loading payroll runs...</div>;
@@ -90,11 +140,21 @@ const PayrollRunManager: React.FC = () => {
             <h2>Create Payroll Run</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-row">
+                <label>Run Name *</label>
+                <input
+                  type="text"
+                  value={formData.runName}
+                  onChange={(e) => setFormData({ ...formData, runName: e.target.value })}
+                  placeholder="e.g. November 2025 Payroll"
+                />
+              </div>
+
+              <div className="form-row">
                 <label>Period Start *</label>
                 <input
                   type="date"
-                  value={formData.periodStart}
-                  onChange={(e) => setFormData({ ...formData, periodStart: e.target.value })}
+                  value={formData.payPeriodStart}
+                  onChange={(e) => setFormData({ ...formData, payPeriodStart: e.target.value })}
                   required
                 />
               </div>
@@ -103,8 +163,8 @@ const PayrollRunManager: React.FC = () => {
                 <label>Period End *</label>
                 <input
                   type="date"
-                  value={formData.periodEnd}
-                  onChange={(e) => setFormData({ ...formData, periodEnd: e.target.value })}
+                  value={formData.payPeriodEnd}
+                  onChange={(e) => setFormData({ ...formData, payPeriodEnd: e.target.value })}
                   required
                 />
               </div>
@@ -120,13 +180,19 @@ const PayrollRunManager: React.FC = () => {
               </div>
 
               <div className="form-row">
-                <label>Description</label>
+                <label>Notes</label>
                 <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
                 />
               </div>
+
+              {formError && (
+                <div className="error-message" style={{ marginBottom: '1rem' }}>
+                  {formError}
+                </div>
+              )}
 
               <div className="form-actions">
                 <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">
@@ -165,14 +231,16 @@ const PayrollRunManager: React.FC = () => {
             ) : (
               payrollRuns.map((run) => (
                 <tr key={run.payrollRunId}>
-                  <td>#{run.runNumber || run.payrollRunId?.substring(0, 8)}</td>
-                  <td>
-                    {new Date(run.periodStart).toLocaleDateString()} - {new Date(run.periodEnd).toLocaleDateString()}
+                  <td title={run.runName || undefined}>
+                    {run.runName || `#${run.payrollRunId?.substring(0, 8)}`}
                   </td>
-                  <td>{new Date(run.paymentDate).toLocaleDateString()}</td>
+                  <td>
+                    {formatDate(run.payPeriodStart || run.periodStart)} - {formatDate(run.payPeriodEnd || run.periodEnd)}
+                  </td>
+                  <td>{formatDate(run.paymentDate)}</td>
                   <td>{run.employeeCount || 0}</td>
-                  <td>${run.totalGross?.toLocaleString() || '0'}</td>
-                  <td>${run.totalNet?.toLocaleString() || '0'}</td>
+                  <td>{formatCurrency(run.totalGrossPay ?? run.totalGross)}</td>
+                  <td>{formatCurrency(run.totalNetPay ?? run.totalNet)}</td>
                   <td>
                     <span className={`status-badge status-${run.status?.toLowerCase()}`}>
                       {run.status}

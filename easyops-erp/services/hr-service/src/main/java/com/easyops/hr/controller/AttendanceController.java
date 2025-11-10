@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -69,12 +70,17 @@ public class AttendanceController {
     
     @PostMapping("/clock-in")
     public ResponseEntity<AttendanceRecord> clockIn(@RequestBody Map<String, Object> request) {
-        UUID employeeId = UUID.fromString((String) request.get("employeeId"));
-        UUID organizationId = UUID.fromString((String) request.get("organizationId"));
+        UUID organizationId = parseUuid(request.get("organizationId"), "organizationId", true);
+        UUID employeeId = parseUuid(request.get("employeeId"), "employeeId", false);
+        UUID userId = parseUuid(request.get("userId"), "userId", false);
         String workLocation = (String) request.get("workLocation");
+
+        if (employeeId == null && userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Either employeeId or userId must be provided.");
+        }
         
-        log.info("POST /attendance/clock-in - employeeId: {}", employeeId);
-        AttendanceRecord record = attendanceService.clockIn(employeeId, organizationId, workLocation);
+        log.info("POST /attendance/clock-in - employeeId: {}, userId: {}", employeeId, userId);
+        AttendanceRecord record = attendanceService.clockIn(organizationId, employeeId, userId, workLocation);
         return ResponseEntity.ok(record);
     }
     
@@ -126,6 +132,29 @@ public class AttendanceController {
         log.info("DELETE /attendance/{}", id);
         attendanceService.deleteAttendance(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private UUID parseUuid(Object rawValue, String fieldName, boolean required) {
+        if (rawValue == null) {
+            if (required) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required.");
+            }
+            return null;
+        }
+
+        if (rawValue instanceof UUID uuid) {
+            return uuid;
+        }
+
+        if (rawValue instanceof String value && !value.isBlank()) {
+            try {
+                return UUID.fromString(value);
+            } catch (IllegalArgumentException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must be a valid UUID.");
+            }
+        }
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " must be a valid UUID.");
     }
 }
 

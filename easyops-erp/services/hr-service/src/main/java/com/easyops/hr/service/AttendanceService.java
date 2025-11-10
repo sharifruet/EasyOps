@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -44,19 +45,14 @@ public class AttendanceService {
         return attendanceRepository.findTodayAttendance(organizationId, date);
     }
 
-    public AttendanceRecord clockIn(UUID employeeId, UUID organizationId, String workLocation) {
+    public AttendanceRecord clockIn(UUID organizationId, UUID employeeId, UUID userId, String workLocation) {
         LocalDate today = LocalDate.now();
 
-        Employee employee = employeeRepository.findById(employeeId)
-                .filter(e -> organizationId.equals(e.getOrganizationId()))
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Employee not found for this organization. Please create the employee before clocking in."
-                ));
+        Employee employee = resolveEmployee(organizationId, employeeId, userId);
 
-        return attendanceRepository.findByEmployeeIdAndAttendanceDate(employeeId, today)
+        return attendanceRepository.findByEmployeeIdAndAttendanceDate(employee.getEmployeeId(), today)
                 .orElseGet(() -> {
-                    log.info("Clocking in employee {} for organization {}", employeeId, organizationId);
+                    log.info("Clocking in employee {} (userId: {}) for organization {}", employee.getEmployeeId(), employee.getUserId(), organizationId);
                     AttendanceRecord record = new AttendanceRecord();
                     record.setEmployeeId(employee.getEmployeeId());
                     record.setOrganizationId(employee.getOrganizationId());
@@ -66,6 +62,39 @@ public class AttendanceService {
                     record.setStatus("present");
                     return attendanceRepository.save(record);
                 });
+    }
+
+    private Employee resolveEmployee(UUID organizationId, UUID employeeId, UUID userId) {
+        if (employeeId != null) {
+            return employeeRepository.findById(employeeId)
+                    .filter(e -> organizationId.equals(e.getOrganizationId()))
+                    .orElseGet(() -> {
+                        Optional<Employee> byUserId = employeeRepository.findByOrganizationIdAndUserId(organizationId, employeeId);
+                        if (byUserId.isPresent()) {
+                            Employee resolved = byUserId.get();
+                            log.warn("Clock-in payload supplied userId {} in employeeId field. Resolved employee {}", employeeId, resolved.getEmployeeId());
+                            return resolved;
+                        }
+
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "Employee not found for this organization. Please create the employee before clocking in."
+                        );
+                    });
+        }
+
+        if (userId != null) {
+            return employeeRepository.findByOrganizationIdAndUserId(organizationId, userId)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Employee not found for provided user. Please link the employee before clocking in."
+                    ));
+        }
+
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Either employeeId or userId must be provided to clock in."
+        );
     }
 
     public AttendanceRecord clockOut(UUID employeeId) {

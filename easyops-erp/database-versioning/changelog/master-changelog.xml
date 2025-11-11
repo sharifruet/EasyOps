@@ -67,6 +67,8 @@
            <include file="data/001-default-roles.sql" relativeToChangelogFile="true"/>
            <include file="data/002-default-permissions.sql" relativeToChangelogFile="true"/>
            <include file="data/003-system-config.sql" relativeToChangelogFile="true"/>
+           <include file="data/011-rbac-module-permissions.sql" relativeToChangelogFile="true"/>
+           <include file="data/012-sample-users-and-roles.sql" relativeToChangelogFile="true"/>
            
            <!-- Test Data (Development and Testing) -->
            <include file="data/004-test-data.sql" relativeToChangelogFile="true"/>

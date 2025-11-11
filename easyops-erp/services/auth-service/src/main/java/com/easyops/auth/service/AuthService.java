@@ -2,18 +2,25 @@ package com.easyops.auth.service;
 
 import com.easyops.auth.dto.*;
 import com.easyops.auth.entity.*;
+import com.easyops.auth.dto.rbac.RbacPermissionResponse;
+import com.easyops.auth.dto.rbac.RbacRoleResponse;
 import com.easyops.auth.repository.*;
 import com.easyops.auth.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Authentication Service
@@ -35,6 +42,7 @@ public class AuthService {
     private final LoginAttemptRepository loginAttemptRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RestTemplate restTemplate;
 
     @Value("${account.lockout.max-attempts}")
     private int maxLoginAttempts;
@@ -48,18 +56,28 @@ public class AuthService {
     @Value("${password.reset.token-expiration}")
     private int passwordResetTokenExpiration;
 
+    @Value("${services.rbac.base-url:http://rbac-service}")
+    private String rbacServiceBaseUrl;
+
+    private static final ParameterizedTypeReference<List<RbacRoleResponse>> ROLE_LIST_TYPE =
+            new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<Set<RbacPermissionResponse>> PERMISSION_SET_TYPE =
+            new ParameterizedTypeReference<>() {};
+
     public AuthService(UserRepository userRepository,
                        UserSessionRepository sessionRepository,
                        PasswordResetTokenRepository passwordResetTokenRepository,
                        LoginAttemptRepository loginAttemptRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil) {
+                       JwtUtil jwtUtil,
+                       RestTemplate restTemplate) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.loginAttemptRepository = loginAttemptRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -119,6 +137,15 @@ public class AuthService {
         claims.put("firstName", user.getFirstName());
         claims.put("lastName", user.getLastName());
 
+        List<String> roleCodes = fetchUserRoleCodes(user.getId());
+        List<String> permissionCodes = fetchUserPermissionCodes(user.getId());
+        if (!roleCodes.isEmpty()) {
+            claims.put("roles", roleCodes);
+        }
+        if (!permissionCodes.isEmpty()) {
+            claims.put("permissions", permissionCodes);
+        }
+
         String accessToken = jwtUtil.generateToken(user.getId(), user.getUsername(), claims);
         String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getUsername());
 
@@ -139,8 +166,8 @@ public class AuthService {
         response.setEmail(user.getEmail());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
-        response.setRoles(new ArrayList<>()); // TODO: Fetch from RBAC service
-        response.setPermissions(new ArrayList<>()); // TODO: Fetch from RBAC service
+        response.setRoles(roleCodes);
+        response.setPermissions(permissionCodes);
 
         log.info("User {} logged in successfully", user.getUsername());
         return response;
@@ -182,6 +209,15 @@ public class AuthService {
         claims.put("firstName", user.getFirstName());
         claims.put("lastName", user.getLastName());
 
+        List<String> roleCodes = fetchUserRoleCodes(user.getId());
+        List<String> permissionCodes = fetchUserPermissionCodes(user.getId());
+        if (!roleCodes.isEmpty()) {
+            claims.put("roles", roleCodes);
+        }
+        if (!permissionCodes.isEmpty()) {
+            claims.put("permissions", permissionCodes);
+        }
+
         String newAccessToken = jwtUtil.generateToken(user.getId(), user.getUsername(), claims);
         String newRefreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getUsername());
 
@@ -202,8 +238,8 @@ public class AuthService {
         response.setEmail(user.getEmail());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
-        response.setRoles(new ArrayList<>());
-        response.setPermissions(new ArrayList<>());
+        response.setRoles(roleCodes);
+        response.setPermissions(permissionCodes);
 
         return response;
     }
@@ -315,6 +351,68 @@ public class AuthService {
         );
 
         return sessionRepository.save(session);
+    }
+
+    /**
+     * Fetch role codes assigned to the user from the RBAC service.
+     */
+    private List<String> fetchUserRoleCodes(UUID userId) {
+        try {
+            ResponseEntity<List<RbacRoleResponse>> response = restTemplate.exchange(
+                    String.format("%s/api/rbac/authorization/users/%s/roles", rbacServiceBaseUrl, userId),
+                    HttpMethod.GET,
+                    null,
+                    ROLE_LIST_TYPE
+            );
+
+            List<RbacRoleResponse> roles = response.getBody();
+            if (roles == null) {
+                return Collections.emptyList();
+            }
+
+            return roles.stream()
+                    .filter(Objects::nonNull)
+                    .map(RbacRoleResponse::getCode)
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(code -> !code.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+        } catch (Exception ex) {
+            log.warn("Failed to fetch roles from RBAC service for user {}: {}", userId, ex.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Fetch permission codes assigned to the user from the RBAC service.
+     */
+    private List<String> fetchUserPermissionCodes(UUID userId) {
+        try {
+            ResponseEntity<Set<RbacPermissionResponse>> response = restTemplate.exchange(
+                    String.format("%s/api/rbac/authorization/users/%s/permissions", rbacServiceBaseUrl, userId),
+                    HttpMethod.GET,
+                    null,
+                    PERMISSION_SET_TYPE
+            );
+
+            Set<RbacPermissionResponse> permissions = response.getBody();
+            if (permissions == null) {
+                return Collections.emptyList();
+            }
+
+            return permissions.stream()
+                    .filter(Objects::nonNull)
+                    .map(RbacPermissionResponse::getCode)
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(code -> !code.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+        } catch (Exception ex) {
+            log.warn("Failed to fetch permissions from RBAC service for user {}: {}", userId, ex.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     /**

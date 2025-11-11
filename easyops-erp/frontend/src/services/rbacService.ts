@@ -97,6 +97,11 @@ class RbacService {
     return response.data;
   }
 
+  async getPermissionsByResource(resource: string): Promise<Permission[]> {
+    const response = await api.get<Permission[]>(`/api/rbac/permissions/resource/${resource}`);
+    return response.data;
+  }
+
   async updatePermission(id: string, data: PermissionRequest): Promise<Permission> {
     const response = await api.put<Permission>(`/api/rbac/permissions/${id}`, data);
     return response.data;
@@ -149,6 +154,13 @@ class RbacService {
 
   async getUsersByRole(roleId: string): Promise<string[]> {
     const response = await api.get<string[]>(`/api/rbac/authorization/roles/${roleId}/users`);
+    return response.data;
+  }
+
+  async searchPermissions(query: string): Promise<Permission[]> {
+    const response = await api.get<Permission[]>('/api/rbac/permissions/search', {
+      params: { query },
+    });
     return response.data;
   }
 }

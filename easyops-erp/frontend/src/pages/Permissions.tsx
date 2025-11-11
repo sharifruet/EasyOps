@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Paper,
@@ -40,6 +40,29 @@ import {
 import { useSnackbar } from 'notistack';
 import rbacService from '@services/rbacService';
 import { Permission, PermissionRequest } from '@types/index';
+import { useAuth } from '@contexts/AuthContext';
+import Autocomplete from '@mui/material/Autocomplete';
+
+const DEFAULT_RESOURCES = [
+  'dashboard',
+  'organizations',
+  'users',
+  'roles',
+  'permissions',
+  'accounting',
+  'sales',
+  'inventory',
+  'purchase',
+  'hr',
+  'crm',
+  'manufacturing',
+  'system',
+  'audit',
+  'notifications',
+  'reports',
+];
+
+const DEFAULT_ACTIONS = ['view', 'manage', 'create', 'read', 'update', 'delete', 'admin', 'configure', 'export'];
 
 const Permissions: React.FC = () => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -49,6 +72,7 @@ const Permissions: React.FC = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterResource, setFilterResource] = useState<string>('all');
+  const [filterAction, setFilterAction] = useState<string>('all');
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentPermission, setCurrentPermission] = useState<Permission | null>(null);
@@ -60,291 +84,225 @@ const Permissions: React.FC = () => {
     description: '',
     isActive: true,
   });
+  const [allPermissionsCache, setAllPermissionsCache] = useState<Permission[]>([]);
+  const [isFilteredView, setIsFilteredView] = useState(false);
+  const [resourceOptions, setResourceOptions] = useState<string[]>([...DEFAULT_RESOURCES]);
+  const [actionOptions, setActionOptions] = useState<string[]>([...DEFAULT_ACTIONS]);
+  const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
+  const [dialogSaving, setDialogSaving] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+  const { canManageResource } = useAuth();
+  const canManagePermissions = canManageResource('permissions');
 
-  // Common resources and actions
-  const resourceOptions = ['users', 'roles', 'permissions', 'organizations', 'system', 'audit', 'reports'];
-  const actionOptions = ['create', 'read', 'update', 'delete', 'manage', 'view', 'configure', 'export'];
+  const updateFilterOptions = useCallback((records: Permission[]) => {
+    const resources = Array.from(
+      new Set([
+        ...DEFAULT_RESOURCES,
+        ...records.map((permission) => permission.resource).filter(Boolean),
+      ])
+    ).sort();
+    const actions = Array.from(
+      new Set([
+        ...DEFAULT_ACTIONS,
+        ...records.map((permission) => permission.action).filter(Boolean),
+      ])
+    ).sort();
 
-  const fetchPermissions = async () => {
-    try {
-      setLoading(true);
-      // Mock data for now - uncomment when RBAC service is ready
-      const mockPermissions: Permission[] = [
-        {
-          id: '1',
-          name: 'User Management',
-          code: 'USER_MANAGE',
-          resource: 'users',
-          action: 'manage',
-          description: 'Manage user accounts',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          name: 'User View',
-          code: 'USER_VIEW',
-          resource: 'users',
-          action: 'view',
-          description: 'View user information',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '3',
-          name: 'Role Management',
-          code: 'ROLE_MANAGE',
-          resource: 'roles',
-          action: 'manage',
-          description: 'Manage roles and permissions',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '4',
-          name: 'Role View',
-          code: 'ROLE_VIEW',
-          resource: 'roles',
-          action: 'view',
-          description: 'View roles and permissions',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '5',
-          name: 'System Configuration',
-          code: 'SYSTEM_CONFIG',
-          resource: 'system',
-          action: 'configure',
-          description: 'Configure system settings',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '6',
-          name: 'System View',
-          code: 'SYSTEM_VIEW',
-          resource: 'system',
-          action: 'view',
-          description: 'View system information',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '7',
-          name: 'Audit Logs',
-          code: 'AUDIT_VIEW',
-          resource: 'audit',
-          action: 'view',
-          description: 'View audit logs',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '8',
-          name: 'Organization Management',
-          code: 'ORG_MANAGE',
-          resource: 'organizations',
-          action: 'manage',
-          description: 'Manage organizations',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
+    setResourceOptions(resources);
+    setActionOptions(actions);
+  }, []);
 
-      let filteredPermissions = mockPermissions;
-      if (filterResource !== 'all') {
-        filteredPermissions = mockPermissions.filter(p => p.resource === filterResource);
+  const refreshPermissionCache = useCallback(
+    async (silent = false) => {
+      try {
+        setFilterOptionsLoading(true);
+        const response = await rbacService.getAllPermissions({ page: 0, size: 1000 });
+        const items = response.content || [];
+        setAllPermissionsCache(items);
+        updateFilterOptions(items);
+      } catch (error: any) {
+        if (!silent) {
+          const errorMessage = error.response?.data?.error || 'Failed to load permissions cache';
+          enqueueSnackbar(errorMessage, { variant: 'error' });
+        }
+      } finally {
+        setFilterOptionsLoading(false);
       }
-      
-      setPermissions(filteredPermissions);
-      setTotalElements(filteredPermissions.length);
-      
-      // Uncomment when service is ready:
-      // const response = await rbacService.getAllPermissions({ page, size: rowsPerPage });
-      // setPermissions(response.content);
-      // setTotalElements(response.totalElements);
-    } catch (error) {
-      enqueueSnackbar('Failed to load permissions', { variant: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [enqueueSnackbar, updateFilterOptions]
+  );
+
+  const loadPermissionsPage = useCallback(
+    async (pageIndex: number, pageSize: number) => {
+      try {
+        setLoading(true);
+        const response = await rbacService.getAllPermissions({ page: pageIndex, size: pageSize });
+        setPermissions(response.content || []);
+        setTotalElements(response.totalElements || 0);
+        setIsFilteredView(false);
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.error || 'Failed to load permissions';
+        enqueueSnackbar(errorMessage, { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [enqueueSnackbar]
+  );
 
   useEffect(() => {
-    fetchPermissions();
-  }, [page, rowsPerPage, filterResource]);
+    refreshPermissionCache(true);
+  }, [refreshPermissionCache]);
+
+  useEffect(() => {
+    if (!isFilteredView) {
+      loadPermissionsPage(page, rowsPerPage);
+    }
+  }, [page, rowsPerPage, isFilteredView, loadPermissionsPage]);
+
+  const applyFiltersAndSearch = useCallback(
+    async (showToast = false) => {
+      setLoading(true);
+
+      try {
+        const noFiltersApplied =
+          filterResource === 'all' &&
+          filterAction === 'all' &&
+          !searchTerm.trim();
+
+        if (noFiltersApplied) {
+          setPage(0);
+          await loadPermissionsPage(0, rowsPerPage);
+          return;
+        }
+
+        if (!allPermissionsCache.length) {
+          await refreshPermissionCache(true);
+        }
+
+        let dataset = allPermissionsCache;
+
+        if (filterResource !== 'all') {
+          dataset = dataset.filter((permission) => permission.resource === filterResource);
+        }
+
+        if (filterAction !== 'all') {
+          dataset = dataset.filter((permission) => permission.action === filterAction);
+        }
+
+        if (searchTerm.trim()) {
+          const term = searchTerm.toLowerCase();
+          dataset = dataset.filter((permission) =>
+            permission.name.toLowerCase().includes(term) ||
+            permission.code.toLowerCase().includes(term) ||
+            permission.resource.toLowerCase().includes(term) ||
+            permission.action.toLowerCase().includes(term) ||
+            (permission.description && permission.description.toLowerCase().includes(term))
+          );
+
+          if (showToast) {
+            enqueueSnackbar(
+              dataset.length
+                ? `Found ${dataset.length} permission(s)`
+                : 'No permissions found matching your search',
+              { variant: dataset.length ? 'success' : 'info' }
+            );
+          }
+        } else if (showToast) {
+          enqueueSnackbar(
+            dataset.length
+              ? `Filtered to ${dataset.length} permission(s)`
+              : 'No permissions match the selected filters',
+            { variant: dataset.length ? 'info' : 'warning' }
+          );
+        }
+
+        setIsFilteredView(true);
+        setPage(0);
+        setPermissions(dataset);
+        setTotalElements(dataset.length);
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.error || 'Failed to filter permissions';
+        enqueueSnackbar(errorMessage, { variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      allPermissionsCache,
+      enqueueSnackbar,
+      filterAction,
+      filterResource,
+      loadPermissionsPage,
+      refreshPermissionCache,
+      rowsPerPage,
+      searchTerm,
+    ]
+  );
 
   const handleSearch = async () => {
-    try {
-      setLoading(true);
-      
-      // Get all permissions (mock data)
-      const allPermissions: Permission[] = [
-        {
-          id: '1',
-          name: 'User Management',
-          code: 'USER_MANAGE',
-          resource: 'users',
-          action: 'manage',
-          description: 'Manage user accounts',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          name: 'User View',
-          code: 'USER_VIEW',
-          resource: 'users',
-          action: 'view',
-          description: 'View user information',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '3',
-          name: 'Role Management',
-          code: 'ROLE_MANAGE',
-          resource: 'roles',
-          action: 'manage',
-          description: 'Manage roles and permissions',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '4',
-          name: 'Role View',
-          code: 'ROLE_VIEW',
-          resource: 'roles',
-          action: 'view',
-          description: 'View roles and permissions',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '5',
-          name: 'System Configuration',
-          code: 'SYSTEM_CONFIG',
-          resource: 'system',
-          action: 'configure',
-          description: 'Configure system settings',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '6',
-          name: 'System View',
-          code: 'SYSTEM_VIEW',
-          resource: 'system',
-          action: 'view',
-          description: 'View system information',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '7',
-          name: 'Audit Logs',
-          code: 'AUDIT_VIEW',
-          resource: 'audit',
-          action: 'view',
-          description: 'View audit logs',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '8',
-          name: 'Organization Management',
-          code: 'ORG_MANAGE',
-          resource: 'organizations',
-          action: 'manage',
-          description: 'Manage organizations',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
-
-      let filtered = allPermissions;
-      
-      // Apply resource filter
-      if (filterResource !== 'all') {
-        filtered = filtered.filter(p => p.resource === filterResource);
-      }
-      
-      // Apply search term filter
-      if (searchTerm.trim()) {
-        const term = searchTerm.toLowerCase();
-        filtered = filtered.filter(permission =>
-          permission.name.toLowerCase().includes(term) ||
-          permission.code.toLowerCase().includes(term) ||
-          permission.resource.toLowerCase().includes(term) ||
-          permission.action.toLowerCase().includes(term) ||
-          (permission.description && permission.description.toLowerCase().includes(term))
-        );
-        
-        if (filtered.length > 0) {
-          enqueueSnackbar(`Found ${filtered.length} permission(s)`, { variant: 'success' });
-        } else {
-          enqueueSnackbar('No permissions found matching your search', { variant: 'info' });
-        }
-      }
-      
-      setPermissions(filtered);
-      setTotalElements(filtered.length);
-      
-      // When service is ready, use this:
-      // const response = await rbacService.searchPermissions(searchTerm, { page, size: rowsPerPage });
-      // setPermissions(response.content);
-      // setTotalElements(response.totalElements);
-    } catch (error) {
-      enqueueSnackbar('Search failed', { variant: 'error' });
-    } finally {
-      setLoading(false);
-    }
+    await applyFiltersAndSearch(true);
   };
 
   const handleCreatePermission = async () => {
+    if (!canManagePermissions) {
+      enqueueSnackbar('You do not have permission to manage permissions', { variant: 'warning' });
+      return;
+    }
+
     try {
-      // await rbacService.createPermission(newPermission);
-      enqueueSnackbar('Permission creation will be available when RBAC service is implemented', { variant: 'info' });
+      setDialogSaving(true);
+      await rbacService.createPermission({
+        ...newPermission,
+        code: newPermission.code.toUpperCase(),
+      });
+      enqueueSnackbar('Permission created successfully', { variant: 'success' });
       setOpenDialog(false);
       resetForm();
-      // fetchPermissions();
+      await refreshPermissionCache(true);
+      if (isFilteredView) {
+        await applyFiltersAndSearch();
+      } else {
+        setPage(0);
+        await loadPermissionsPage(0, rowsPerPage);
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Failed to create permission';
       enqueueSnackbar(errorMessage, { variant: 'error' });
+    } finally {
+      setDialogSaving(false);
     }
   };
 
   const handleUpdatePermission = async () => {
     if (!currentPermission) return;
-    
+
+    if (!canManagePermissions) {
+      enqueueSnackbar('You do not have permission to manage permissions', { variant: 'warning' });
+      return;
+    }
+
     try {
-      // await rbacService.updatePermission(currentPermission.id, newPermission);
-      enqueueSnackbar('Permission update will be available when RBAC service is implemented', { variant: 'info' });
+      setDialogSaving(true);
+      await rbacService.updatePermission(currentPermission.id, {
+        ...newPermission,
+        code: newPermission.code.toUpperCase(),
+      });
+      enqueueSnackbar('Permission updated successfully', { variant: 'success' });
       setOpenDialog(false);
       resetForm();
-      // fetchPermissions();
+      await refreshPermissionCache(true);
+      if (isFilteredView) {
+        await applyFiltersAndSearch();
+      } else {
+        await loadPermissionsPage(page, rowsPerPage);
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Failed to update permission';
       enqueueSnackbar(errorMessage, { variant: 'error' });
+    } finally {
+      setDialogSaving(false);
     }
   };
 
@@ -363,23 +321,52 @@ const Permissions: React.FC = () => {
   };
 
   const handleToggleActive = async (permission: Permission) => {
+    if (!canManagePermissions) {
+      enqueueSnackbar('You do not have permission to manage permissions', { variant: 'warning' });
+      return;
+    }
+
     try {
-      // await rbacService.togglePermissionStatus(permission.id);
-      enqueueSnackbar('Permission status toggle will be available when RBAC service is implemented', { variant: 'info' });
-      // fetchPermissions();
-    } catch (error) {
-      enqueueSnackbar('Failed to update permission status', { variant: 'error' });
+      await rbacService.updatePermission(permission.id, {
+        name: permission.name,
+        code: permission.code,
+        resource: permission.resource,
+        action: permission.action,
+        description: permission.description || '',
+        isActive: !permission.isActive,
+      });
+      enqueueSnackbar('Permission status updated', { variant: 'success' });
+      await refreshPermissionCache(true);
+      if (isFilteredView) {
+        await applyFiltersAndSearch();
+      } else {
+        await loadPermissionsPage(page, rowsPerPage);
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to update permission status';
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     }
   };
 
   const handleDeletePermission = async (permissionId: string) => {
+    if (!canManagePermissions) {
+      enqueueSnackbar('You do not have permission to manage permissions', { variant: 'warning' });
+      return;
+    }
+
     if (window.confirm('Are you sure you want to delete this permission?')) {
       try {
-        // await rbacService.deletePermission(permissionId);
-        enqueueSnackbar('Permission deletion will be available when RBAC service is implemented', { variant: 'info' });
-        // fetchPermissions();
-      } catch (error) {
-        enqueueSnackbar('Failed to delete permission', { variant: 'error' });
+        await rbacService.deletePermission(permissionId);
+        enqueueSnackbar('Permission deleted successfully', { variant: 'success' });
+        await refreshPermissionCache(true);
+        if (isFilteredView) {
+          await applyFiltersAndSearch();
+        } else {
+          await loadPermissionsPage(page, rowsPerPage);
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.error || 'Failed to delete permission';
+        enqueueSnackbar(errorMessage, { variant: 'error' });
       }
     }
   };
@@ -427,20 +414,31 @@ const Permissions: React.FC = () => {
             Define and manage system permissions
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => {
-            resetForm();
-            setOpenDialog(true);
-          }}
+        <Tooltip
+          title={
+            canManagePermissions
+              ? 'Create a new permission'
+              : 'You do not have permission to create permissions'
+          }
         >
-          Add Permission
-        </Button>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                resetForm();
+                setOpenDialog(true);
+              }}
+              disabled={!canManagePermissions}
+            >
+              Add Permission
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Box display="flex" gap={2} alignItems="center">
+        <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
           <TextField
             fullWidth
             placeholder="Search permissions by name, code, or description..."
@@ -461,16 +459,37 @@ const Permissions: React.FC = () => {
               value={filterResource}
               label="Filter by Resource"
               onChange={(e) => setFilterResource(e.target.value)}
+              disabled={filterOptionsLoading}
             >
               <MenuItem value="all">All Resources</MenuItem>
-              {resourceOptions.map(resource => (
-                <MenuItem key={resource} value={resource}>
-                  {resource.charAt(0).toUpperCase() + resource.slice(1)}
-                </MenuItem>
-              ))}
+              {resourceOptions
+                .filter((resource) => !!resource)
+                .map((resource) => (
+                  <MenuItem key={resource} value={resource}>
+                    {resource.charAt(0).toUpperCase() + resource.slice(1)}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
-          <Button onClick={handleSearch} variant="outlined">
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Filter by Action</InputLabel>
+            <Select
+              value={filterAction}
+              label="Filter by Action"
+              onChange={(e) => setFilterAction(e.target.value)}
+              disabled={filterOptionsLoading}
+            >
+              <MenuItem value="all">All Actions</MenuItem>
+              {actionOptions
+                .filter((action) => !!action)
+                .map((action) => (
+                  <MenuItem key={action} value={action}>
+                    {action.charAt(0).toUpperCase() + action.slice(1)}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+          <Button onClick={handleSearch} variant="outlined" disabled={loading}>
             Search
           </Button>
         </Box>
@@ -533,33 +552,66 @@ const Permissions: React.FC = () => {
                       </TableCell>
                       <TableCell>{permission.description || '-'}</TableCell>
                       <TableCell>
-                        <Chip
-                          icon={permission.isActive ? <CheckCircle /> : <Cancel />}
-                          label={permission.isActive ? 'Active' : 'Inactive'}
-                          color={permission.isActive ? 'success' : 'default'}
-                          size="small"
-                          onClick={() => handleToggleActive(permission)}
-                          sx={{ cursor: 'pointer' }}
-                        />
+                        <Tooltip
+                          title={
+                            canManagePermissions
+                              ? 'Toggle permission status'
+                              : 'You do not have permission to update permissions'
+                          }
+                        >
+                          <span style={{ display: 'inline-block' }}>
+                            <Chip
+                              icon={permission.isActive ? <CheckCircle /> : <Cancel />}
+                              label={permission.isActive ? 'Active' : 'Inactive'}
+                              color={permission.isActive ? 'success' : 'default'}
+                              size="small"
+                              onClick={
+                                canManagePermissions ? () => handleToggleActive(permission) : undefined
+                              }
+                              sx={{
+                                cursor: canManagePermissions ? 'pointer' : 'not-allowed',
+                                opacity: canManagePermissions ? 1 : 0.75,
+                              }}
+                            />
+                          </span>
+                        </Tooltip>
                       </TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => handleEditPermission(permission)}
-                          >
-                            <EditIcon />
-                          </IconButton>
+                        <Tooltip
+                          title={
+                            canManagePermissions
+                              ? 'Edit permission'
+                              : 'You do not have permission to edit permissions'
+                          }
+                        >
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleEditPermission(permission)}
+                              disabled={!canManagePermissions}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </span>
                         </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeletePermission(permission.id)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                        <Tooltip
+                          title={
+                            canManagePermissions
+                              ? 'Delete permission'
+                              : 'You do not have permission to delete permissions'
+                          }
+                        >
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeletePermission(permission.id)}
+                              disabled={!canManagePermissions}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </span>
                         </Tooltip>
                       </TableCell>
                     </TableRow>
@@ -606,34 +658,45 @@ const Permissions: React.FC = () => {
             onChange={(e) => setNewPermission({ ...newPermission, code: e.target.value.toUpperCase() })}
             helperText="Unique identifier in UPPER_CASE format (e.g., USER_CREATE)"
           />
-          <FormControl fullWidth margin="dense" required>
-            <InputLabel>Resource</InputLabel>
-            <Select
-              value={newPermission.resource}
-              label="Resource"
-              onChange={(e) => setNewPermission({ ...newPermission, resource: e.target.value })}
-            >
-              {resourceOptions.map(resource => (
-                <MenuItem key={resource} value={resource}>
-                  {resource.charAt(0).toUpperCase() + resource.slice(1)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense" required>
-            <InputLabel>Action</InputLabel>
-            <Select
-              value={newPermission.action}
-              label="Action"
-              onChange={(e) => setNewPermission({ ...newPermission, action: e.target.value })}
-            >
-              {actionOptions.map(action => (
-                <MenuItem key={action} value={action}>
-                  {action.charAt(0).toUpperCase() + action.slice(1)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            freeSolo
+            options={resourceOptions}
+            value={newPermission.resource || ''}
+            onChange={(_, value) =>
+              setNewPermission({ ...newPermission, resource: typeof value === 'string' ? value : '' })
+            }
+            onInputChange={(_, value) =>
+              setNewPermission({ ...newPermission, resource: value })
+            }
+            loading={filterOptionsLoading}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                margin="dense"
+                label="Resource"
+                required
+              />
+            )}
+          />
+          <Autocomplete
+            freeSolo
+            options={actionOptions}
+            value={newPermission.action || ''}
+            onChange={(_, value) =>
+              setNewPermission({ ...newPermission, action: typeof value === 'string' ? value : '' })
+            }
+            onInputChange={(_, value) =>
+              setNewPermission({ ...newPermission, action: value })
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                margin="dense"
+                label="Action"
+                required
+              />
+            )}
+          />
           <TextField
             margin="dense"
             label="Description"
@@ -648,6 +711,7 @@ const Permissions: React.FC = () => {
               <Switch
                 checked={newPermission.isActive}
                 onChange={(e) => setNewPermission({ ...newPermission, isActive: e.target.checked })}
+                disabled={!canManagePermissions || dialogSaving}
               />
             }
             label="Active"
@@ -664,9 +728,16 @@ const Permissions: React.FC = () => {
           <Button
             onClick={editMode ? handleUpdatePermission : handleCreatePermission}
             variant="contained"
-            disabled={!newPermission.name || !newPermission.code || !newPermission.resource || !newPermission.action}
+            disabled={
+              !canManagePermissions ||
+              dialogSaving ||
+              !newPermission.name ||
+              !newPermission.code ||
+              !newPermission.resource ||
+              !newPermission.action
+            }
           >
-            {editMode ? 'Update' : 'Create'}
+            {dialogSaving ? 'Saving...' : editMode ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>

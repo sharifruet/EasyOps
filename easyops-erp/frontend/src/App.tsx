@@ -12,6 +12,7 @@ import OrganizationDetails from '@pages/OrganizationDetails';
 import Users from '@pages/Users';
 import Roles from '@pages/Roles';
 import Permissions from '@pages/Permissions';
+import AccessDenied from '@pages/AccessDenied';
 import ChartOfAccounts from '@pages/accounting/ChartOfAccounts';
 import JournalEntry from '@pages/accounting/JournalEntry';
 import TrialBalance from '@pages/accounting/TrialBalance';
@@ -347,6 +348,7 @@ const App: React.FC = () => {
                 
                 <Route path="profile" element={<Dashboard />} />
                 <Route path="settings" element={<Dashboard />} />
+                <Route path="forbidden" element={<AccessDenied />} />
               </Route>
 
               {/* Catch all */}

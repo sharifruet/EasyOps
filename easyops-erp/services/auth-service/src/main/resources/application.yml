@@ -57,6 +57,11 @@ session:
   timeout: 3600 # 1 hour in seconds
   max-concurrent: 5 # Maximum concurrent sessions per user
 
+# Downstream Service Configuration
+services:
+  rbac:
+    base-url: http://rbac-service
+
 # Password Configuration
 password:
   reset:

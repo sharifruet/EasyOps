@@ -23,6 +23,7 @@ import {
   Tooltip,
   FormControlLabel,
   Switch,
+  Autocomplete,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -35,7 +36,8 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import rbacService from '@services/rbacService';
-import { Role, RoleRequest } from '@types/index';
+import { Role, RoleRequest, Permission } from '@types/index';
+import { useAuth } from '@contexts/AuthContext';
 
 const Roles: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -52,70 +54,25 @@ const Roles: React.FC = () => {
     code: '',
     description: '',
     isActive: true,
+    permissionIds: [],
   });
+  const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+  const { canManageResource } = useAuth();
+  const canManageRoles = canManageResource('roles');
+  const canManagePermissions = canManageResource('permissions');
 
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      // Mock data for now - uncomment when RBAC service is ready
-      const mockRoles: Role[] = [
-        {
-          id: '1',
-          name: 'System Administrator',
-          code: 'SYSTEM_ADMIN',
-          description: 'Full system access',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-        {
-          id: '2',
-          name: 'Organization Administrator',
-          code: 'ORG_ADMIN',
-          description: 'Organization-level administration',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-        {
-          id: '3',
-          name: 'User',
-          code: 'USER',
-          description: 'Standard user access',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-        {
-          id: '4',
-          name: 'Guest',
-          code: 'GUEST',
-          description: 'Limited guest access',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-      ];
-      
-      setRoles(mockRoles);
-      setTotalElements(mockRoles.length);
-      
-      // Uncomment when service is ready:
-      // const response = await rbacService.getAllRoles({ page, size: rowsPerPage });
-      // setRoles(response.content);
-      // setTotalElements(response.totalElements);
-    } catch (error) {
-      enqueueSnackbar('Failed to load roles', { variant: 'error' });
+      const response = await rbacService.getAllRoles({ page, size: rowsPerPage });
+      setRoles(response.content || []);
+      setTotalElements(response.totalElements || 0);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to load roles';
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -125,97 +82,63 @@ const Roles: React.FC = () => {
     fetchRoles();
   }, [page, rowsPerPage]);
 
+  useEffect(() => {
+    const loadPermissions = async () => {
+      try {
+        setPermissionsLoading(true);
+        const permissions = await rbacService.getActivePermissions();
+        setAvailablePermissions(permissions);
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.error || 'Failed to load permissions';
+        enqueueSnackbar(errorMessage, { variant: 'error' });
+      } finally {
+        setPermissionsLoading(false);
+      }
+    };
+
+    loadPermissions();
+  }, [enqueueSnackbar]);
+
   const handleSearch = async () => {
     try {
       setLoading(true);
-      
-      // Get all roles (mock data for now)
-      const mockRoles: Role[] = [
-        {
-          id: '1',
-          name: 'System Administrator',
-          code: 'SYSTEM_ADMIN',
-          description: 'Full system access',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-        {
-          id: '2',
-          name: 'Organization Administrator',
-          code: 'ORG_ADMIN',
-          description: 'Organization-level administration',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-        {
-          id: '3',
-          name: 'User',
-          code: 'USER',
-          description: 'Standard user access',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-        {
-          id: '4',
-          name: 'Guest',
-          code: 'GUEST',
-          description: 'Limited guest access',
-          isSystemRole: true,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          permissions: [],
-        },
-      ];
-      
       if (!searchTerm.trim()) {
-        setRoles(mockRoles);
-        setTotalElements(mockRoles.length);
+        await fetchRoles();
+        return;
       } else {
-        // Client-side search filtering
-        const term = searchTerm.toLowerCase();
-        const filtered = mockRoles.filter(role =>
-          role.name.toLowerCase().includes(term) ||
-          role.code.toLowerCase().includes(term) ||
-          (role.description && role.description.toLowerCase().includes(term))
+        const results = await rbacService.searchRoles(searchTerm.trim());
+        setRoles(results);
+        setTotalElements(results.length);
+        enqueueSnackbar(
+          results.length
+            ? `Found ${results.length} role(s)`
+            : 'No roles found matching your search',
+          { variant: results.length ? 'success' : 'info' }
         );
-        setRoles(filtered);
-        setTotalElements(filtered.length);
-        
-        if (filtered.length > 0) {
-          enqueueSnackbar(`Found ${filtered.length} role(s)`, { variant: 'success' });
-        } else {
-          enqueueSnackbar('No roles found matching your search', { variant: 'info' });
-        }
       }
-      
-      // When service is ready, use this:
-      // const response = await rbacService.searchRoles(searchTerm, { page, size: rowsPerPage });
-      // setRoles(response.content);
-      // setTotalElements(response.totalElements);
-    } catch (error) {
-      enqueueSnackbar('Search failed', { variant: 'error' });
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Search failed';
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreateRole = async () => {
+    if (!canManageRoles) {
+      enqueueSnackbar('You do not have permission to manage roles', { variant: 'warning' });
+      return;
+    }
+
     try {
-      // await rbacService.createRole(newRole);
-      enqueueSnackbar('Role creation will be available when RBAC service is implemented', { variant: 'info' });
+      await rbacService.createRole({
+        ...newRole,
+        permissionIds: newRole.permissionIds && newRole.permissionIds.length ? newRole.permissionIds : [],
+      });
+      enqueueSnackbar('Role created successfully', { variant: 'success' });
       setOpenDialog(false);
       resetForm();
-      // fetchRoles();
+      fetchRoles();
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Failed to create role';
       enqueueSnackbar(errorMessage, { variant: 'error' });
@@ -224,13 +147,21 @@ const Roles: React.FC = () => {
 
   const handleUpdateRole = async () => {
     if (!currentRole) return;
+
+    if (!canManageRoles) {
+      enqueueSnackbar('You do not have permission to manage roles', { variant: 'warning' });
+      return;
+    }
     
     try {
-      // await rbacService.updateRole(currentRole.id, newRole);
-      enqueueSnackbar('Role update will be available when RBAC service is implemented', { variant: 'info' });
+      await rbacService.updateRole(currentRole.id, {
+        ...newRole,
+        permissionIds: newRole.permissionIds && newRole.permissionIds.length ? newRole.permissionIds : [],
+      });
+      enqueueSnackbar('Role updated successfully', { variant: 'success' });
       setOpenDialog(false);
       resetForm();
-      // fetchRoles();
+      fetchRoles();
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Failed to update role';
       enqueueSnackbar(errorMessage, { variant: 'error' });
@@ -244,6 +175,7 @@ const Roles: React.FC = () => {
       code: role.code,
       description: role.description || '',
       isActive: role.isActive,
+      permissionIds: role.permissions?.map((permission) => permission.id) || [],
     });
     setEditMode(true);
     setOpenDialog(true);
@@ -254,13 +186,25 @@ const Roles: React.FC = () => {
       enqueueSnackbar('Cannot modify system roles', { variant: 'warning' });
       return;
     }
+
+    if (!canManageRoles) {
+      enqueueSnackbar('You do not have permission to manage roles', { variant: 'warning' });
+      return;
+    }
     
     try {
-      // await rbacService.toggleRoleStatus(role.id);
-      enqueueSnackbar('Role status toggle will be available when RBAC service is implemented', { variant: 'info' });
-      // fetchRoles();
-    } catch (error) {
-      enqueueSnackbar('Failed to update role status', { variant: 'error' });
+      await rbacService.updateRole(role.id, {
+        name: role.name,
+        code: role.code,
+        description: role.description || '',
+        isActive: !role.isActive,
+        permissionIds: role.permissions?.map((permission) => permission.id) || [],
+      });
+      enqueueSnackbar('Role status updated', { variant: 'success' });
+      fetchRoles();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to update role status';
+      enqueueSnackbar(errorMessage, { variant: 'error' });
     }
   };
 
@@ -270,13 +214,19 @@ const Roles: React.FC = () => {
       return;
     }
 
+    if (!canManageRoles) {
+      enqueueSnackbar('You do not have permission to manage roles', { variant: 'warning' });
+      return;
+    }
+
     if (window.confirm('Are you sure you want to delete this role?')) {
       try {
-        // await rbacService.deleteRole(roleId);
-        enqueueSnackbar('Role deletion will be available when RBAC service is implemented', { variant: 'info' });
-        // fetchRoles();
-      } catch (error) {
-        enqueueSnackbar('Failed to delete role', { variant: 'error' });
+        await rbacService.deleteRole(roleId);
+        enqueueSnackbar('Role deleted successfully', { variant: 'success' });
+        fetchRoles();
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.error || 'Failed to delete role';
+        enqueueSnackbar(errorMessage, { variant: 'error' });
       }
     }
   };
@@ -287,6 +237,7 @@ const Roles: React.FC = () => {
       code: '',
       description: '',
       isActive: true,
+      permissionIds: [],
     });
     setCurrentRole(null);
     setEditMode(false);
@@ -308,16 +259,27 @@ const Roles: React.FC = () => {
             Manage roles and their permissions
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => {
-            resetForm();
-            setOpenDialog(true);
-          }}
+        <Tooltip
+          title={
+            canManageRoles
+              ? 'Create a new role'
+              : 'You do not have permission to create roles'
+          }
         >
-          Add Role
-        </Button>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                resetForm();
+                setOpenDialog(true);
+              }}
+              disabled={!canManageRoles}
+            >
+              Add Role
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -395,7 +357,7 @@ const Roles: React.FC = () => {
                           color={role.isActive ? 'success' : 'default'}
                           size="small"
                           onClick={() => handleToggleActive(role)}
-                          sx={{ cursor: role.isSystemRole ? 'not-allowed' : 'pointer' }}
+                          sx={{ cursor: role.isSystemRole || !canManageRoles ? 'not-allowed' : 'pointer' }}
                         />
                       </TableCell>
                       <TableCell>
@@ -413,7 +375,7 @@ const Roles: React.FC = () => {
                               size="small"
                               color="primary"
                               onClick={() => handleEditRole(role)}
-                              disabled={role.isSystemRole}
+                              disabled={role.isSystemRole || !canManageRoles}
                             >
                               <EditIcon />
                             </IconButton>
@@ -425,7 +387,7 @@ const Roles: React.FC = () => {
                               size="small"
                               color="error"
                               onClick={() => handleDeleteRole(role.id, role.isSystemRole)}
-                              disabled={role.isSystemRole}
+                              disabled={role.isSystemRole || !canManageRoles}
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -496,6 +458,37 @@ const Roles: React.FC = () => {
               />
             }
             label="Active"
+            sx={{ mt: 2 }}
+          />
+          <Autocomplete
+            multiple
+            options={availablePermissions}
+            loading={permissionsLoading}
+            value={availablePermissions.filter((permission) =>
+              (newRole.permissionIds || []).includes(permission.id)
+            )}
+            onChange={(_, selected) =>
+              setNewRole({
+                ...newRole,
+                permissionIds: selected.map((permission) => permission.id),
+              })
+            }
+            getOptionLabel={(option) => `${option.name} (${option.code})`}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                margin="dense"
+                label="Permissions"
+                placeholder="Assign permissions"
+                helperText={
+                  canManagePermissions
+                    ? 'Permissions granted to users with this role'
+                    : 'You do not have permission to modify permissions'
+                }
+              />
+            )}
+            disabled={!canManagePermissions}
             sx={{ mt: 2 }}
           />
           <Box sx={{ mt: 2, p: 2, bgcolor: 'info.lighter', borderRadius: 1 }}>

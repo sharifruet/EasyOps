@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -21,6 +21,7 @@ import {
   DialogActions,
   CircularProgress,
   Tooltip,
+  Autocomplete,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -29,10 +30,13 @@ import {
   Search as SearchIcon,
   CheckCircle,
   Cancel,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import userService from '@services/userService';
-import { User, UserCreateRequest } from '@types/index';
+import rbacService from '@services/rbacService';
+import { User, UserCreateRequest, Role } from '@types/index';
+import { useAuth } from '@contexts/AuthContext';
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -49,8 +53,46 @@ const Users: React.FC = () => {
     firstName: '',
     lastName: '',
   });
+  const [assignRolesOpen, setAssignRolesOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [assignedRoleIds, setAssignedRoleIds] = useState<string[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [userRolesMap, setUserRolesMap] = useState<Record<string, Role[]>>({});
 
   const { enqueueSnackbar } = useSnackbar();
+  const { canManageResource } = useAuth();
+  const canManageUsers = canManageResource('users');
+  const canManageRoles = canManageResource('roles');
+
+  const preloadUserRoles = useCallback(
+    async (userList: User[]) => {
+      const missingUsers = userList.filter((user) => !userRolesMap[user.id]);
+      if (missingUsers.length === 0) {
+        return;
+      }
+
+      try {
+        const entries = await Promise.all(
+          missingUsers.map(async (user) => {
+            const roles = await rbacService.getUserRoles(user.id);
+            return [user.id, roles] as [string, Role[]];
+          })
+        );
+
+        setUserRolesMap((prev) => {
+          const next = { ...prev };
+          entries.forEach(([userId, roles]) => {
+            next[userId] = roles;
+          });
+          return next;
+        });
+      } catch (error) {
+        console.error('Failed to preload user roles', error);
+      }
+    },
+    [userRolesMap]
+  );
 
   const fetchUsers = async () => {
     try {
@@ -59,8 +101,10 @@ const Users: React.FC = () => {
         page,
         size: rowsPerPage,
       });
-      setUsers(response.content);
+      const fetchedUsers = response.content || [];
+      setUsers(fetchedUsers);
       setTotalElements(response.totalElements);
+      preloadUserRoles(fetchedUsers);
     } catch (error) {
       enqueueSnackbar('Failed to load users', { variant: 'error' });
     } finally {
@@ -84,8 +128,10 @@ const Users: React.FC = () => {
         page,
         size: rowsPerPage,
       });
-      setUsers(response.content);
+      const fetchedUsers = response.content || [];
+      setUsers(fetchedUsers);
       setTotalElements(response.totalElements);
+      preloadUserRoles(fetchedUsers);
     } catch (error) {
       enqueueSnackbar('Search failed', { variant: 'error' });
     } finally {
@@ -94,6 +140,11 @@ const Users: React.FC = () => {
   };
 
   const handleCreateUser = async () => {
+    if (!canManageUsers) {
+      enqueueSnackbar('You do not have permission to manage users', { variant: 'warning' });
+      return;
+    }
+
     try {
       await userService.createUser(newUser);
       enqueueSnackbar('User created successfully', { variant: 'success' });
@@ -113,6 +164,11 @@ const Users: React.FC = () => {
   };
 
   const handleToggleActive = async (user: User) => {
+    if (!canManageUsers) {
+      enqueueSnackbar('You do not have permission to manage users', { variant: 'warning' });
+      return;
+    }
+
     try {
       if (user.isActive) {
         await userService.deactivateUser(user.id);
@@ -128,6 +184,11 @@ const Users: React.FC = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
+    if (!canManageUsers) {
+      enqueueSnackbar('You do not have permission to manage users', { variant: 'warning' });
+      return;
+    }
+
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await userService.deleteUser(userId);
@@ -139,19 +200,114 @@ const Users: React.FC = () => {
     }
   };
 
+  const handleManageRoles = async (user: User) => {
+    if (!canManageRoles) {
+      enqueueSnackbar('You do not have permission to manage roles', { variant: 'warning' });
+      return;
+    }
+
+    setSelectedUser(user);
+    setAssignRolesOpen(true);
+    setRolesLoading(true);
+
+    try {
+      const [activeRoles, userRoles] = await Promise.all([
+        rbacService.getActiveRoles(),
+        rbacService.getUserRoles(user.id),
+      ]);
+
+      const mergedRoles = [...activeRoles];
+      userRoles.forEach((role) => {
+        if (!mergedRoles.some((existing) => existing.id === role.id)) {
+          mergedRoles.push(role);
+        }
+      });
+
+      setAvailableRoles(mergedRoles);
+      setAssignedRoleIds(userRoles.map((role) => role.id));
+      setUserRolesMap((prev) => ({ ...prev, [user.id]: userRoles }));
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to load user roles';
+      enqueueSnackbar(errorMessage, { variant: 'error' });
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
+  const handleSaveRoles = async () => {
+    if (!selectedUser) {
+      return;
+    }
+
+    if (!canManageRoles) {
+      enqueueSnackbar('You do not have permission to manage roles', { variant: 'warning' });
+      return;
+    }
+
+    try {
+      setRolesLoading(true);
+      let updatedRoles: Role[] = [];
+
+      if (assignedRoleIds.length > 0) {
+        updatedRoles = await rbacService.assignRolesToUser({
+          userId: selectedUser.id,
+          roleIds: assignedRoleIds,
+        });
+      } else {
+        await rbacService.removeAllRolesFromUser(selectedUser.id);
+      }
+
+      if (assignedRoleIds.length === 0) {
+        updatedRoles = [];
+      }
+
+      setUserRolesMap((prev) => ({
+        ...prev,
+        [selectedUser.id]: updatedRoles,
+      }));
+
+      enqueueSnackbar('User roles updated successfully', { variant: 'success' });
+      setAssignRolesOpen(false);
+      setSelectedUser(null);
+      setAssignedRoleIds([]);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Failed to update user roles';
+      enqueueSnackbar(errorMessage, { variant: 'error' });
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
+  const handleCloseRolesDialog = () => {
+    setAssignRolesOpen(false);
+    setSelectedUser(null);
+    setAssignedRoleIds([]);
+  };
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight="bold">
           User Management
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenDialog(true)}
+        <Tooltip
+          title={
+            canManageUsers
+              ? 'Create a new user'
+              : 'You do not have permission to create users'
+          }
         >
-          Add User
-        </Button>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenDialog(true)}
+              disabled={!canManageUsers}
+            >
+              Add User
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       <Paper sx={{ p: 2, mb: 2 }}>
@@ -188,53 +344,125 @@ const Users: React.FC = () => {
                   <TableCell>Email</TableCell>
                   <TableCell>Name</TableCell>
                   <TableCell>Status</TableCell>
+                  <TableCell>Roles</TableCell>
                   <TableCell>Created</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id} hover>
-                    <TableCell>
-                      <Typography fontWeight="medium">{user.username}</Typography>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      {user.firstName || user.lastName
-                        ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-                        : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={user.isActive ? <CheckCircle /> : <Cancel />}
-                        label={user.isActive ? 'Active' : 'Inactive'}
-                        color={user.isActive ? 'success' : 'default'}
-                        size="small"
-                        onClick={() => handleToggleActive(user)}
-                        sx={{ cursor: 'pointer' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Edit">
-                        <IconButton size="small" color="primary">
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteUser(user.id)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+                {users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <Typography variant="body2" color="text.secondary" py={4}>
+                        No users found
+                      </Typography>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  users.map((user) => (
+                    <TableRow key={user.id} hover>
+                      <TableCell>
+                        <Typography fontWeight="medium">{user.username}</Typography>
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        {user.firstName || user.lastName
+                          ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                          : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip
+                          title={
+                            canManageUsers
+                              ? 'Toggle user status'
+                              : 'You do not have permission to manage users'
+                          }
+                        >
+                          <span style={{ display: 'inline-block' }}>
+                            <Chip
+                              icon={user.isActive ? <CheckCircle /> : <Cancel />}
+                              label={user.isActive ? 'Active' : 'Inactive'}
+                              color={user.isActive ? 'success' : 'default'}
+                              size="small"
+                              onClick={canManageUsers ? () => handleToggleActive(user) : undefined}
+                              sx={{
+                                cursor: canManageUsers ? 'pointer' : 'not-allowed',
+                                opacity: canManageUsers ? 1 : 0.75,
+                              }}
+                            />
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        {userRolesMap[user.id]?.length ? (
+                          <Box display="flex" flexWrap="wrap" gap={0.5}>
+                            {userRolesMap[user.id].map((role) => (
+                              <Chip key={role.id} label={role.code} size="small" variant="outlined" />
+                            ))}
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No roles
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Tooltip
+                          title={
+                            canManageRoles
+                              ? 'Manage user roles'
+                              : 'You do not have permission to manage roles'
+                          }
+                        >
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={() => handleManageRoles(user)}
+                              disabled={!canManageRoles}
+                            >
+                              <SecurityIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip
+                          title={
+                            canManageUsers
+                              ? 'Edit user'
+                              : 'You do not have permission to manage users'
+                          }
+                        >
+                          <span>
+                            <IconButton size="small" color="primary" disabled={!canManageUsers}>
+                              <EditIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip
+                          title={
+                            canManageUsers
+                              ? 'Delete user'
+                              : 'You do not have permission to manage users'
+                          }
+                        >
+                          <span>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={!canManageUsers}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
             <TablePagination
@@ -300,8 +528,58 @@ const Users: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleCreateUser} variant="contained">
+          <Button
+            onClick={handleCreateUser}
+            variant="contained"
+            disabled={
+              !canManageUsers ||
+              !newUser.username.trim() ||
+              !newUser.email.trim() ||
+              !newUser.password.trim()
+            }
+          >
             Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Manage Roles Dialog */}
+      <Dialog open={assignRolesOpen} onClose={handleCloseRolesDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Manage Roles{selectedUser ? ` – ${selectedUser.username}` : ''}
+        </DialogTitle>
+        <DialogContent>
+          {rolesLoading ? (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              <Autocomplete
+                multiple
+                options={availableRoles}
+                value={availableRoles.filter((role) => assignedRoleIds.includes(role.id))}
+                onChange={(_, selected) => setAssignedRoleIds(selected.map((role) => role.id))}
+                getOptionLabel={(option) => `${option.name} (${option.code})`}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderInput={(params) => (
+                  <TextField {...params} label="Roles" placeholder="Assign roles" margin="normal" />
+                )}
+              />
+              <Typography variant="caption" color="text.secondary">
+                Users inherit permissions from the roles assigned here.
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseRolesDialog}>Cancel</Button>
+          <Button
+            onClick={handleSaveRoles}
+            variant="contained"
+            disabled={rolesLoading || !canManageRoles || !selectedUser}
+          >
+            {rolesLoading ? 'Saving...' : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>

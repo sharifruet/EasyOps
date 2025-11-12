@@ -29,7 +29,8 @@ if errorlevel 1 (
 echo.
 
 set INFRA=postgres redis
-set APPS=adminer eureka api-gateway
+set APPS=adminer eureka api-gateway frontend
+set MONITOR=prometheus grafana
 
 echo 🐳 Starting database and cache dependencies...
 %COMPOSE_CMD% up -d --wait %INFRA%
@@ -56,8 +57,15 @@ if errorlevel 1 (
 )
 echo.
 
+echo 📈 Starting monitoring stack (Prometheus + Grafana)...
+%COMPOSE_CMD% up -d --wait %MONITOR%
+if errorlevel 1 (
+    echo ⚠️  docker compose reported an issue while starting monitoring services. Review logs with: %COMPOSE_CMD% logs prometheus grafana
+)
+echo.
+
 echo 📊 Running containers:
-%COMPOSE_CMD% ps adminer eureka api-gateway postgres redis liquibase
+%COMPOSE_CMD% ps adminer eureka api-gateway frontend postgres redis liquibase prometheus grafana
 echo.
 
 echo ⏳ Checking Eureka health (http://localhost:8761/actuator/health)...
@@ -78,18 +86,48 @@ if errorlevel 1 (
 )
 
 echo.
+echo ⏳ Checking Frontend response (http://localhost:3000)...
+powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:3000').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+if errorlevel 1 (
+    echo ⚠️  Frontend did not respond within the timeout.
+) else (
+    echo ✅ Frontend is responding
+)
+
+echo.
+echo ⏳ Checking Prometheus readiness (http://localhost:9090/-/ready)...
+powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:9090/-/ready').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+if errorlevel 1 (
+    echo ⚠️  Prometheus did not report ready within the timeout.
+) else (
+    echo ✅ Prometheus is ready
+)
+
+echo.
+echo ⏳ Checking Grafana response (http://localhost:3001/login)...
+powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:3001/login').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+if errorlevel 1 (
+    echo ⚠️  Grafana did not respond with HTTP 200 within the timeout.
+) else (
+    echo ✅ Grafana is responding
+)
+
+echo.
 echo 📋 Access URLs:
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo PostgreSQL:  jdbc:postgresql://localhost:5432/easyops
 echo Adminer:     http://localhost:8080
 echo Eureka:      http://localhost:8761
 echo API Gateway: http://localhost:8081
+echo Frontend:    http://localhost:3000
+echo Prometheus:  http://localhost:9090
+echo Grafana:     http://localhost:3001  (admin / admin)
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo.
 echo 🛠️  Useful commands:
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo View logs:       %COMPOSE_CMD% logs -f api-gateway
-echo Stop services:   %COMPOSE_CMD% stop %APPS% %INFRA%
+echo Stop services:   %COMPOSE_CMD% stop %APPS% %INFRA% %MONITOR%
 echo Remove services: %COMPOSE_CMD% down -v
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo.

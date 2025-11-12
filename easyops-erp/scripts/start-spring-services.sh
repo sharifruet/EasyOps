@@ -76,7 +76,13 @@ if ! resolve_hostname "$EUREKA_INSTANCE_HOSTNAME"; then
       HOST_IP="$(ip route get 8.8.8.8 2>/dev/null | awk '/src/ {print $7; exit}')"
     fi
     if [[ -z "${HOST_IP:-}" ]]; then
-      HOST_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+      HOST_IP="$( (hostname -I 2>/dev/null | awk '{print $1}') || true)"
+    fi
+    if [[ -z "${HOST_IP:-}" ]]; then
+      HOST_IP="$( (ipconfig 2>/dev/null | awk -F': *' '/IPv4 Address/ {gsub(/\r/, ""); print $2; exit}') || true)"
+    fi
+    if [[ -z "${HOST_IP:-}" && -n "$(command -v powershell.exe 2>/dev/null)" ]]; then
+      HOST_IP="$( (powershell.exe -NoProfile -Command "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { \$_.IPAddress -and \$_.IPAddress -notlike '169.254*' -and \$_.IPAddress -ne '127.0.0.1' -and \$_.IPAddress -ne '::1' } | Select-Object -First 1 -ExpandProperty IPAddress)" 2>/dev/null | tr -d '\r') || true)"
     fi
     if [[ -z "${HOST_IP:-}" ]]; then
       HOST_IP="$(nmcli -t -f IP4.ADDRESS device show 2>/dev/null | awk -F'[/:]' '/IP4.ADDRESS/ {print $2; exit}')"
@@ -116,11 +122,48 @@ DEFAULT_SERVICES=(
   "manufacturing-service"
 )
 
+CORE_MANAGED_SERVICES=(
+  "api-gateway"
+  "eureka"
+  "frontend"
+  "adminer"
+  "postgres"
+  "redis"
+  "prometheus"
+  "grafana"
+)
+
 if [ -n "${SERVICES_OVERRIDE:-}" ]; then
   # Allow comma or space separated override list
   IFS=',' read -r -a SERVICES <<< "${SERVICES_OVERRIDE// /,}"
 else
   SERVICES=("${DEFAULT_SERVICES[@]}")
+fi
+
+is_core_managed() {
+  local candidate="$1"
+  for managed in "${CORE_MANAGED_SERVICES[@]}"; do
+    if [[ "$candidate" == "$managed" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+FILTERED_SERVICES=()
+for service in "${SERVICES[@]}"; do
+  if is_core_managed "$service"; then
+    echo "ℹ️  Skipping $service because it is managed by start-core-services (Docker)."
+    continue
+  fi
+  FILTERED_SERVICES+=("$service")
+done
+
+SERVICES=("${FILTERED_SERVICES[@]}")
+
+if [ ${#SERVICES[@]} -eq 0 ]; then
+  echo "⚠️  No Spring services to launch (all requested services are handled by Docker)."
+  exit 0
 fi
 
 mkdir -p "$LOG_DIR" "$PID_DIR"

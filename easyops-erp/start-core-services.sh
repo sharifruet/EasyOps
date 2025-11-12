@@ -36,7 +36,8 @@ else
 fi
 
 INFRA_SERVICES=(postgres redis)
-APP_SERVICES=(adminer eureka api-gateway)
+APP_SERVICES=(adminer eureka api-gateway frontend)
+MONITORING_SERVICES=(prometheus grafana)
 
 echo ""
 echo "🐳 Starting database and cache dependencies..."
@@ -61,8 +62,14 @@ if ! "${COMPOSE_CMD[@]}" up -d --wait "${APP_SERVICES[@]}"; then
 fi
 
 echo ""
+echo "📈 Starting monitoring stack (Prometheus + Grafana)..."
+if ! "${COMPOSE_CMD[@]}" up -d --wait "${MONITORING_SERVICES[@]}"; then
+  echo -e "${YELLOW}⚠️  docker compose reported an issue while starting monitoring services. Check logs below.${NC}"
+fi
+
+echo ""
 echo "📊 Current container status:"
-"${COMPOSE_CMD[@]}" ps adminer eureka api-gateway postgres redis liquibase
+"${COMPOSE_CMD[@]}" ps adminer eureka api-gateway frontend postgres redis liquibase prometheus grafana
 
 echo ""
 echo "⏳ Waiting for Eureka (http://localhost:8761)..."
@@ -91,12 +98,54 @@ else
 fi
 
 echo ""
+echo "⏳ Waiting for Frontend (http://localhost:3000)..."
+RETRIES=60
+until curl -fs http://localhost:3000 >/dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+  sleep 2
+  RETRIES=$((RETRIES-1))
+done
+if [ $RETRIES -eq 0 ]; then
+  echo -e "${YELLOW}⚠️  Frontend did not respond within the timeout.${NC}"
+else
+  echo -e "${GREEN}✅ Frontend is responding${NC}"
+fi
+
+echo ""
+echo "⏳ Waiting for Prometheus (http://localhost:9090/-/ready)..."
+RETRIES=60
+until curl -fs http://localhost:9090/-/ready >/dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+  sleep 2
+  RETRIES=$((RETRIES-1))
+done
+if [ $RETRIES -eq 0 ]; then
+  echo -e "${YELLOW}⚠️  Prometheus did not report ready within the timeout.${NC}"
+else
+  echo -e "${GREEN}✅ Prometheus is ready${NC}"
+fi
+
+echo ""
+echo "⏳ Waiting for Grafana (http://localhost:3001/login)..."
+RETRIES=60
+until curl -fs http://localhost:3001/login >/dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+  sleep 2
+  RETRIES=$((RETRIES-1))
+done
+if [ $RETRIES -eq 0 ]; then
+  echo -e "${YELLOW}⚠️  Grafana did not respond with HTTP 200 within the timeout.${NC}"
+else
+  echo -e "${GREEN}✅ Grafana is responding${NC}"
+fi
+
+echo ""
 echo "📋 Access URLs"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "${GREEN}PostgreSQL:${NC}  jdbc:postgresql://localhost:5432/easyops"
 echo -e "${GREEN}Adminer:${NC}     http://localhost:8080"
 echo -e "${GREEN}Eureka:${NC}      http://localhost:8761"
 echo -e "${GREEN}API Gateway:${NC} http://localhost:8081"
+echo -e "${GREEN}Frontend:${NC}    http://localhost:3000"
+echo -e "${GREEN}Prometheus:${NC}  http://localhost:9090"
+echo -e "${GREEN}Grafana:${NC}     http://localhost:3001 (admin/admin)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "🛠️  Useful commands"

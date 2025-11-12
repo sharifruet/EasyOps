@@ -9,9 +9,9 @@ import java.util.UUID;
 
 /**
  * Permission Response DTO
- * 
+ *
  * Data Transfer Object for permission responses.
- * 
+ *
  * @author EasyOps Team
  * @version 1.0.0
  */

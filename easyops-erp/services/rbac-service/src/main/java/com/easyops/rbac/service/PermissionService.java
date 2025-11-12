@@ -4,6 +4,7 @@ import com.easyops.rbac.dto.PermissionRequest;
 import com.easyops.rbac.dto.PermissionResponse;
 import com.easyops.rbac.entity.Permission;
 import com.easyops.rbac.repository.PermissionRepository;
+import com.easyops.rbac.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 public class PermissionService {
 
     private final PermissionRepository permissionRepository;
+    private final RoleRepository roleRepository;
 
     /**
      * Create a new permission
@@ -52,6 +54,8 @@ public class PermissionService {
 
         Permission savedPermission = permissionRepository.save(permission);
         log.info("Created permission: {}", savedPermission.getCode());
+
+        assignPermissionToSystemAdmin(savedPermission);
         
         return mapToPermissionResponse(savedPermission);
     }
@@ -165,6 +169,14 @@ public class PermissionService {
         response.setCreatedAt(permission.getCreatedAt());
         response.setUpdatedAt(permission.getUpdatedAt());
         return response;
+    }
+
+    /**
+     * Ensure the SYSTEM_ADMIN role always has every permission.
+     */
+    private void assignPermissionToSystemAdmin(Permission permission) {
+        roleRepository.assignPermissionToRole("SYSTEM_ADMIN", permission.getId());
+        log.info("Assigned permission {} to SYSTEM_ADMIN role", permission.getCode());
     }
 }
 

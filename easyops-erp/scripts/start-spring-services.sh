@@ -18,6 +18,14 @@ PROFILE="${SPRING_PROFILE:-local}"
 LOG_DIR="${LOG_DIR:-$ROOT_DIR/logs/local-services}" 
 PID_DIR="${PID_DIR:-$LOG_DIR/pids}"
 
+# Default log pattern for consistent structured logs across services
+DEFAULT_LOGGING_PATTERN_CONSOLE="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+DEFAULT_LOGGING_PATTERN_FILE="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+: "${LOGGING_PATTERN_CONSOLE:=$DEFAULT_LOGGING_PATTERN_CONSOLE}"
+: "${LOGGING_PATTERN_FILE:=$DEFAULT_LOGGING_PATTERN_FILE}"
+export LOGGING_PATTERN_CONSOLE LOGGING_PATTERN_FILE
+
 # Ensure Eureka clients register with a host reachable from Docker containers.
 : "${EUREKA_INSTANCE_HOSTNAME:=host.docker.internal}"
 : "${EUREKA_INSTANCE_PREFER_IP_ADDRESS:=false}"
@@ -155,6 +163,7 @@ start_service() {
 
   (
     cd "$module_dir"
+    "$MAVEN_CMD" clean >/dev/null 2>&1 || true
     SPRING_PROFILES_ACTIVE="$PROFILE" "$MAVEN_CMD" spring-boot:run \
       -Dspring-boot.run.profiles="$PROFILE" \
       -DskipTests=true \

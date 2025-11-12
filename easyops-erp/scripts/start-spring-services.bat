@@ -29,6 +29,17 @@ if not defined LOG_DIR (
 )
 set "PID_DIR=%LOG_DIR%\pids"
 
+REM --- Default logging pattern -------------------------------------------------
+set "DEFAULT_LOGGING_PATTERN_CONSOLE=%%d{yyyy-MM-dd HH:mm:ss.SSS} [%%thread] %%-5level %%logger{36} - %%msg%%n"
+set "DEFAULT_LOGGING_PATTERN_FILE=%%d{yyyy-MM-dd HH:mm:ss.SSS} [%%thread] %%-5level %%logger{36} - %%msg%%n"
+
+if not defined LOGGING_PATTERN_CONSOLE (
+  set "LOGGING_PATTERN_CONSOLE=%DEFAULT_LOGGING_PATTERN_CONSOLE%"
+)
+if not defined LOGGING_PATTERN_FILE (
+  set "LOGGING_PATTERN_FILE=%DEFAULT_LOGGING_PATTERN_FILE%"
+)
+
 if not exist "%LOG_DIR%" (
   mkdir "%LOG_DIR%"
 )
@@ -101,6 +112,7 @@ for %%S in (%SERVICES%) do (
     start "easyops-!SERVICE!" /b cmd /c ^
       "cd /d ""!MODULE_DIR!"" && ^
        set SPRING_PROFILES_ACTIVE=%PROFILE% && ^
+       call ""%MAVEN_CMD%"" clean >nul 2>&1 && ^
        ""%MAVEN_CMD%"" spring-boot:run ^
          -Dspring-boot.run.profiles=%PROFILE% ^
          -DskipTests=true ^

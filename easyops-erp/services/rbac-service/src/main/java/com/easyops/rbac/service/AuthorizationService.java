@@ -106,7 +106,7 @@ public class AuthorizationService {
      */
     @Cacheable(value = "userPermissions", key = "#userId")
     @Transactional(readOnly = true)
-    public Set<PermissionResponse> getUserPermissions(UUID userId) {
+    public List<PermissionResponse> getUserPermissions(UUID userId) {
         List<UserRole> userRoles = userRoleRepository.findActiveRolesByUserId(
                 userId, LocalDateTime.now());
         
@@ -118,7 +118,7 @@ public class AuthorizationService {
             }
         }
         
-        return permissions;
+        return new ArrayList<>(permissions);
     }
 
     /**
@@ -126,7 +126,7 @@ public class AuthorizationService {
      */
     @Transactional(readOnly = true)
     public boolean hasPermission(AuthorizationRequest request) {
-        Set<PermissionResponse> permissions = getUserPermissions(request.getUserId());
+        List<PermissionResponse> permissions = getUserPermissions(request.getUserId());
         
         return permissions.stream()
                 .anyMatch(p -> p.getResource().equals(request.getResource()) 

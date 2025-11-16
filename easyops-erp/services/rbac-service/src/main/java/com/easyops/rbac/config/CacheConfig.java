@@ -1,5 +1,8 @@
 package com.easyops.rbac.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,28 +17,32 @@ import java.time.Duration;
 
 /**
  * Cache Configuration
- * 
- * Configures Redis caching for RBAC service.
- * 
- * @author EasyOps Team
- * @version 1.0.0
+ *
+ * Configures Redis caching for RBAC service with Java Time support.
  */
 @Configuration
 public class CacheConfig {
 
-    @Bean
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1))
-                .serializeKeysWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-                .disableCachingNullValues();
+	@Bean
+	public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+		ObjectMapper objectMapper = new ObjectMapper()
+				.registerModule(new JavaTimeModule())
+				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
-                .build();
-    }
+		GenericJackson2JsonRedisSerializer valueSerializer =
+				new GenericJackson2JsonRedisSerializer(objectMapper);
+
+		RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl(Duration.ofHours(1))
+				.serializeKeysWith(
+						RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+				.serializeValuesWith(
+						RedisSerializationContext.SerializationPair.fromSerializer(valueSerializer))
+				.disableCachingNullValues();
+
+		return RedisCacheManager.builder(connectionFactory)
+				.cacheDefaults(config)
+				.build();
+	}
 }
 

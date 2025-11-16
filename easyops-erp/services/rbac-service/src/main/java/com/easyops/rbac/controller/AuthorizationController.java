@@ -57,8 +57,8 @@ public class AuthorizationController {
     }
 
     @GetMapping("/users/{userId}/permissions")
-    public ResponseEntity<Set<PermissionResponse>> getUserPermissions(@PathVariable UUID userId) {
-        Set<PermissionResponse> response = authorizationService.getUserPermissions(userId);
+    public ResponseEntity<List<PermissionResponse>> getUserPermissions(@PathVariable UUID userId) {
+        List<PermissionResponse> response = authorizationService.getUserPermissions(userId);
         return ResponseEntity.ok(response);
     }
 

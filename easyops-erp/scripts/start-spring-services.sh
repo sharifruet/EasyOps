@@ -27,76 +27,16 @@ DEFAULT_LOGGING_PATTERN_FILE="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %lo
 export LOGGING_PATTERN_CONSOLE LOGGING_PATTERN_FILE
 
 # Ensure Eureka clients register with a host reachable from Docker containers.
+# Always use host.docker.internal so Docker containers can reach services.
+# Docker containers can resolve host.docker.internal even if host ping/resolution fails.
 : "${EUREKA_INSTANCE_HOSTNAME:=host.docker.internal}"
 : "${EUREKA_INSTANCE_PREFER_IP_ADDRESS:=false}"
 
-resolve_hostname() {
-  local host="$1"
-
-  if command -v python3 >/dev/null 2>&1; then
-    python3 - <<PYTHON >/dev/null 2>&1
-import socket
-socket.gethostbyname("${host}")
-PYTHON
-    return $?
-  fi
-
-  if command -v getent >/dev/null 2>&1; then
-    getent hosts "$host" >/dev/null 2>&1 && return 0
-  fi
-
-  if command -v host >/dev/null 2>&1; then
-    host "$host" >/dev/null 2>&1 && return 0
-  fi
-
-  if command -v nslookup >/dev/null 2>&1; then
-    nslookup "$host" >/dev/null 2>&1 && return 0
-  fi
-
-  if command -v ping >/dev/null 2>&1; then
-    ping -c1 "$host" >/dev/null 2>&1 && return 0
-  fi
-
-  return 1
-}
-
-if ! resolve_hostname "$EUREKA_INSTANCE_HOSTNAME"; then
-  # host.docker.internal is not resolvable on some setups (e.g., Colima, Linux without Docker Desktop).
-  # Fall back to the active interface IP so both the host and Docker containers can reach it.
-  if [[ "$OSTYPE" == darwin* ]]; then
-    DEFAULT_IFACE="$(route get default 2>/dev/null | awk '/interface: / {print $2; exit}')"
-    if [[ -n "$DEFAULT_IFACE" ]]; then
-      HOST_IP="$(ipconfig getifaddr "$DEFAULT_IFACE" 2>/dev/null || true)"
-    fi
-    if [[ -z "${HOST_IP:-}" ]]; then
-      HOST_IP="$(ifconfig | awk '/inet / && $2 != \"127.0.0.1\" {print $2; exit}')"
-    fi
-  else
-    if command -v ip >/dev/null 2>&1; then
-      HOST_IP="$(ip route get 8.8.8.8 2>/dev/null | awk '/src/ {print $7; exit}')"
-    fi
-    if [[ -z "${HOST_IP:-}" ]]; then
-      HOST_IP="$( (hostname -I 2>/dev/null | awk '{print $1}') || true)"
-    fi
-    if [[ -z "${HOST_IP:-}" ]]; then
-      HOST_IP="$( (ipconfig 2>/dev/null | awk -F': *' '/IPv4 Address/ {gsub(/\r/, ""); print $2; exit}') || true)"
-    fi
-    if [[ -z "${HOST_IP:-}" && -n "$(command -v powershell.exe 2>/dev/null)" ]]; then
-      HOST_IP="$( (powershell.exe -NoProfile -Command "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { \$_.IPAddress -and \$_.IPAddress -notlike '169.254*' -and \$_.IPAddress -ne '127.0.0.1' -and \$_.IPAddress -ne '::1' } | Select-Object -First 1 -ExpandProperty IPAddress)" 2>/dev/null | tr -d '\r') || true)"
-    fi
-    if [[ -z "${HOST_IP:-}" ]]; then
-      HOST_IP="$(nmcli -t -f IP4.ADDRESS device show 2>/dev/null | awk -F'[/:]' '/IP4.ADDRESS/ {print $2; exit}')"
-    fi
-  fi
-
-  if [[ -n "$HOST_IP" ]]; then
-    EUREKA_INSTANCE_HOSTNAME="$HOST_IP"
-    EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-    echo "ℹ️  host.docker.internal not resolvable. Using host IP $HOST_IP for Eureka registrations."
-  else
-    echo "⚠️  Unable to determine host IP. Services may not be reachable from Docker containers."
-  fi
-fi
+# Note: We don't fall back to IP address anymore because:
+# 1. Docker containers can resolve host.docker.internal even if host ping/resolution fails
+# 2. Using IP addresses causes connectivity issues from Docker containers
+# 3. The application.yml already has host.docker.internal as default
+echo "ℹ️  Using host.docker.internal for Eureka registrations (Docker containers can reach it)"
 
 export EUREKA_INSTANCE_HOSTNAME
 export EUREKA_INSTANCE_PREFER_IP_ADDRESS

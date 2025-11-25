@@ -24,7 +24,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/rbac/permissions")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PermissionController {
 

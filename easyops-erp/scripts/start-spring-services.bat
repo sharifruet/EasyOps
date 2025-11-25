@@ -48,29 +48,18 @@ if not exist "%PID_DIR%" (
 )
 
 REM --- Eureka hostname resolution ----------------------------------------------
+REM Always use host.docker.internal for Eureka registration so Docker containers can reach services
+REM Docker containers can resolve host.docker.internal even if host ping fails
 if not defined EUREKA_INSTANCE_HOSTNAME (
   set "EUREKA_INSTANCE_HOSTNAME=host.docker.internal"
 )
 set "EUREKA_INSTANCE_PREFER_IP_ADDRESS=false"
 
-ping -n 1 %EUREKA_INSTANCE_HOSTNAME% >nul 2>&1
-if errorlevel 1 (
-  for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr /c:"IPv4 Address" /c:"IPv4-Adresse"') do (
-    for /f "tokens=1,* delims= " %%B in ("%%A") do (
-      if not defined HOST_IP (
-        set "HOST_IP=%%C"
-      )
-    )
-  )
-  if defined HOST_IP (
-    set "HOST_IP=%HOST_IP: =%"
-    set "EUREKA_INSTANCE_HOSTNAME=%HOST_IP%"
-    set "EUREKA_INSTANCE_PREFER_IP_ADDRESS=true"
-    echo [INFO] host.docker.internal not reachable, using %HOST_IP% for Eureka registrations.
-  ) else (
-    echo [WARN] Unable to resolve host.docker.internal and no fallback IP detected.
-  )
-)
+REM Note: We don't fall back to IP address anymore because:
+REM 1. Docker containers can resolve host.docker.internal even if host ping fails
+REM 2. Using IP addresses causes connectivity issues from Docker containers
+REM 3. The application.yml already has host.docker.internal as default
+echo [INFO] Using host.docker.internal for Eureka registrations (Docker containers can reach it)
 
 REM --- Service list ------------------------------------------------------------
 set "DEFAULT_SERVICES=user-management auth-service rbac-service organization-service notification-service monitoring-service accounting-service ar-service ap-service bank-service sales-service inventory-service purchase-service crm-service hr-service manufacturing-service"

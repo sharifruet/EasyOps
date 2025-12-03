@@ -61,7 +61,6 @@ echo 🚀 Starting core application services...
 if errorlevel 1 (
     echo ⚠️  docker compose reported an issue while starting application services. Check logs below.
 )
-
 echo.
 echo 📊 Current container status:
 %COMPOSE_CMD% ps adminer postgres redis liquibase prometheus grafana frontend
@@ -75,12 +74,30 @@ if errorlevel 1 (
 echo ✅ Monitoring and frontend services started
 
 echo.
-echo ⏳ Waiting for Frontend (http://localhost:3000)...
-powershell -NoProfile -Command "foreach ($i in 1..30) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:3000').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+echo ⏳ Checking Frontend response (http://localhost:3000)...
+powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:3000').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
 if errorlevel 1 (
-    echo ⚠️  Frontend did not become available within the timeout.
+    echo ⚠️  Frontend did not respond within the timeout.
 ) else (
-    echo ✅ Frontend is available
+    echo ✅ Frontend is responding
+)
+
+echo.
+echo ⏳ Checking Prometheus readiness (http://localhost:9090/-/ready)...
+powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:9090/-/ready').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+if errorlevel 1 (
+    echo ⚠️  Prometheus did not report ready within the timeout.
+) else (
+    echo ✅ Prometheus is ready
+)
+
+echo.
+echo ⏳ Checking Grafana response (http://localhost:3001/login)...
+powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:3001/login').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+if errorlevel 1 (
+    echo ⚠️  Grafana did not respond with HTTP 200 within the timeout.
+) else (
+    echo ✅ Grafana is responding
 )
 
 echo.

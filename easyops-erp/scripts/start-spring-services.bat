@@ -54,21 +54,52 @@ if not exist "%PID_DIR%" (
 )
 
 REM --- Eureka hostname resolution ----------------------------------------------
-REM For local services, use localhost so Eureka links are accessible from browser.
+REM Always use host.docker.internal for Eureka registration so Docker containers can reach services
+REM Docker containers can resolve host.docker.internal even if host ping fails
 if not defined EUREKA_INSTANCE_HOSTNAME (
-  set "EUREKA_INSTANCE_HOSTNAME=localhost"
+  set "EUREKA_INSTANCE_HOSTNAME=host.docker.internal"
 )
 set "EUREKA_INSTANCE_PREFER_IP_ADDRESS=false"
 
+REM Note: We don't fall back to IP address anymore because:
+REM 1. Docker containers can resolve host.docker.internal even if host ping fails
+REM 2. Using IP addresses causes connectivity issues from Docker containers
+REM 3. The application.yml already has host.docker.internal as default
+echo [INFO] Using host.docker.internal for Eureka registrations (Docker containers can reach it)
+
 REM --- Service list ------------------------------------------------------------
-REM Order matters when services depend on one another.
-REM Eureka must start first, followed by API Gateway, then all other services.
-set "DEFAULT_SERVICES=eureka api-gateway user-management auth-service rbac-service organization-service notification-service monitoring-service accounting-service ar-service ap-service bank-service sales-service inventory-service purchase-service crm-service hr-service manufacturing-service"
+set "DEFAULT_SERVICES=user-management auth-service rbac-service organization-service notification-service monitoring-service accounting-service ar-service ap-service bank-service sales-service inventory-service purchase-service crm-service hr-service manufacturing-service"
+set "CORE_MANAGED_SERVICES=api-gateway eureka frontend adminer postgres redis prometheus grafana"
 
 if defined SERVICES_OVERRIDE (
   set "SERVICES=%SERVICES_OVERRIDE:,= %"
 ) else (
   set "SERVICES=%DEFAULT_SERVICES%"
+)
+
+set "FILTERED_SERVICES="
+for %%S in (%SERVICES%) do (
+  set "SERVICE=%%~S"
+  set "SKIP=0"
+  for %%C in (%CORE_MANAGED_SERVICES%) do (
+    if /I "%%~C"=="!SERVICE!" set "SKIP=1"
+  )
+  if "!SKIP!"=="1" (
+    echo [SKIP]   !SERVICE! is managed by start-core-services (Docker).
+  ) else (
+    if defined FILTERED_SERVICES (
+      set "FILTERED_SERVICES=!FILTERED_SERVICES! !SERVICE!"
+    ) else (
+      set "FILTERED_SERVICES=!SERVICE!"
+    )
+  )
+)
+
+if defined FILTERED_SERVICES (
+  set "SERVICES=!FILTERED_SERVICES!"
+) else (
+  echo [WARN] No Spring services to launch; all requested services are managed by Docker.
+  goto END
 )
 
 REM --- Maven wrapper bootstrap -------------------------------------------------
@@ -102,40 +133,22 @@ for %%S in (%SERVICES%) do (
     echo [START] !SERVICE!  (profile=%PROFILE%)
     echo          log: !LOG_FILE!
 
-    if "!PROFILE!"=="" (
-      REM No profile - use default config with localhost overrides
-      start "easyops-!SERVICE!" /b cmd /c ^
-        "cd /d ""!MODULE_DIR!"" && ^
-         set SPRING_PROFILES_ACTIVE= && ^
-         call ""%MAVEN_CMD%"" clean >nul 2>&1 && ^
-         ""%MAVEN_CMD%"" spring-boot:run ^
-           -Dspring-boot.run.profiles= ^
-           -Dspring.profiles.active= ^
-           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/easyops ^
-           -Dspring.datasource.username=easyops ^
-           -Dspring.datasource.password=easyops123 ^
-           -Dspring.data.redis.host=localhost ^
-           -Dspring.data.redis.port=6379 ^
-           -DskipTests=true ^
-           -Deureka.instance.hostname=%EUREKA_INSTANCE_HOSTNAME% ^
-           -Deureka.instance.preferIpAddress=%EUREKA_INSTANCE_PREFER_IP_ADDRESS% ^
-           -Deureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/ ^
-           %SPRING_BOOT_EXTRAS% ^
-           >> ""!LOG_FILE!"" 2>&1"
-    ) else (
-      REM Profile specified
-      start "easyops-!SERVICE!" /b cmd /c ^
-        "cd /d ""!MODULE_DIR!"" && ^
-         set SPRING_PROFILES_ACTIVE=%PROFILE% && ^
-         call ""%MAVEN_CMD%"" clean >nul 2>&1 && ^
-         ""%MAVEN_CMD%"" spring-boot:run ^
-           -Dspring-boot.run.profiles=%PROFILE% ^
-           -DskipTests=true ^
-           -Deureka.instance.hostname=%EUREKA_INSTANCE_HOSTNAME% ^
-           -Deureka.instance.preferIpAddress=%EUREKA_INSTANCE_PREFER_IP_ADDRESS% ^
-           %SPRING_BOOT_EXTRAS% ^
-           >> ""!LOG_FILE!"" 2>&1"
+    set "SERVICE_CMD=cd /d ""!MODULE_DIR!"" && "
+    set "SERVICE_CMD=!SERVICE_CMD!set SPRING_PROFILES_ACTIVE=%PROFILE% && "
+    set "SERVICE_CMD=!SERVICE_CMD!call ""%MAVEN_CMD%"" clean >nul 2>&1 && "
+    set "SERVICE_CMD=!SERVICE_CMD!""%MAVEN_CMD%"" spring-boot:run "
+    set "SERVICE_CMD=!SERVICE_CMD!-Dspring-boot.run.profiles=%PROFILE% "
+    set "SERVICE_CMD=!SERVICE_CMD!-DskipTests=true "
+    set "SERVICE_CMD=!SERVICE_CMD!-Deureka.instance.hostname=%EUREKA_INSTANCE_HOSTNAME% "
+    set "SERVICE_CMD=!SERVICE_CMD!-Deureka.instance.preferIpAddress=%EUREKA_INSTANCE_PREFER_IP_ADDRESS%"
+
+    if defined SPRING_BOOT_EXTRAS (
+      set "SERVICE_CMD=!SERVICE_CMD! %SPRING_BOOT_EXTRAS%"
     )
+
+    set "SERVICE_CMD=!SERVICE_CMD! >> ""!LOG_FILE!"" 2>&1"
+
+    start "easyops-!SERVICE!" /b cmd /c "!SERVICE_CMD!"
 
     if errorlevel 1 (
       echo [ERROR] Failed to launch !SERVICE!  (see !LOG_FILE!)
@@ -178,6 +191,8 @@ echo.
 echo All services launched in the background.
 echo Check log files under %LOG_DIR% for startup progress.
 echo Press Ctrl+C to exit this script (services continue to run).
+
+:END
 
 endlocal
 

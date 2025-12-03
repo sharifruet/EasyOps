@@ -84,9 +84,13 @@ public class GatewayConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowCredentials(true);
-        corsConfig.addAllowedOriginPattern("*");
+        // When allowCredentials is true, must specify exact origins or use patterns without wildcard
+        // For development, allow localhost origins
+        corsConfig.addAllowedOriginPattern("http://localhost:*");
+        corsConfig.addAllowedOriginPattern("http://127.0.0.1:*");
         corsConfig.addAllowedHeader("*");
         corsConfig.addAllowedMethod("*");
+        corsConfig.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);

@@ -13,7 +13,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAVEN_CMD="${MAVEN_CMD:-$ROOT_DIR/mvnw}"
-PROFILE="${SPRING_PROFILE:-}"
+PROFILE="${SPRING_PROFILE:-local}"
 LOG_DIR="${LOG_DIR:-$ROOT_DIR/logs/local-services}" 
 PID_DIR="${PID_DIR:-$LOG_DIR/pids}"
 
@@ -25,11 +25,17 @@ DEFAULT_LOGGING_PATTERN_FILE="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %lo
 : "${LOGGING_PATTERN_FILE:=$DEFAULT_LOGGING_PATTERN_FILE}"
 export LOGGING_PATTERN_CONSOLE LOGGING_PATTERN_FILE
 
-# For local services, use localhost so Eureka links are accessible from browser.
-# Docker containers can still reach services via localhost when running on the same host.
-: "${EUREKA_INSTANCE_HOSTNAME:=localhost}"
+# Ensure Eureka clients register with a host reachable from Docker containers.
+# Always use host.docker.internal so Docker containers can reach services.
+# Docker containers can resolve host.docker.internal even if host ping/resolution fails.
+: "${EUREKA_INSTANCE_HOSTNAME:=host.docker.internal}"
 : "${EUREKA_INSTANCE_PREFER_IP_ADDRESS:=false}"
 
+# Note: We don't fall back to IP address anymore because:
+# 1. Docker containers can resolve host.docker.internal even if host ping/resolution fails
+# 2. Using IP addresses causes connectivity issues from Docker containers
+# 3. The application.yml already has host.docker.internal as default
+echo "ℹ️  Using host.docker.internal for Eureka registrations (Docker containers can reach it)"
 export EUREKA_INSTANCE_HOSTNAME
 export EUREKA_INSTANCE_PREFER_IP_ADDRESS
 
@@ -57,11 +63,48 @@ DEFAULT_SERVICES=(
   "manufacturing-service"
 )
 
+CORE_MANAGED_SERVICES=(
+  "api-gateway"
+  "eureka"
+  "frontend"
+  "adminer"
+  "postgres"
+  "redis"
+  "prometheus"
+  "grafana"
+)
+
 if [ -n "${SERVICES_OVERRIDE:-}" ]; then
   # Allow comma or space separated override list
   IFS=',' read -r -a SERVICES <<< "${SERVICES_OVERRIDE// /,}"
 else
   SERVICES=("${DEFAULT_SERVICES[@]}")
+fi
+
+is_core_managed() {
+  local candidate="$1"
+  for managed in "${CORE_MANAGED_SERVICES[@]}"; do
+    if [[ "$candidate" == "$managed" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+FILTERED_SERVICES=()
+for service in "${SERVICES[@]}"; do
+  if is_core_managed "$service"; then
+    echo "ℹ️  Skipping $service because it is managed by start-core-services (Docker)."
+    continue
+  fi
+  FILTERED_SERVICES+=("$service")
+done
+
+SERVICES=("${FILTERED_SERVICES[@]}")
+
+if [ ${#SERVICES[@]} -eq 0 ]; then
+  echo "⚠️  No Spring services to launch (all requested services are handled by Docker)."
+  exit 0
 fi
 
 mkdir -p "$LOG_DIR" "$PID_DIR"

@@ -11,6 +11,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_DIR="${LOG_DIR:-$ROOT_DIR/logs/local-services}"
 PID_DIR="${PID_DIR:-$LOG_DIR/pids}"
+SERVICE_PORTS=(8082 8083 8084 8085 8086 8087 8088 8089 8090 8091 8092 8093 8094 8095 8096 8097 8098)
 
 if [ ! -d "$PID_DIR" ]; then
   echo "ℹ️  PID directory '$PID_DIR' does not exist. Nothing to stop."
@@ -36,6 +37,42 @@ if [ ${#PID_FILES[@]} -eq 0 ]; then
     pkill -f 'com.easyops.*ServiceApplication' || true
     echo "✅ Fallback kill issued."
     exit 0
+  fi
+
+  if command -v powershell.exe >/dev/null 2>&1; then
+    if [ ${#SERVICE_PORTS[@]} -gt 0 ]; then
+      PORT_LIST="$(printf '%s,' "${SERVICE_PORTS[@]}")"
+      PORT_LIST="${PORT_LIST%,}"
+      POWERSHELL_RESULT="$(powershell.exe -NoProfile -Command "\$ports = @($PORT_LIST); \$pids = @(); foreach (\$port in \$ports) { \$conns = Get-NetTCPConnection -State Listen -LocalPort \$port -ErrorAction SilentlyContinue; if (\$conns) { \$pids += \$conns | Select-Object -ExpandProperty OwningProcess } } if (\$pids.Count -gt 0) { \$unique = \$pids | Sort-Object -Unique; foreach (\$pid in \$unique) { Stop-Process -Id \$pid -Force -ErrorAction SilentlyContinue } \$unique -join ' ' }" 2>/dev/null | tr -d '\r')"
+
+      if [ -n "${POWERSHELL_RESULT// }" ]; then
+        echo "  • Killing Spring Boot processes listening on known ports (PIDs: $POWERSHELL_RESULT)"
+        echo "✅ Fallback kill issued."
+        exit 0
+      fi
+    fi
+
+    POWERSHELL_RESULT="$(powershell.exe -NoProfile -Command '
+$procs = Get-CimInstance Win32_Process | Where-Object {
+  $_.CommandLine -match "easyops-erp.*spring-boot:run" -or
+  $_.CommandLine -match "easyops-erp.*start-spring-services" -or
+  $_.CommandLine -match "spring-boot-[0-9]+\.argfile" -or
+  $_.CommandLine -match "com\.easyops"
+};
+if ($procs) {
+  $ids = $procs.ProcessId | Sort-Object -Unique
+  if ($ids.Count -gt 0) {
+    $procs | Stop-Process -Force -ErrorAction SilentlyContinue;
+    $ids -join " "
+  }
+}
+' 2>/dev/null | tr -d '\r')"
+
+    if [ -n "${POWERSHELL_RESULT// }" ]; then
+      echo "  • Killing Spring Boot processes via PowerShell (PIDs: $POWERSHELL_RESULT)"
+      echo "✅ Fallback kill issued."
+      exit 0
+    fi
   fi
 
   echo "ℹ️  No running Spring services detected."

@@ -63,6 +63,12 @@ if ! "${COMPOSE_CMD[@]}" up -d --wait "${APP_SERVICES[@]}"; then
 fi
 
 echo ""
+echo "📈 Starting monitoring stack (Prometheus + Grafana)..."
+if ! "${COMPOSE_CMD[@]}" up -d --wait "${MONITORING_SERVICES[@]}"; then
+  echo -e "${YELLOW}⚠️  docker compose reported an issue while starting monitoring services. Check logs below.${NC}"
+fi
+
+echo ""
 echo "📊 Current container status:"
 "${COMPOSE_CMD[@]}" ps adminer postgres redis liquibase prometheus grafana frontend
 
@@ -73,17 +79,42 @@ if ! "${COMPOSE_CMD[@]}" up -d --wait "${MONITORING_SERVICES[@]}"; then
 fi
 echo -e "${GREEN}✅ Monitoring and frontend services started${NC}"
 
-echo ""
 echo "⏳ Waiting for Frontend (http://localhost:3000)..."
-RETRIES=30
+RETRIES=60
 until curl -fs http://localhost:3000 >/dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
   sleep 2
   RETRIES=$((RETRIES-1))
 done
 if [ $RETRIES -eq 0 ]; then
-  echo -e "${YELLOW}⚠️  Frontend did not become available within the timeout.${NC}"
+  echo -e "${YELLOW}⚠️  Frontend did not respond within the timeout.${NC}"
 else
-  echo -e "${GREEN}✅ Frontend is available${NC}"
+  echo -e "${GREEN}✅ Frontend is responding${NC}"
+fi
+
+echo ""
+echo "⏳ Waiting for Prometheus (http://localhost:9090/-/ready)..."
+RETRIES=60
+until curl -fs http://localhost:9090/-/ready >/dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+  sleep 2
+  RETRIES=$((RETRIES-1))
+done
+if [ $RETRIES -eq 0 ]; then
+  echo -e "${YELLOW}⚠️  Prometheus did not report ready within the timeout.${NC}"
+else
+  echo -e "${GREEN}✅ Prometheus is ready${NC}"
+fi
+
+echo ""
+echo "⏳ Waiting for Grafana (http://localhost:3001/login)..."
+RETRIES=60
+until curl -fs http://localhost:3001/login >/dev/null 2>&1 || [ $RETRIES -eq 0 ]; do
+  sleep 2
+  RETRIES=$((RETRIES-1))
+done
+if [ $RETRIES -eq 0 ]; then
+  echo -e "${YELLOW}⚠️  Grafana did not respond with HTTP 200 within the timeout.${NC}"
+else
+  echo -e "${GREEN}✅ Grafana is responding${NC}"
 fi
 
 echo ""

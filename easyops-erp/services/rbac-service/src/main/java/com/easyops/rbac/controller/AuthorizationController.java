@@ -23,7 +23,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/rbac/authorization")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class AuthorizationController {
 

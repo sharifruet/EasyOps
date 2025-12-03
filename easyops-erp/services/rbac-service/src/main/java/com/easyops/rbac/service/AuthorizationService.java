@@ -4,6 +4,7 @@ import com.easyops.rbac.dto.AuthorizationRequest;
 import com.easyops.rbac.dto.PermissionResponse;
 import com.easyops.rbac.dto.RoleResponse;
 import com.easyops.rbac.dto.UserRoleRequest;
+import com.easyops.rbac.entity.Permission;
 import com.easyops.rbac.entity.Role;
 import com.easyops.rbac.entity.UserRole;
 import com.easyops.rbac.repository.RoleRepository;
@@ -112,9 +113,14 @@ public class AuthorizationService {
         
         Set<PermissionResponse> permissions = new HashSet<>();
         for (UserRole userRole : userRoles) {
-            RoleResponse role = roleService.getRoleById(userRole.getRole().getId());
-            if (role.getPermissions() != null) {
-                permissions.addAll(role.getPermissions());
+            // Use Role entity directly from UserRole (EAGER loaded) to avoid Redis cache
+            // deserialization issues with cached RoleResponse that may return LinkedHashMap
+            Role role = userRole.getRole();
+            if (role != null && role.getPermissions() != null) {
+                // Access permissions (lazy-loaded, but in transaction so it will initialize)
+                role.getPermissions().stream()
+                        .map(this::mapToPermissionResponse)
+                        .forEach(permissions::add);
             }
         }
         
@@ -162,6 +168,23 @@ public class AuthorizationService {
     public void cleanupExpiredRoles() {
         userRoleRepository.deleteExpiredRoles(LocalDateTime.now());
         log.info("Cleaned up expired user roles");
+    }
+
+    /**
+     * Map Permission entity to PermissionResponse DTO
+     */
+    private PermissionResponse mapToPermissionResponse(Permission permission) {
+        PermissionResponse response = new PermissionResponse();
+        response.setId(permission.getId());
+        response.setName(permission.getName());
+        response.setCode(permission.getCode());
+        response.setResource(permission.getResource());
+        response.setAction(permission.getAction());
+        response.setDescription(permission.getDescription());
+        response.setIsActive(permission.getIsActive());
+        response.setCreatedAt(permission.getCreatedAt());
+        response.setUpdatedAt(permission.getUpdatedAt());
+        return response;
     }
 }
 

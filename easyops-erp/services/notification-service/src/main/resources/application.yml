@@ -46,7 +46,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://admin:admin@localhost:8761/eureka
+      defaultZone: http://localhost:8761/eureka
     fetch-registry: true
     register-with-eureka: true
   instance:
@@ -102,4 +102,31 @@ notification:
   notifications:
     max-per-user: 1000
     retention-days: 90
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://postgres:5432/easyops
+    username: easyops
+    password: easyops123
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
+
+logging:
+  level:
+    root: INFO
+    com.easyops: DEBUG
 

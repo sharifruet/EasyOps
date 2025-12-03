@@ -2,6 +2,7 @@ package com.easyops.rbac.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,7 @@ import java.time.Duration;
 /**
  * Cache Configuration
  *
- * Configures Redis caching for RBAC service with Java Time support.
+ * Configures Redis caching for RBAC service with Java Time support and proper type information.
  */
 @Configuration
 public class CacheConfig {
@@ -27,7 +28,11 @@ public class CacheConfig {
 	public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
 		ObjectMapper objectMapper = new ObjectMapper()
 				.registerModule(new JavaTimeModule())
-				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+				.activateDefaultTyping(
+						LaissezFaireSubTypeValidator.instance,
+						ObjectMapper.DefaultTyping.NON_FINAL,
+						com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY);
 
 		GenericJackson2JsonRedisSerializer valueSerializer =
 				new GenericJackson2JsonRedisSerializer(objectMapper);

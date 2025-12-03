@@ -85,3 +85,30 @@ sales:
     require-approval: false
     approval-amount-threshold: 10000
 
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://postgres:5432/easyops
+    username: easyops
+    password: easyops123
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka/}
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
+
+logging:
+  level:
+    root: INFO
+    com.easyops.sales: DEBUG
+

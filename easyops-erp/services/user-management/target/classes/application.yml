@@ -29,7 +29,11 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    prefer-ip-address: true
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
 
 management:
   endpoints:
@@ -62,7 +66,13 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka/}
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
 
 logging:
   level:

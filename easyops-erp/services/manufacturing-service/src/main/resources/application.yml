@@ -5,9 +5,9 @@ spring:
   application:
     name: MANUFACTURING-SERVICE
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:easyops_db}
-    username: ${DB_USERNAME:easyops_user}
-    password: ${DB_PASSWORD:easyops_pass}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:easyops}
+    username: ${DB_USERNAME:easyops}
+    password: ${DB_PASSWORD:easyops123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -15,7 +15,6 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
 eureka:
@@ -25,8 +24,12 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
   instance:
-    prefer-ip-address: true
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
     instance-id: ${spring.application.name}:${random.value}
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
 
 management:
   endpoints:
@@ -57,4 +60,31 @@ integration:
     url: http://ACCOUNTING-SERVICE
   purchase-service:
     url: http://PURCHASE-SERVICE
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://postgres:5432/easyops
+    username: easyops
+    password: easyops123
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka/}
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
+
+logging:
+  level:
+    root: INFO
+    com.easyops.manufacturing: DEBUG
 

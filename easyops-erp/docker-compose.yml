@@ -205,6 +205,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -235,6 +236,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -264,6 +266,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -298,6 +301,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -329,6 +333,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -360,6 +365,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -393,6 +399,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -420,6 +427,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -451,6 +459,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -482,6 +491,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -513,6 +523,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -543,6 +554,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -582,6 +594,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -613,6 +626,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -652,6 +666,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -685,6 +700,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
@@ -717,6 +733,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123

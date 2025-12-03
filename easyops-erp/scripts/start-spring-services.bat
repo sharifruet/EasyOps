@@ -1,6 +1,12 @@
 @echo off
 REM EasyOps ERP - Windows Spring Boot launcher
 REM Mirrors start-spring-services.sh for Git Bash/Command Prompt users.
+REM
+REM Prerequisites:
+REM   1. Core infrastructure (Postgres/Redis) should already be running.
+REM      The docker-based start-core-services.bat script is the easiest way to achieve this.
+REM   2. Java 21+ and Maven Wrapper dependencies available (mvnw will download as required).
+REM   3. Ports 8761 (Eureka) and 8081 (API Gateway) must be free for local services.
 
 setlocal enabledelayedexpansion
 
@@ -48,32 +54,16 @@ if not exist "%PID_DIR%" (
 )
 
 REM --- Eureka hostname resolution ----------------------------------------------
+REM For local services, use localhost so Eureka links are accessible from browser.
 if not defined EUREKA_INSTANCE_HOSTNAME (
-  set "EUREKA_INSTANCE_HOSTNAME=host.docker.internal"
+  set "EUREKA_INSTANCE_HOSTNAME=localhost"
 )
 set "EUREKA_INSTANCE_PREFER_IP_ADDRESS=false"
 
-ping -n 1 %EUREKA_INSTANCE_HOSTNAME% >nul 2>&1
-if errorlevel 1 (
-  for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr /c:"IPv4 Address" /c:"IPv4-Adresse"') do (
-    for /f "tokens=1,* delims= " %%B in ("%%A") do (
-      if not defined HOST_IP (
-        set "HOST_IP=%%C"
-      )
-    )
-  )
-  if defined HOST_IP (
-    set "HOST_IP=%HOST_IP: =%"
-    set "EUREKA_INSTANCE_HOSTNAME=%HOST_IP%"
-    set "EUREKA_INSTANCE_PREFER_IP_ADDRESS=true"
-    echo [INFO] host.docker.internal not reachable, using %HOST_IP% for Eureka registrations.
-  ) else (
-    echo [WARN] Unable to resolve host.docker.internal and no fallback IP detected.
-  )
-)
-
 REM --- Service list ------------------------------------------------------------
-set "DEFAULT_SERVICES=user-management auth-service rbac-service organization-service notification-service monitoring-service accounting-service ar-service ap-service bank-service sales-service inventory-service purchase-service crm-service hr-service manufacturing-service"
+REM Order matters when services depend on one another.
+REM Eureka must start first, followed by API Gateway, then all other services.
+set "DEFAULT_SERVICES=eureka api-gateway user-management auth-service rbac-service organization-service notification-service monitoring-service accounting-service ar-service ap-service bank-service sales-service inventory-service purchase-service crm-service hr-service manufacturing-service"
 
 if defined SERVICES_OVERRIDE (
   set "SERVICES=%SERVICES_OVERRIDE:,= %"
@@ -101,6 +91,9 @@ if errorlevel 1 (
 popd >nul
 
 REM --- Launch each service -----------------------------------------------------
+set "EUREKA_STARTED=0"
+set "API_GATEWAY_STARTED=0"
+
 for %%S in (%SERVICES%) do (
   set "SERVICE=%%~S"
   set "MODULE_DIR=%ROOT_DIR%\services\!SERVICE!"
@@ -109,22 +102,72 @@ for %%S in (%SERVICES%) do (
     echo [START] !SERVICE!  (profile=%PROFILE%)
     echo          log: !LOG_FILE!
 
-    start "easyops-!SERVICE!" /b cmd /c ^
-      "cd /d ""!MODULE_DIR!"" && ^
-       set SPRING_PROFILES_ACTIVE=%PROFILE% && ^
-       call ""%MAVEN_CMD%"" clean >nul 2>&1 && ^
-       ""%MAVEN_CMD%"" spring-boot:run ^
-         -Dspring-boot.run.profiles=%PROFILE% ^
-         -DskipTests=true ^
-         -Deureka.instance.hostname=%EUREKA_INSTANCE_HOSTNAME% ^
-         -Deureka.instance.preferIpAddress=%EUREKA_INSTANCE_PREFER_IP_ADDRESS% ^
-         %SPRING_BOOT_EXTRAS% ^
-         >> ""!LOG_FILE!"" 2>&1"
+    if "!PROFILE!"=="" (
+      REM No profile - use default config with localhost overrides
+      start "easyops-!SERVICE!" /b cmd /c ^
+        "cd /d ""!MODULE_DIR!"" && ^
+         set SPRING_PROFILES_ACTIVE= && ^
+         call ""%MAVEN_CMD%"" clean >nul 2>&1 && ^
+         ""%MAVEN_CMD%"" spring-boot:run ^
+           -Dspring-boot.run.profiles= ^
+           -Dspring.profiles.active= ^
+           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/easyops ^
+           -Dspring.datasource.username=easyops ^
+           -Dspring.datasource.password=easyops123 ^
+           -Dspring.data.redis.host=localhost ^
+           -Dspring.data.redis.port=6379 ^
+           -DskipTests=true ^
+           -Deureka.instance.hostname=%EUREKA_INSTANCE_HOSTNAME% ^
+           -Deureka.instance.preferIpAddress=%EUREKA_INSTANCE_PREFER_IP_ADDRESS% ^
+           -Deureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/ ^
+           %SPRING_BOOT_EXTRAS% ^
+           >> ""!LOG_FILE!"" 2>&1"
+    ) else (
+      REM Profile specified
+      start "easyops-!SERVICE!" /b cmd /c ^
+        "cd /d ""!MODULE_DIR!"" && ^
+         set SPRING_PROFILES_ACTIVE=%PROFILE% && ^
+         call ""%MAVEN_CMD%"" clean >nul 2>&1 && ^
+         ""%MAVEN_CMD%"" spring-boot:run ^
+           -Dspring-boot.run.profiles=%PROFILE% ^
+           -DskipTests=true ^
+           -Deureka.instance.hostname=%EUREKA_INSTANCE_HOSTNAME% ^
+           -Deureka.instance.preferIpAddress=%EUREKA_INSTANCE_PREFER_IP_ADDRESS% ^
+           %SPRING_BOOT_EXTRAS% ^
+           >> ""!LOG_FILE!"" 2>&1"
+    )
 
     if errorlevel 1 (
       echo [ERROR] Failed to launch !SERVICE!  (see !LOG_FILE!)
     ) else (
       echo [OK]    !SERVICE! launch command issued.
+      timeout /t 2 /nobreak >nul
+    )
+    
+    REM Wait for Eureka before starting other services
+    if "!SERVICE!"=="eureka" if "!EUREKA_STARTED!"=="0" (
+      set "EUREKA_STARTED=1"
+      echo [WAIT]  Waiting for Eureka to become healthy...
+      powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:8761/actuator/health').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+      if errorlevel 1 (
+        echo [WARN] Eureka did not become healthy within timeout
+      ) else (
+        echo [OK]    Eureka is healthy
+      )
+      echo.
+    )
+    
+    REM Wait for API Gateway before starting remaining services
+    if "!SERVICE!"=="api-gateway" if "!API_GATEWAY_STARTED!"=="0" (
+      set "API_GATEWAY_STARTED=1"
+      echo [WAIT]  Waiting for API Gateway to become healthy...
+      powershell -NoProfile -Command "foreach ($i in 1..60) { try { if ((Invoke-WebRequest -UseBasicParsing 'http://localhost:8081/actuator/health').StatusCode -eq 200) { exit 0 } } catch { } Start-Sleep 2 } exit 1"
+      if errorlevel 1 (
+        echo [WARN] API Gateway did not become healthy within timeout
+      ) else (
+        echo [OK]    API Gateway is healthy
+      )
+      echo.
     )
   ) else (
     echo [SKIP]   !SERVICE! (module directory not found)

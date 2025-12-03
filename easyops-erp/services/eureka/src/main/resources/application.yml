@@ -44,10 +44,9 @@ spring:
   config:
     activate:
       on-profile: dev
-  security:
-    user:
-      name: admin
-      password: admin
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
 
 eureka:
   server:
@@ -58,6 +57,7 @@ logging:
   level:
     root: INFO
     com.easyops: DEBUG
+    org.springframework.security: INFO
 
 ---
 # Production Profile

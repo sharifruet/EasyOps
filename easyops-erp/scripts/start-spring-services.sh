@@ -63,9 +63,9 @@ DEFAULT_SERVICES=(
   "manufacturing-service"
 )
 
+# Services managed by Docker via start-core-services.sh
+# NOTE: eureka and api-gateway are now run locally, not via Docker
 CORE_MANAGED_SERVICES=(
-  "api-gateway"
-  "eureka"
   "frontend"
   "adminer"
   "postgres"
@@ -99,6 +99,10 @@ for service in "${SERVICES[@]}"; do
   fi
   FILTERED_SERVICES+=("$service")
 done
+
+# Debug: Show what will be started
+echo "🔍 Debug: Services to start: ${FILTERED_SERVICES[*]}"
+echo "🔍 Debug: CORE_MANAGED_SERVICES: ${CORE_MANAGED_SERVICES[*]}"
 
 SERVICES=("${FILTERED_SERVICES[@]}")
 

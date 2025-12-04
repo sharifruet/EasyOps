@@ -151,6 +151,37 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 ---
+# Local Profile
+spring:
+  config:
+    activate:
+      on-profile: local
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 10
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
+
+logging:
+  level:
+    root: INFO
+    com.easyops: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+---
 # Production Profile
 spring:
   config:

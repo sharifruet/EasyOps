@@ -173,58 +173,60 @@ services:
       # - mongodb
 
   # Service Discovery
-  eureka:
-    build:
-      context: .
-      dockerfile: services/eureka/Dockerfile.dev
-    container_name: easyops-eureka
-    ports:
-      - "8761:8761"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    networks:
-      - easyops-network
-    depends_on:
-      liquibase:
-        condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
+  # NOTE: Eureka is now run locally via start-spring-services.bat/sh, not via Docker
+  # eureka:
+  #   build:
+  #     context: .
+  #     dockerfile: services/eureka/Dockerfile.dev
+  #   container_name: easyops-eureka
+  #   ports:
+  #     - "8761:8761"
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=dev
+  #   networks:
+  #     - easyops-network
+  #   depends_on:
+  #     liquibase:
+  #       condition: service_completed_successfully
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
+  #     interval: 15s
+  #     timeout: 10s
+  #     retries: 10
+  #     start_period: 60s
 
   # API Gateway (Development)
-  api-gateway:
-    build:
-      context: .
-      dockerfile: services/api-gateway/Dockerfile.dev
-    container_name: easyops-api-gateway
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
-      - EUREKA_INSTANCE_HOSTNAME=localhost
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
-      - SPRING_DATASOURCE_USERNAME=easyops
-      - SPRING_DATASOURCE_PASSWORD=easyops123
-      - JWT_SECRET=easyops-jwt-secret-key-change-this-in-production-minimum-256-bits
-    depends_on:
-      liquibase:
-        condition: service_completed_successfully
-      eureka:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    networks:
-      - easyops-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
+  # NOTE: API Gateway is now run locally via start-spring-services.bat/sh, not via Docker
+  # api-gateway:
+  #   build:
+  #     context: .
+  #     dockerfile: services/api-gateway/Dockerfile.dev
+  #   container_name: easyops-api-gateway
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=dev
+  #     - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:admin@eureka:8761/eureka
+  #     - EUREKA_INSTANCE_HOSTNAME=localhost
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/easyops
+  #     - SPRING_DATASOURCE_USERNAME=easyops
+  #     - SPRING_DATASOURCE_PASSWORD=easyops123
+  #     - JWT_SECRET=easyops-jwt-secret-key-change-this-in-production-minimum-256-bits
+  #   depends_on:
+  #     liquibase:
+  #       condition: service_completed_successfully
+  #     eureka:
+  #       condition: service_healthy
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - easyops-network
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 120s
 
   # User Management Service
   user-management:
@@ -244,8 +246,6 @@ services:
     depends_on:
       liquibase:
         condition: service_completed_successfully
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
     networks:
@@ -277,8 +277,6 @@ services:
       - JWT_EXPIRATION=86400000
       - JWT_REFRESH_EXPIRATION=604800000
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -309,8 +307,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -341,8 +337,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -377,8 +371,6 @@ services:
       - EMAIL_FROM=easyops@i2gether.com
       - EMAIL_ENABLED=true
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
     networks:
@@ -405,8 +397,6 @@ services:
       - SPRING_DATASOURCE_USERNAME=easyops
       - SPRING_DATASOURCE_PASSWORD=easyops123
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
     networks:
@@ -435,8 +425,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -467,8 +455,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -499,8 +485,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -531,8 +515,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -566,8 +548,6 @@ services:
       - NOTIFICATION_SERVICE_URL=http://notification-service:8086
       - INVENTORY_SERVICE_URL=http://inventory-service:8094
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -602,8 +582,6 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -638,8 +616,6 @@ services:
       - DB_USER=easyops
       - DB_PASSWORD=easyops123
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -676,8 +652,6 @@ services:
       - DB_USER=easyops
       - DB_PASSWORD=easyops123
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       liquibase:
@@ -710,8 +684,6 @@ services:
       - DB_USER=easyops
       - DB_PASSWORD=easyops123
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       liquibase:
@@ -743,8 +715,6 @@ services:
       - DB_USER=easyops
       - DB_PASSWORD=easyops123
     depends_on:
-      eureka:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       liquibase:
@@ -774,9 +744,8 @@ services:
       - VITE_APP_VERSION=1.0.0
     networks:
       - easyops-network
-    depends_on:
-      api-gateway:
-        condition: service_healthy
+    # NOTE: api-gateway dependency removed - it now runs locally via start-spring-services.bat/sh
+    # Frontend connects to api-gateway via localhost:8081
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
       interval: 30s

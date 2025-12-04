@@ -11,11 +11,11 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Security configuration for Eureka Server
- * Completely disables authentication for development
+ * Completely disables authentication for development and local profiles
  */
 @Configuration
 @EnableWebSecurity
-@Profile("dev")
+@Profile({"dev", "local"})
 public class SecurityConfig {
 
     @Bean

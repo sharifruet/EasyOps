@@ -60,6 +60,27 @@ logging:
     org.springframework.security: INFO
 
 ---
+# Local Profile (for local development)
+spring:
+  config:
+    activate:
+      on-profile: local
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
+eureka:
+  server:
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 5000
+
+logging:
+  level:
+    root: INFO
+    com.easyops: DEBUG
+    org.springframework.security: INFO
+
+---
 # Production Profile
 spring:
   config:

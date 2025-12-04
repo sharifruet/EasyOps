@@ -2,6 +2,10 @@
 REM EasyOps ERP - Windows Spring Boot launcher
 REM Mirrors start-spring-services.sh for Git Bash/Command Prompt users.
 REM
+REM IMPORTANT: This script runs ALL Spring Boot services LOCALLY via Maven (mvnw spring-boot:run).
+REM This includes Eureka and API Gateway - they are NOT run in Docker.
+REM Only infrastructure services (Postgres, Redis, Frontend, etc.) run in Docker via start-core-services.bat
+REM
 REM Prerequisites:
 REM   1. Core infrastructure (Postgres/Redis) should already be running.
 REM      The docker-based start-core-services.bat script is the easiest way to achieve this.
@@ -60,21 +64,12 @@ if not defined EUREKA_INSTANCE_HOSTNAME (
   set "EUREKA_INSTANCE_HOSTNAME=host.docker.internal"
 )
 set "EUREKA_INSTANCE_PREFER_IP_ADDRESS=false"
-
-REM Note: We don't fall back to IP address anymore because:
-REM 1. Docker containers can resolve host.docker.internal even if host ping fails
-REM 2. Using IP addresses causes connectivity issues from Docker containers
-REM 3. The application.yml already has host.docker.internal as default
-echo [INFO] Using host.docker.internal for Eureka registrations (Docker containers can reach it)
-
-REM --- Service list ------------------------------------------------------------
-set "DEFAULT_SERVICES=user-management auth-service rbac-service organization-service notification-service monitoring-service accounting-service ar-service ap-service bank-service sales-service inventory-service purchase-service crm-service hr-service manufacturing-service"
-set "CORE_MANAGED_SERVICES=api-gateway eureka frontend adminer postgres redis prometheus grafana"
-
-if defined SERVICES_OVERRIDE (
-  set "SERVICES=%SERVICES_OVERRIDE:,= %"
-) else (
+set "DEFAULT_SERVICES=eureka api-gateway user-management auth-service rbac-service organization-service notification-service monitoring-service accounting-service ar-service ap-service bank-service sales-service inventory-service purchase-service crm-service hr-service manufacturing-service"
+set "CORE_MANAGED_SERVICES=frontend adminer postgres redis prometheus grafana"
+if not defined SERVICES_OVERRIDE (
   set "SERVICES=%DEFAULT_SERVICES%"
+) else (
+  set "SERVICES=%SERVICES_OVERRIDE%"
 )
 
 set "FILTERED_SERVICES="

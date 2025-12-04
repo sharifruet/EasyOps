@@ -4,6 +4,13 @@ spring:
       host: localhost
       port: 6379
 
+# Eureka Client Configuration for Local Profile
+# Use host.docker.internal so Docker containers can reach this service
+eureka:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:host.docker.internal}
+    prefer-ip-address: false
+
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

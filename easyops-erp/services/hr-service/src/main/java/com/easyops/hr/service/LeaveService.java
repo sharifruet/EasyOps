@@ -8,6 +8,7 @@ import com.easyops.hr.repository.LeaveRequestRepository;
 import com.easyops.hr.repository.LeaveTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +29,14 @@ public class LeaveService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final LeaveBalanceRepository leaveBalanceRepository;
     
+    // Per-organization locks to prevent concurrent seeding
+    private final ConcurrentHashMap<UUID, ReentrantLock> seedingLocks = new ConcurrentHashMap<>();
+    
     // Leave Type Methods
     public List<LeaveType> getAllLeaveTypes(UUID organizationId) {
         List<LeaveType> types = leaveTypeRepository.findByOrganizationId(organizationId);
         if (types.isEmpty()) {
-            types = seedDefaultLeaveTypes(organizationId);
+            types = seedDefaultLeaveTypesSafely(organizationId);
         }
         return types;
     }
@@ -124,6 +130,39 @@ public class LeaveService {
         leaveBalanceRepository.save(balance);
     }
 
+    /**
+     * Safely seed default leave types with proper synchronization to prevent race conditions.
+     * Uses per-organization locks to ensure only one thread seeds leave types for a given organization.
+     */
+    private List<LeaveType> seedDefaultLeaveTypesSafely(UUID organizationId) {
+        // Get or create a lock for this organization
+        ReentrantLock lock = seedingLocks.computeIfAbsent(organizationId, k -> new ReentrantLock());
+        
+        lock.lock();
+        try {
+            // Double-check after acquiring lock - another thread might have seeded while we waited
+            List<LeaveType> existing = leaveTypeRepository.findByOrganizationId(organizationId);
+            if (!existing.isEmpty()) {
+                log.debug("Leave types already seeded for organization {} (found by another thread)", organizationId);
+                return existing;
+            }
+            
+            // Attempt to seed
+            return seedDefaultLeaveTypes(organizationId);
+        } catch (DataIntegrityViolationException e) {
+            // Another thread might have inserted between our check and insert
+            // This is safe - just return what's in the database now
+            log.warn("Duplicate key violation while seeding leave types for organization {} - another thread may have seeded. Retrying query.", organizationId);
+            return leaveTypeRepository.findByOrganizationId(organizationId);
+        } finally {
+            lock.unlock();
+            // Clean up lock if no longer needed (optional optimization)
+            if (!lock.hasQueuedThreads()) {
+                seedingLocks.remove(organizationId);
+            }
+        }
+    }
+    
     private List<LeaveType> seedDefaultLeaveTypes(UUID organizationId) {
         log.info("Seeding default leave types for organization {}", organizationId);
         List<LeaveType> defaults = List.of(

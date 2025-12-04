@@ -147,14 +147,23 @@ spring:
   redis:
     host: localhost
     port: 6379
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME:host.docker.internal}
-    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:false}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    prefer-ip-address: false
+    homePageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}
+    statusPageUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/info
+    healthCheckUrl: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:${server.port}/actuator/health
 
 logging:
   level:
